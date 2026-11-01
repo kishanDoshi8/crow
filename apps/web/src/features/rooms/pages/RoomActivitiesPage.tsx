@@ -16,7 +16,7 @@ export default function RoomActivitiesPage() {
 	const { room } = useRoomContext();
 	const filter: ActivityFilter = "all";
 	const { currentSeries } = useCurrentSeries(room.id);
-	const [scope, setScope] = useState<SeriesScope>("series");
+	const [scope, setScope] = useState<SeriesScope>("all");
 	const seriesId = scope === "series" ? currentSeries?.id : undefined;
 	const loadMoreRef = useRef<HTMLDivElement | null>(null);
 	const hasMarkedSeenRef = useRef(false);
@@ -103,7 +103,9 @@ export default function RoomActivitiesPage() {
 				showSeries={scope === "all"}
 				isLoading={isPending}
 				isError={isError}
-				errorMessage={error instanceof Error ? error.message : undefined}
+				errorMessage={
+					error instanceof Error ? error.message : undefined
+				}
 				emptyMessage={
 					scope === "series"
 						? "Nothing has happened in this series yet."
