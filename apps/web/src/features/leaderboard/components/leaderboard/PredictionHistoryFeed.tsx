@@ -56,11 +56,11 @@ function myResult(entry: PredictionHistoryEntry) {
 	return { label: "±0", tone: "text-muted-foreground bg-muted" };
 }
 
-const RESOLVED_BY_VERB: Record<PredictionHistoryEntry["status"], string> = {
-	revealed: "Revealed",
-	no_result: "Marked no result",
-	cancelled: "Cancelled",
-};
+// const RESOLVED_BY_VERB: Record<PredictionHistoryEntry["status"], string> = {
+// 	revealed: "Revealed",
+// 	no_result: "Marked no result",
+// 	cancelled: "Cancelled",
+// };
 
 function PredictionHistoryCard({ entry }: Readonly<CardProps>) {
 	const { room } = useRoomContext();
