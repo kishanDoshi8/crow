@@ -461,6 +461,7 @@ export type Database = {
           affects_rating: boolean
           created_at: string
           created_by: string
+          description: string | null
           deadline: string
           id: string
           no_result_reason: string | null
@@ -479,6 +480,7 @@ export type Database = {
           affects_rating?: boolean
           created_at?: string
           created_by: string
+          description?: string | null
           deadline: string
           id?: string
           no_result_reason?: string | null
@@ -497,6 +499,7 @@ export type Database = {
           affects_rating?: boolean
           created_at?: string
           created_by?: string
+          description?: string | null
           deadline?: string
           id?: string
           no_result_reason?: string | null

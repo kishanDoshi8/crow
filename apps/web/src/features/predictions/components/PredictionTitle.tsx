@@ -1,5 +1,6 @@
 import { FadeContent, Skeleton } from "@/shared/ui";
 import { Prediction } from "@/features/predictions";
+import { PredictionTags } from "@/features/predictions/components/PredictionTags";
 
 type Props = {
 	prediction: Prediction | null | undefined;
@@ -19,6 +20,20 @@ export default function PredictionTitle({
 					>
 						{prediction.title}
 					</h4>
+					<PredictionTags
+						tags={prediction.tags}
+						className='mt-2 justify-center'
+					/>
+					{prediction.description ? (
+						<div className='mx-auto mt-3 max-w-md rounded-lg border border-border/60 px-3 py-2 text-left'>
+							<p className='text-xs font-semibold text-muted-foreground'>
+								Details
+							</p>
+							<p className='mt-0.5 whitespace-pre-line text-sm text-foreground/90'>
+								{prediction.description}
+							</p>
+						</div>
+					) : null}
 				</FadeContent>
 			) : (
 				// Holds the heading's line height (text-xl, md:text-3xl).

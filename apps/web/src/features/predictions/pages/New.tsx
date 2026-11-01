@@ -54,7 +54,7 @@ export default function PredictionNew() {
 				(currentSeries?.status === "active" ? currentSeries.id : null)
 			}
 			isSubmitting={isLoading}
-			onSubmit={({ title, options, deadline, seriesId }) =>
+			onSubmit={({ title, options, deadline, seriesId, description, tags }) =>
 				createPrediction(
 					{
 						roomId: room?.id || "",
@@ -62,6 +62,8 @@ export default function PredictionNew() {
 						options,
 						deadline,
 						seriesId,
+						description,
+						tags,
 					},
 					{
 						// Back to wherever the form was opened from.

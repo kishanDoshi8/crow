@@ -15,7 +15,9 @@ create table if not exists public.predictions (
   resolved_by uuid references public.players(id) on delete set null,
   notified_1h boolean not null default false,
   -- Set once staff have been pushed that the result is overdue.
-  notified_result_needed boolean not null default false
+  notified_result_needed boolean not null default false,
+  -- Optional context shown on the prediction page: how it's decided, etc.
+  description text check (description is null or char_length(description) <= 500)
 );
 
 do $$

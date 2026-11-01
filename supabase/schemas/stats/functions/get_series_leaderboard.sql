@@ -71,8 +71,9 @@ begin
       coalesce(w.granted, v_series.starting_stack) as granted,
       rm.joined_at,
       rm.is_organizer,
-      rm.current_streak,
-      rm.highest_streak,
+      -- Streaks count this series only.
+      coalesce(st.current_streak, 0) as current_streak,
+      coalesce(st.highest_streak, 0) as highest_streak,
       rm.prediction_rating,
       rm.peak_prediction_rating,
       rm.rated_predictions_count,
@@ -99,6 +100,7 @@ begin
     from public.room_members rm
     join public.players p on p.id = rm.player_id
     left join stats s on s.player_id = rm.player_id
+    left join private.series_streaks(p_series_id) st on st.player_id = rm.player_id
     left join public.series_wallets w on w.series_id = p_series_id and w.player_id = rm.player_id
     where rm.room_id = p_room_id
   ),

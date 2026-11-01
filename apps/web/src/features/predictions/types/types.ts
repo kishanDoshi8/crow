@@ -25,6 +25,8 @@ export interface Prediction {
   seriesPredictionNumber?: number | null
   seriesTitle?:      string | null
   tags?:             PredictionTag[]
+  // Optional context for the prediction page: how it's decided, etc.
+  description?:      string | null
   title:             string
   status:            PredictionStatus
   // deadline is supabase timstamp string, e.g. "2024-06-01T12:00:00Z"

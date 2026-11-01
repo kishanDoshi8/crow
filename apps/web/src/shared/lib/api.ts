@@ -717,7 +717,7 @@ export async function createPrediction(
 export async function getPrediction(predictionId: string) {
   const { data, error } = await supabase
     .from('predictions')
-    .select(`*, series:series_id(title)`)
+    .select(`*, series:series_id(title), prediction_tags(id, prediction_id, tag, created_at)`)
     .eq('id', predictionId)
     .maybeSingle()
   
@@ -737,7 +737,7 @@ export async function getPrediction(predictionId: string) {
     seriesId: data.series_id,
     seriesPredictionNumber: data.series_prediction_number,
     seriesTitle: data.series?.title ?? null,
-    tags: [],
+    tags: data.prediction_tags ?? [],
     status: data.status as PredictionStatus,
     prediction_options: predictionOptions ?? [],
   }
@@ -747,7 +747,7 @@ export async function getPrediction(predictionId: string) {
 export async function getActivePrediction(roomId: string) {
   const { data, error } = await supabase
     .from('predictions')
-    .select(`*, series:series_id(title)`)
+    .select(`*, series:series_id(title), prediction_tags(id, prediction_id, tag, created_at)`)
     .eq('room_id', roomId)
     // .in('status', ['draft', 'locked'])
     .order('created_at', { ascending: false })
@@ -771,7 +771,7 @@ export async function getActivePrediction(roomId: string) {
     seriesId: data.series_id,
     seriesPredictionNumber: data.series_prediction_number,
     seriesTitle: data.series?.title ?? null,
-    tags: [],
+    tags: data.prediction_tags ?? [],
     status: data.status as PredictionStatus,
     prediction_options: predictionOptions ?? [],
   }
@@ -781,7 +781,7 @@ export async function getActivePredictions(roomId: string, seriesId?: string): P
   // First: fetch all active (draft/locked) predictions ordered by deadline asc
   let activeQuery = supabase
     .from('predictions')
-    .select('*, series:series_id(title)')
+    .select('*, series:series_id(title), prediction_tags(id, prediction_id, tag, created_at)')
     .eq('room_id', roomId)
     .in('status', ['draft', 'locked'])
     .order('deadline', { ascending: true })
@@ -808,7 +808,7 @@ export async function getActivePredictions(roomId: string, seriesId?: string): P
           seriesId: row.series_id,
           seriesPredictionNumber: row.series_prediction_number,
           seriesTitle: row.series?.title ?? null,
-          tags: [],
+          tags: row.prediction_tags ?? [],
           status: row.status as PredictionStatus,
           prediction_options: opts ?? [],
         }
@@ -820,7 +820,7 @@ export async function getActivePredictions(roomId: string, seriesId?: string): P
   // Fallback: no active predictions — return the most recently completed prediction
   let fallbackQuery = supabase
     .from('predictions')
-    .select('*, series:series_id(title)')
+    .select('*, series:series_id(title), prediction_tags(id, prediction_id, tag, created_at)')
     .eq('room_id', roomId)
     .in('status', ['revealed', 'cancelled', 'no_result'])
     .order('resolved_at', { ascending: false })
@@ -848,7 +848,7 @@ export async function getActivePredictions(roomId: string, seriesId?: string): P
       seriesId: fallback.series_id,
       seriesPredictionNumber: fallback.series_prediction_number,
       seriesTitle: fallback.series?.title ?? null,
-      tags: [],
+      tags: fallback.prediction_tags ?? [],
       status: fallback.status as PredictionStatus,
       prediction_options: fallbackOpts ?? [],
     },
@@ -1277,6 +1277,21 @@ export async function getRoomMemberStyle(roomId: string, playerId: string) {
   return assertOk(data, error) as { titles: StyleTitle[] }
 }
 // #endregion Leaderboard
+
+// Organizers set a prediction's optional description and tags (kept as typed).
+export async function setPredictionDetails(predictionId: string, description: string, tags: string[]) {
+  const { error } = await untypedSupabase.rpc('set_prediction_details', {
+    p_prediction_id: predictionId,
+    p_description: description,
+    p_tags: tags,
+  })
+  if (error) throw error
+}
+
+export async function getRoomTags(roomId: string) {
+  const { data, error } = await untypedSupabase.rpc('get_room_tags', { p_room_id: roomId })
+  return assertOk(data, error) as string[]
+}
 
 // #region Home: results and weekly recap
 export type UnseenResult = {
