@@ -55,8 +55,6 @@ export function SeriesListView({
 				</p>
 			</div>
 
-			<UpNextCard roomId={roomId} roomCode={roomCode} />
-
 			{isPending ? (
 				<section aria-hidden='true' className='space-y-3'>
 					<SeriesSectionHeaderSkeleton />
@@ -84,13 +82,17 @@ export function SeriesListView({
 										<SeriesTile
 											series={series}
 											roomCode={roomCode}
-											isCurrent={series.id === currentSeriesId}
+											isCurrent={
+												series.id === currentSeriesId
+											}
 										/>
 									</Reveal>
 								))}
 							</div>
 						)}
 					</section>
+
+					<UpNextCard roomId={roomId} roomCode={roomCode} />
 
 					<section className='space-y-3'>
 						<SeriesSectionHeader
@@ -108,7 +110,9 @@ export function SeriesListView({
 										<SeriesTile
 											series={series}
 											roomCode={roomCode}
-											isCurrent={series.id === currentSeriesId}
+											isCurrent={
+												series.id === currentSeriesId
+											}
 										/>
 									</Reveal>
 								))}

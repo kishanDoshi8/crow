@@ -172,10 +172,13 @@ function PredictionCard({
 					</h4>
 				</FadeContent>
 
-				<FadeContent className={`flex flex-col gap-4 mt-2`}>
+				<FadeContent className={`flex flex-col gap-3 mt-2`}>
 					{prediction.prediction_options.map((option) => (
 						<Field className='w-full' key={option.id}>
-							<FieldLabel htmlFor={`progress-${option.id}`}>
+							<FieldLabel
+								htmlFor={`progress-${option.id}`}
+								className='-mb-2'
+							>
 								<span className={`flex items-center`}>
 									{option.label}
 									{prediction.winning_option_id ===
@@ -467,7 +470,8 @@ function InPlayPredictions({
 			</Button>
 		);
 	}
-	let defaultEmptyMessage = "No predictions yet. The host will start one soon!";
+	let defaultEmptyMessage =
+		"No predictions yet. The host will start one soon!";
 	const isSeriesFinished =
 		currentSeries?.status === "completed" ||
 		currentSeries?.status === "archived";
@@ -486,7 +490,12 @@ function InPlayPredictions({
 	// A finished series points to its final standings, and to the live one.
 	const finishedSeriesActions = isSeriesFinished ? (
 		<div className='flex flex-wrap justify-center gap-2 pb-2'>
-			<Button size='sm' variant='outline' className='text-foreground' asChild>
+			<Button
+				size='sm'
+				variant='outline'
+				className='text-foreground'
+				asChild
+			>
 				<Link to={`/rooms/${room.code}/leaderboard`}>
 					<TrophyIcon />
 					Final standings
@@ -564,16 +573,16 @@ function InPlayPredictions({
 					<p className={`text-muted-foreground text-center py-4`}>
 						{emptyMessage ?? defaultEmptyMessage}
 					</p>
-					{predictionsOverride === undefined ? (
-						finishedSeriesActions ??
-						(newPredictionAction ? (
-							<div className='flex justify-center pb-2'>
-								{newPredictionAction}
-							</div>
-						) : (
-							<RoomNextSteps className='pb-2' />
-						))
-					) : null}
+					{predictionsOverride === undefined
+						? (finishedSeriesActions ??
+							(newPredictionAction ? (
+								<div className='flex justify-center pb-2'>
+									{newPredictionAction}
+								</div>
+							) : (
+								<RoomNextSteps className='pb-2' />
+							)))
+						: null}
 				</div>
 			</CarouselItem>
 		);

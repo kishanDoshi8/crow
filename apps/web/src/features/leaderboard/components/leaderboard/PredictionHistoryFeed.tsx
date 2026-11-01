@@ -254,21 +254,7 @@ function PredictionHistoryCard({ entry }: Readonly<CardProps>) {
 			{/* Footer meta */}
 			<div className='grid grid-cols-[1fr_auto] px-2 gap-x-3 gap-y-0.5 text-xs text-muted-foreground'>
 				{total > 0 && <span>Pool: {total.toLocaleString()} pts</span>}
-				{participants > 0 && (
-					<span>
-						{participants} predictor{participants === 1 ? "" : "s"}
-					</span>
-				)}
-				{winPct !== null && entry.status === "revealed" && (
-					<span>{winPct}% called it</span>
-				)}
 				{resolvedLabel && <span>{resolvedLabel}</span>}
-				{entry.resolver_username && (
-					<span>
-						{RESOLVED_BY_VERB[entry.status]} by{" "}
-						{entry.resolver_username}
-					</span>
-				)}
 			</div>
 
 			<div className='flex flex-wrap items-center gap-x-2 rounded-md bg-muted/40 px-2.5 py-1.5 text-xs'>

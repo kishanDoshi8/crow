@@ -34,13 +34,6 @@ export function UpNextCard({ roomId, roomCode }: Readonly<Props>) {
 						<ChevronUpIcon className={`inline size-5`} /> to vote.
 					</p>
 				</div>
-				{/* <Link
-					to={pageLink}
-					className='flex shrink-0 items-center gap-0.5 text-sm font-medium text-accent'
-				>
-					{suggestions.length > 0 ? "Suggest & vote" : "Suggest"}
-					<ChevronRightIcon className='size-4' />
-				</Link> */}
 			</div>
 
 			{isPending ? (
