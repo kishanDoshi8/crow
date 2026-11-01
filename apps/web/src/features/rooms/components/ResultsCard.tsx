@@ -1,6 +1,9 @@
 import { useRoomContext } from "@/app/layouts/RoomLayout";
 import { useCurrentSeries } from "@/features/series";
-import { useMarkResultsSeen, useUnseenResults } from "@/features/rooms/hooks/home";
+import {
+	useMarkResultsSeen,
+	useUnseenResults,
+} from "@/features/rooms/hooks/home";
 import type { UnseenResult } from "@/shared/lib/api";
 import { cn, formatSignedPoints } from "@/shared/lib/utils";
 import { Skeleton } from "@/shared/ui";
@@ -21,8 +24,18 @@ function outcomeOf(result: UnseenResult) {
 	}
 	const won = result.net > 0;
 	return won
-		? { Icon: CheckIcon, tone: "text-win", ring: "bg-win/15", value: `${formatSignedPoints(result.net)} pts` }
-		: { Icon: XIcon, tone: "text-loss", ring: "bg-loss/15", value: `${formatSignedPoints(result.net)} pts` };
+		? {
+				Icon: CheckIcon,
+				tone: "text-win",
+				ring: "bg-win/15",
+				value: `${formatSignedPoints(result.net)} pts`,
+			}
+		: {
+				Icon: XIcon,
+				tone: "text-loss",
+				ring: "bg-loss/15",
+				value: `${formatSignedPoints(result.net)} pts`,
+			};
 }
 
 // How your recent bets in this series turned out. Dismissing a row brings
@@ -30,7 +43,10 @@ function outcomeOf(result: UnseenResult) {
 export function ResultsCard() {
 	const { room } = useRoomContext();
 	const { currentSeries, currentSeriesId } = useCurrentSeries(room.id);
-	const { data: results = [], isPending } = useUnseenResults(room.id, currentSeriesId);
+	const { data: results = [], isPending } = useUnseenResults(
+		room.id,
+		currentSeriesId,
+	);
 	const { mutate: markSeen } = useMarkResultsSeen(room.id, currentSeriesId);
 
 	if (!currentSeries) return null;
@@ -44,7 +60,7 @@ export function ResultsCard() {
 	return (
 		<section
 			aria-label='Your results'
-			className='mt-3 rounded-xl border border-border/60 bg-card px-3 py-2.5'
+			className='max-w-md mx-auto mt-3 rounded-xl border border-border/60 bg-card px-3 py-2.5'
 		>
 			<div className='flex items-center justify-between gap-2'>
 				<h3 className='text-xs font-semibold text-muted-foreground'>
@@ -53,7 +69,9 @@ export function ResultsCard() {
 				{results.length > 1 ? (
 					<button
 						type='button'
-						onClick={() => markSeen(results.map((r) => r.prediction_id))}
+						onClick={() =>
+							markSeen(results.map((r) => r.prediction_id))
+						}
 						className='text-xs font-medium text-muted-foreground hover:text-foreground'
 					>
 						Dismiss all
@@ -86,16 +104,24 @@ export function ResultsCard() {
 											outcome.ring,
 										)}
 									>
-										<outcome.Icon className={cn("size-3.5", outcome.tone)} />
+										<outcome.Icon
+											className={cn(
+												"size-3.5",
+												outcome.tone,
+											)}
+										/>
 									</span>
 									<Link
 										to={`/rooms/${room.code}/predictions/${result.prediction_id}`}
 										className='min-w-0 flex-1'
 									>
-										<p className='truncate text-sm font-medium'>{result.title}</p>
+										<p className='truncate text-sm font-medium'>
+											{result.title}
+										</p>
 										<p className='truncate text-xs text-muted-foreground'>
 											You picked {result.my_pick}
-											{result.winning_label && result.status === "revealed"
+											{result.winning_label &&
+											result.status === "revealed"
 												? ` · ${result.winning_label} won`
 												: ""}
 										</p>
@@ -110,7 +136,9 @@ export function ResultsCard() {
 									</span>
 									<button
 										type='button'
-										onClick={() => markSeen([result.prediction_id])}
+										onClick={() =>
+											markSeen([result.prediction_id])
+										}
 										aria-label={`Dismiss ${result.title}`}
 										className='-mr-1 flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground'
 									>
@@ -121,7 +149,9 @@ export function ResultsCard() {
 						})}
 					</AnimatePresence>
 					{more > 0 ? (
-						<li className='pt-1 text-xs text-muted-foreground'>+{more} more</li>
+						<li className='pt-1 text-xs text-muted-foreground'>
+							+{more} more
+						</li>
 					) : null}
 				</ul>
 			)}
