@@ -104,6 +104,8 @@ export const roomKeys = {
     [...roomKeys.detail(roomId), "unseenResults", seriesId] as const,
   myWeeklyRecap: (roomId: string, seriesId: string) =>
     [...roomKeys.detail(roomId), "myWeeklyRecap", seriesId] as const,
+  roomTags: (roomId: string) =>
+    [...roomKeys.detail(roomId), "roomTags"] as const,
   seriesSuggestions: (roomId: string) =>
     [...roomKeys.detail(roomId), "seriesSuggestions"] as const,
 };

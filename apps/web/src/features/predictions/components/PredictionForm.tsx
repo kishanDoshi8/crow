@@ -11,6 +11,7 @@ import { Button } from "@/shared/ui/button";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
+import { TagInput } from "@/features/predictions/components/TagInput";
 import { useEffect, useState } from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { Alert, AlertDescription } from "@/shared/ui/alert";
@@ -30,13 +31,21 @@ export type PredictionFormValues = {
 	options: string[];
 	deadline: Date;
 	seriesId: string | null;
+	description: string;
+	tags: string[];
 };
 
 type PredictionFormProps = {
 	mode: "create" | "edit";
 	roomId: string;
 	// Edit mode starts from the prediction as it is.
-	initial?: { title: string; options: string[]; deadline: Date };
+	initial?: {
+		title: string;
+		options: string[];
+		deadline: Date;
+		description?: string | null;
+		tags?: string[];
+	};
 	// Create mode: the series to preselect.
 	initialSeriesId?: string | null;
 	// Options can't change once anyone has bet.
@@ -64,6 +73,8 @@ export function PredictionForm({
 		})),
 	);
 	const [question, setQuestion] = useState(initial?.title ?? "");
+	const [description, setDescription] = useState(initial?.description ?? "");
+	const [tags, setTags] = useState<string[]>(initial?.tags ?? []);
 	// Editing keeps the current deadline, so it starts on the custom picker.
 	const [biddingDeadline, setBiddingDeadline] = useState(
 		initial ? "custom" : "1h",
@@ -143,6 +154,8 @@ export function PredictionForm({
 				options: options.map((opt) => opt.text),
 				deadline: new Date(deadlineDate),
 				seriesId: selectedSeriesId,
+				description: description.trim(),
+				tags,
 			});
 		}
 	};
@@ -194,6 +207,29 @@ export function PredictionForm({
 							onChange={(e) => setQuestion(e.target.value)}
 							aria-invalid={errors.includes("question")}
 						/>
+					</Field>
+					<Field>
+						<FieldLabel htmlFor='tags'>
+							Tags <span className='font-normal text-muted-foreground'>(optional)</span>
+						</FieldLabel>
+						<TagInput roomId={roomId} value={tags} onChange={setTags} />
+					</Field>
+					<Field>
+						<FieldLabel htmlFor='description'>
+							Details <span className='font-normal text-muted-foreground'>(optional)</span>
+						</FieldLabel>
+						<Textarea
+							id='description'
+							placeholder='How the winner is decided, what counts, any context.'
+							value={description}
+							maxLength={500}
+							onChange={(e) => setDescription(e.target.value)}
+						/>
+						{description.length > 400 ? (
+							<p className='text-right text-xs text-muted-foreground tabular-nums'>
+								{description.length}/500
+							</p>
+						) : null}
 					</Field>
 					<Field>
 						<FieldLabel htmlFor='answer' className={`flex`}>

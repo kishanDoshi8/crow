@@ -39,6 +39,9 @@ import React from "react";
 import { usePlayer } from "@/features/home";
 import { useCurrentSeries } from "@/features/series";
 import { useRoomActions } from "@/shared/lib/roomActions";
+import { PredictionTags } from "@/features/predictions/components/PredictionTags";
+import type { Bet } from "@/features/predictions/types/bet";
+import { describeDeadline } from "@/shared/lib/deadline";
 
 const PREDICTION_CARD_SHELL =
 	"text-card-foreground flex flex-col gap-6 rounded-xl border shadow-sm relative overflow-hidden border-border bg-linear-to-br from-card to-primary/5 p-5 mb-4";
@@ -166,10 +169,11 @@ function PredictionCard({
 					</h6>
 				</FadeContent>
 
-				<FadeContent>
-					<h4 className={`text-xl md:text-2xl font-semibold mb-4`}>
+				<FadeContent className='mb-4'>
+					<h4 className={`text-xl md:text-2xl font-semibold`}>
 						{prediction.title}
 					</h4>
+					<PredictionTags tags={prediction.tags} className='mt-1.5' />
 				</FadeContent>
 
 				<FadeContent className={`flex flex-col gap-3 mt-2`}>
@@ -256,52 +260,70 @@ function PredictionCard({
 					</FadeContent>
 				</div>
 
-				{myBet &&
-					prediction.status === "revealed" &&
-					(() => {
-						const pickedOption = prediction.prediction_options.find(
-							(opt) => opt.id === myBet.option_id,
-						)?.label;
-						const isWin =
-							myBet.option_id === prediction.winning_option_id;
-
-						return (
-							<span
-								className={`flex items-center justify-end text-sm mt-6 text-muted-foreground`}
-							>
-								{isWin
-									? "🎉 Nailed it with:"
-									: "😵 Plot twist, you picked:"}{" "}
-								<span
-									className={`font-semibold ml-1 ${isWin ? "text-win" : "text-loss"}`}
-								>
-									{pickedOption}
-								</span>
-							</span>
-						);
-					})()}
-
-				{prediction.status === "draft" && (
-					<span
-						className={`flex items-center justify-end text-sm text-foreground text-right mt-6`}
-					>
-						{myBet
-							? `${myBet.amount.toLocaleString()} pts riding on ${getOptionLabel(myBet.option_id)}`
-							: "Place your bet now!"}
-						<ChevronRightIcon className={`inline-block ml-1`} />
-					</span>
-				)}
-				{prediction.status === "locked" && (
-					<span
-						className={`text-sm text-muted-foreground text-right mt-6 block`}
-					>
-						{myBet
-							? `Locked ${getOptionLabel(myBet.option_id)}  — fingers crossed!`
-							: "Market closed. Watching live..."}
-					</span>
-				)}
+				<PredictionCardFooter
+					prediction={prediction}
+					myBet={myBet}
+					optionLabel={getOptionLabel}
+				/>
 			</Link>
 		</Reveal>
+	);
+}
+
+type FooterProps = {
+	prediction: Prediction;
+	myBet: Bet | undefined;
+	optionLabel: (optionId: string) => string | undefined;
+};
+
+// One plain line under the card saying where you stand: your stake once
+// you've bet, and how it turned out once it's settled.
+function PredictionCardFooter({ prediction, myBet, optionLabel }: Readonly<FooterProps>) {
+	const pts = (n: number) => `${Math.abs(n).toLocaleString()} pts`;
+	let text: string;
+	let tone = "text-muted-foreground";
+	let showArrow = false;
+
+	if (prediction.status === "draft") {
+		const locks = describeDeadline(new Date(prediction.deadline)).when;
+		showArrow = true;
+		tone = "text-foreground";
+		text = myBet
+			? `${pts(myBet.amount)} on ${optionLabel(myBet.option_id)} · tap to change`
+			: `Pick a side · locks ${locks}`;
+	} else if (prediction.status === "locked") {
+		text = myBet
+			? `${pts(myBet.amount)} on ${optionLabel(myBet.option_id)} · result pending`
+			: "Bets are closed · you sat this one out";
+	} else if (prediction.status === "revealed") {
+		const winner = prediction.winning_option_id
+			? optionLabel(prediction.winning_option_id)
+			: undefined;
+		if (!myBet) {
+			text = winner ? `${winner} won · you sat this one out` : "Settled";
+		} else {
+			const net = (myBet.payout ?? 0) - myBet.amount;
+			if (myBet.option_id === prediction.winning_option_id) {
+				tone = "text-win";
+				text = `${winner} won · +${pts(net)}`;
+			} else {
+				tone = "text-loss";
+				text = `${winner} won · you lost ${pts(myBet.amount)}`;
+			}
+		}
+	} else if (prediction.status === "no_result") {
+		text = myBet ? `No result · ${pts(myBet.amount)} refunded` : "No result";
+	} else {
+		text = myBet ? `Cancelled · ${pts(myBet.amount)} refunded` : "Cancelled";
+	}
+
+	return (
+		<span
+			className={`mt-6 flex items-center justify-end text-right text-sm ${tone}`}
+		>
+			{text}
+			{showArrow ? <ChevronRightIcon className='ml-1 inline-block' /> : null}
+		</span>
 	);
 }
 

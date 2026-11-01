@@ -84,3 +84,5 @@ grant execute on function public.get_my_unseen_results(uuid, uuid) to authentica
 grant execute on function public.mark_results_seen(uuid[]) to authenticated;
 grant execute on function public.get_my_weekly_recap(uuid, uuid) to authenticated;
 grant execute on function public.dismiss_weekly_recap(uuid, text) to authenticated;
+grant execute on function public.set_prediction_details(uuid, text, text[]) to authenticated;
+grant execute on function public.get_room_tags(uuid) to authenticated;

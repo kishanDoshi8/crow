@@ -50,10 +50,12 @@ export default function EditPrediction() {
 				title: prediction.title,
 				options: options.map((option) => option.label),
 				deadline: new Date(prediction.deadline),
+				description: prediction.description ?? "",
+				tags: (prediction.tags ?? []).map((tag) => tag.tag),
 			}}
 			optionsLocked={optionsLocked}
 			isSubmitting={isSaving}
-			onSubmit={({ title, options: labels, deadline }) =>
+			onSubmit={({ title, options: labels, deadline, description, tags }) =>
 				updatePrediction(
 					{
 						roomId: room.id,
@@ -61,6 +63,8 @@ export default function EditPrediction() {
 						title,
 						deadline,
 						options: optionsLocked ? undefined : labels,
+						description,
+						tags,
 					},
 					{
 						onSuccess: () => {

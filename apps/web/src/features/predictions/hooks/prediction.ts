@@ -1,4 +1,4 @@
-import { createPrediction, getActivePrediction, getActivePredictions, getPrediction, resolvePrediction, updatePrediction } from "@/shared/lib/api";
+import { createPrediction, getActivePrediction, getActivePredictions, getPrediction, getRoomTags, resolvePrediction, setPredictionDetails, updatePrediction } from "@/shared/lib/api";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { roomKeys } from "@/shared/constants/queryKeys";
 import { invalidateRoomResults } from "@/shared/lib/roomCache";
@@ -29,13 +29,22 @@ type CreatePredictionParams = {
     options: string[];
     deadline: Date;
     seriesId?: string | null;
+    description?: string;
+    tags?: string[];
 }
 
 export const useCreatePrediction = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: CreatePredictionParams) => createPrediction(data.roomId, data.title, data.options, data.deadline, data.seriesId),
+        mutationFn: async (data: CreatePredictionParams) => {
+            const created = await createPrediction(data.roomId, data.title, data.options, data.deadline, data.seriesId);
+            // Description and tags are saved alongside, once the prediction exists.
+            if (data.description?.trim() || data.tags?.length) {
+                await setPredictionDetails(created.id, data.description ?? '', data.tags ?? []);
+            }
+            return created;
+        },
         onSuccess: (data) => {
             queryClient.invalidateQueries({
                 queryKey: roomKeys.activePrediction(data.room_id),
@@ -94,14 +103,19 @@ type UpdatePredictionParams = {
     deadline: Date;
     // Leave out to keep the current options.
     options?: string[];
+    description: string;
+    tags: string[];
 }
 
 // Organizers fix a prediction that's still open for picks.
 export const useUpdatePrediction = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: UpdatePredictionParams) =>
-            updatePrediction(data.predictionId, data.title, data.deadline, data.options),
+        mutationFn: async (data: UpdatePredictionParams) => {
+            const updated = await updatePrediction(data.predictionId, data.title, data.deadline, data.options);
+            await setPredictionDetails(data.predictionId, data.description, data.tags);
+            return updated;
+        },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({
                 queryKey: roomKeys.prediction(variables.roomId, variables.predictionId),
@@ -113,5 +127,15 @@ export const useUpdatePrediction = () => {
                 queryKey: roomKeys.manageQueue(variables.roomId),
             });
         },
+    });
+}
+
+// Tags used before in the room, most used first, to suggest while tagging.
+export const useRoomTags = (roomId?: string) => {
+    return useQuery({
+        queryKey: roomKeys.roomTags(roomId ?? ""),
+        queryFn: () => getRoomTags(roomId ?? ""),
+        enabled: !!roomId,
+        staleTime: 5 * 60 * 1000,
     });
 }
