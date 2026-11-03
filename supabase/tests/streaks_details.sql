@@ -118,8 +118,10 @@ select is(
   'the description is saved, trimmed'
 );
 select is(
-  array(select tag from public.prediction_tags where prediction_id = pg_temp.setting('final') order by tag),
-  array['T20', 'semi Final'],
+  -- lower(): plain `order by tag` puts capitals first or not depending on the
+  -- database's collation, so it differed between machines.
+  array(select tag from public.prediction_tags where prediction_id = pg_temp.setting('final') order by lower(tag)),
+  array['semi Final', 'T20'],
   'tags keep their case, and repeats in any case are dropped'
 );
 
