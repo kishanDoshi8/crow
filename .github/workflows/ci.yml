@@ -4,10 +4,15 @@ on:
   pull_request:
   push:
     branches: [master]
+  # Lets the release workflow run these same checks before deploying.
+  workflow_call:
+
+permissions:
+  contents: read
 
 jobs:
   web:
-    name: Web typecheck and lint
+    name: Web typecheck, lint and build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,6 +23,7 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
+      - run: npm run build
 
   database:
     name: Database tests
