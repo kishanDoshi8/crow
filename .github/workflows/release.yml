@@ -1,0 +1,148 @@
+name: Release
+
+# Pushing a version tag (e.g. `git tag -a v0.5.0 -m "v0.5.0" && git push origin v0.5.0`)
+# checks the tag, runs CI, deploys that exact tag to the server and creates a
+# GitHub Release. "Run workflow" in the Actions tab redeploys any existing tag,
+# which is also how you roll back.
+#
+# Database migrations are NOT applied here: run them by hand before tagging,
+# and keep each migration working with the previous frontend.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to deploy (e.g. v0.4.2)
+        required: true
+
+permissions:
+  contents: read
+
+# One deploy at a time; a second one waits instead of cancelling the first.
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
+
+jobs:
+  verify:
+    name: Check tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Tag is a version on master
+        run: |
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::'$TAG' isn't a version tag like v0.5.0 or v0.5.0-rc.1"
+            exit 1
+          fi
+          git rev-parse --verify --quiet "refs/tags/$TAG" >/dev/null \
+            || { echo "::error::Tag $TAG doesn't exist"; exit 1; }
+          git merge-base --is-ancestor "$TAG^{commit}" origin/master \
+            || { echo "::error::$TAG isn't on master. Tag a commit that has been merged."; exit 1; }
+
+  # Same checks as pull requests. Skipped when redeploying an existing tag:
+  # it already passed when it was first released.
+  ci:
+    name: CI
+    needs: verify
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Deploy to production
+    needs: [verify, ci]
+    if: ${{ !cancelled() && needs.verify.result == 'success' && contains(fromJSON('["success","skipped"]'), needs.ci.result) }}
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ vars.APP_URL }}
+    steps:
+      - name: Set up SSH
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Pull and build on the server
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.DEPLOY_USER }}
+          PORT: ${{ vars.DEPLOY_PORT || '22' }}
+          APP_DIR: ${{ vars.DEPLOY_PATH || 'predict' }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "$PORT" -o BatchMode=yes "$SSH_USER@$HOST" \
+            bash -s "$TAG" "$APP_DIR" <<'REMOTE'
+          set -euo pipefail
+          tag="$1"
+          cd "$2"
+
+          # Non-interactive SSH doesn't read ~/.bashrc, so load nvm if Node came from it.
+          if [ -s "$HOME/.nvm/nvm.sh" ]; then . "$HOME/.nvm/nvm.sh"; fi
+
+          # Check out exactly the tag (not the tip of master), so redeploying an
+          # older tag rolls back. Leaves the checkout on a detached HEAD.
+          git fetch --tags --force origin
+          git checkout --detach "refs/tags/$tag"
+
+          npm ci
+
+          # Build next to the live files, then swap, so nginx never serves a
+          # half-written dist/. The previous build stays in dist-prev/.
+          npm run build --workspace=apps/web -- --outDir dist-next
+          cd apps/web
+          rm -rf dist-prev
+          if [ -d dist ]; then mv dist dist-prev; fi
+          mv dist-next dist
+
+          echo "Deployed $tag ($(git rev-parse --short HEAD))"
+          REMOTE
+
+      - name: Check the live version
+        if: vars.APP_URL != ''
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          for attempt in 1 2 3 4 5; do
+            live=$(curl -fsS "${APP_URL%/}/version.json" | jq -r '.release // empty' || true)
+            if [ "$live" = "$TAG" ]; then
+              echo "Live: $live"
+              exit 0
+            fi
+            echo "Live is '$live', expected '$TAG'. Retrying..."
+            sleep 5
+          done
+          echo "::error::${APP_URL%/}/version.json doesn't report $TAG"
+          exit 1
+
+  release:
+    name: GitHub Release
+    needs: deploy
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create release with notes from merged PRs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # Skip if you already created the release by hand in the GitHub UI.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists"
+            exit 0
+          fi
+          # 0.x versions are beta: mark them as pre-releases.
+          prerelease=""
+          if [[ "$TAG" == v0.* || "$TAG" == *-* ]]; then prerelease="--prerelease"; fi
+          gh release create "$TAG" --verify-tag --generate-notes $prerelease

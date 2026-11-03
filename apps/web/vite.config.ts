@@ -7,35 +7,50 @@ import type { Plugin } from 'vite'
 
 const shouldAnalyze = process.env.ANALYZE === 'true'
 
-// Identifies each build: the commit plus build time, so rebuilding the same
-// commit still counts as a new version.
-function buildId() {
-  let commit = 'local'
+function git(args: string) {
   try {
-    commit = execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
+    return execSync(`git ${args}`, { stdio: ['ignore', 'pipe', 'ignore'] })
       .toString()
       .trim()
   } catch {
-    // No git on this machine: the build time alone is enough.
+    // No git, or no tags yet.
+    return null
   }
-  return `${commit}-${Date.now().toString(36)}`
+}
+
+// Identifies each build as release + build time, e.g. "v0.5.0+m3k9x2".
+// The release comes from `git describe`: the tag on a tagged commit
+// ("v0.5.0"), commits since the last tag otherwise ("v0.5.0-3-gabc1234"),
+// or the bare commit before the first tag. The build time makes rebuilding
+// the same commit still count as a new version.
+function buildInfo() {
+  const commit = git('rev-parse --short HEAD') ?? 'local'
+  const release = git('describe --tags --always --dirty') ?? commit
+  const builtAt = new Date()
+  return {
+    version: `${release}+${builtAt.getTime().toString(36)}`,
+    release,
+    commit,
+    builtAt: builtAt.toISOString(),
+  }
 }
 
 // Bakes the build ID into the app and publishes it as /version.json, so an
-// open app can tell when a newer build has been deployed.
+// open app can tell when a newer build has been deployed. Only `version` is
+// compared; the other fields are for people checking what's live.
 function appVersion(): Plugin {
-  let version = 'dev'
+  let info: ReturnType<typeof buildInfo> | { version: string } = { version: 'dev' }
   return {
     name: 'app-version',
     config(_, { command }) {
-      if (command === 'build') version = buildId()
-      return { define: { __APP_VERSION__: JSON.stringify(version) } }
+      if (command === 'build') info = buildInfo()
+      return { define: { __APP_VERSION__: JSON.stringify(info.version) } }
     },
     generateBundle() {
       this.emitFile({
         type: 'asset',
         fileName: 'version.json',
-        source: JSON.stringify({ version }),
+        source: JSON.stringify(info),
       })
     },
   }
