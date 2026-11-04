@@ -32,13 +32,19 @@ export default tseslint.config(
 		rules: {
 			"import/first": "error",
 			"import/newline-after-import": "error",
-			"import/no-cycle": ["warn", { maxDepth: 2 }],
+			"import/no-cycle": "error",
 			"import/no-useless-path-segments": [
 				"error",
 				{ noUselessIndex: true },
 			],
 			"import/no-duplicates": "off",
 			"no-duplicate-imports": "off",
+			// Type-only imports are erased at build time, so they can't form
+			// runtime cycles; this keeps them marked as such.
+			"@typescript-eslint/consistent-type-imports": [
+				"error",
+				{ fixStyle: "separate-type-imports" },
+			],
 			"@typescript-eslint/no-explicit-any": "off",
 			"@typescript-eslint/no-unused-vars": "off",
 			"unused-imports/no-unused-imports": "error",

@@ -1,11 +1,12 @@
 import { Badge, FadeContent, Skeleton } from "@/shared/ui";
 import { ResolvedByLine } from "../components/ResolvedByLine";
-import { Prediction, useBets } from "@/features/predictions";
+import type { Prediction } from "@/features/predictions/types/types";
+import { useBets } from "@/features/predictions/hooks/bet";
 import PredictionTitle from "../components/PredictionTitle";
 import { BetListSkeleton } from "../components/BetListSkeleton";
 import PredictionOptions from "../widgets/PredictionOptions";
 import { CheckIcon, CrownIcon } from "lucide-react";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { usePlayer } from "@/features/home";
 import { useRoomBetRealtime } from "@/features/rooms";
 import PredictionData from "./PredictionData";

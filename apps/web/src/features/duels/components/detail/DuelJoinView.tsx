@@ -1,7 +1,7 @@
 import { Button, Spinner } from "@/shared/ui";
 import { cn } from "@/shared/lib/utils";
 import { Ban, ClockIcon, Flame, Info, Swords } from "lucide-react";
-import { Duel, RivalrySummary } from "@/features/duels";
+import type { Duel, RivalrySummary } from "@/features/duels/types/types";
 import { Countdown } from "@/features/predictions";
 import {
 	EscrowCard,

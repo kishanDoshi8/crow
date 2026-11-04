@@ -1,5 +1,6 @@
-import { InfiniteData, keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
-import {
+import type { InfiniteData} from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
+import type {
 	ActivityFilter,
 	RoomActivitiesPage,
 } from "@/features/activities/types/types";

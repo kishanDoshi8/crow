@@ -5,8 +5,8 @@ import {
 	formatPredictionSeries,
 	resolveActivityHref,
 } from "@/features/activities/lib/activity";
-import { PredictionNoResultActivity } from "@/features/activities/types/types";
-import { ActivityCardComponentProps } from "@/features/activities/components/cards/types";
+import type { PredictionNoResultActivity } from "@/features/activities/types/types";
+import type { ActivityCardComponentProps } from "@/features/activities/components/cards/types";
 
 export function PredictionNoResultCard({
 	activity,

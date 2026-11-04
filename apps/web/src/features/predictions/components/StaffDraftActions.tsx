@@ -1,5 +1,7 @@
-import { useRoomContext } from "@/app/layouts/RoomLayout";
-import { CloseWithoutResultDialog } from "@/features/predictions/components/ResolvePredictionDrawer";
+import { useRoomContext } from "@/shared/lib/roomContext";
+import {
+	CloseWithoutResultDialog,
+} from "@/features/predictions/components/ResolvePredictionDrawer";
 import { useRoomRole } from "@/features/rooms";
 import { Button } from "@/shared/ui";
 import { BanIcon, PencilIcon } from "lucide-react";

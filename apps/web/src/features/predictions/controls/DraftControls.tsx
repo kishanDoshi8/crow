@@ -9,18 +9,13 @@ import {
 	RotateCcw,
 	X,
 } from "lucide-react";
-import { Player } from "@/features/home";
-import {
-	useBets,
-	useCancelBet,
-	useMyBet,
-	usePlaceBet,
-	usePrediction,
-} from "@/features/predictions";
+import type { Player } from "@/features/home";
+import { useBets, useCancelBet, useMyBet, usePlaceBet } from "@/features/predictions/hooks/bet";
+import { usePrediction } from "@/features/predictions/hooks/prediction";
 import { previewWinnings } from "@/features/predictions/lib/payoutPreview";
 import { Spinner } from "@/shared/ui/spinner";
 import { toast } from "sonner";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { useRoomActions } from "@/shared/lib/roomActions";
 import { useLocalStorage } from "@/shared/hooks/useLocalStorage";
 import { localStorageKeys } from "@/shared/constants/queryKeys";

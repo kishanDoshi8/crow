@@ -1,6 +1,6 @@
 import { Alert, AlertAction, AlertDescription, Button } from "@/shared/ui";
-import { Room } from "@/features/rooms";
-import { Prediction } from "@/features/predictions";
+import type { Room } from "@/features/rooms";
+import type { Prediction } from "@/features/predictions";
 import { ChevronRightIcon, ZapIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 

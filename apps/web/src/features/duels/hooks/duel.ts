@@ -6,10 +6,9 @@ import {
 	getPredictionDuels,
 	joinDuelQueue,
 } from "@/shared/lib/api";
-import { DuelSummary } from "@/features/duels";
+import type { DuelSummary } from "@/features/duels/types/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { roomKeys } from "@/shared/constants/queryKeys";
-import { playerQueryKey } from "@/features/home";
+import { playerQueryKey, roomKeys } from "@/shared/constants/queryKeys";
 
 export const usePredictionDuels = (roomId: string, predictionId?: string) => {
 	return useQuery({

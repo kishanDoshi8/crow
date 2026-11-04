@@ -1,11 +1,9 @@
 import { RoomNextSteps, useRoomRole } from "@/features/rooms";
-import {
-	Countdown,
-	Prediction,
-	useActivePredictions,
-	useBets,
-} from "@/features/predictions";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { Countdown } from "@/features/predictions/widgets/CountDown";
+import type { Prediction } from "@/features/predictions/types/types";
+import { useActivePredictions } from "@/features/predictions/hooks/prediction";
+import { useBets } from "@/features/predictions/hooks/bet";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import {
 	Badge,
 	Button,
@@ -17,9 +15,10 @@ import {
 	Reveal,
 	Skeleton,
 } from "@/shared/ui";
+import type {
+	CarouselApi} from "@/shared/ui/carousel";
 import {
 	Carousel,
-	CarouselApi,
 	CarouselContent,
 	CarouselItem,
 } from "@/shared/ui/carousel";

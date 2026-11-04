@@ -7,17 +7,18 @@ import {
 	TrophyIcon,
 } from "lucide-react";
 import { Suspense, lazy, useEffect, useState } from "react";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { usePlayer } from "@/features/home";
+import type {
+	LeaderboardEntry} from "@/features/leaderboard";
 import {
 	betsNeededLabel,
-	LeaderboardEntry,
 	RankChange,
 	splitStandings,
 	useSeriesLeaderboard,
 } from "@/features/leaderboard";
 import { useCurrentSeries } from "@/features/series";
-import { Room } from "@/features/rooms";
+import type { Room } from "@/features/rooms";
 import { twColor } from "@/shared/lib/utils";
 import { Link } from "react-router-dom";
 import { useAppNavigation } from "@/shared/lib/navigation";

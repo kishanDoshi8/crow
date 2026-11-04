@@ -1,7 +1,8 @@
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { useAppNavigation } from "@/shared/lib/navigation";
 import { useRoomRole } from "@/features/rooms";
-import { useCreateSeries, useMarkSuggestionPlayed } from "@/features/series";
+import { useCreateSeries } from "@/features/series/hooks/series";
+import { useMarkSuggestionPlayed } from "@/features/series/hooks/suggestions";
 import { useLocation } from "react-router-dom";
 import {
 	parseExpectedGames,

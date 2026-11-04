@@ -13,3 +13,5 @@ export {
 } from "./components/leaderboard/PredictionHistoryFeed";
 export { PlayerProfileDialog } from "./components/player/PlayerProfileDialog";
 export { RankingRuleHint } from "./components/leaderboard/RankingRuleHint";
+export { ShareStandingsButton } from "./components/ShareStandingsButton";
+export { ShareWeeklyButton } from "./components/ShareWeeklyButton";

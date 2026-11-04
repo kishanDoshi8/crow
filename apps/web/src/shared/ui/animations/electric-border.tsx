@@ -1,9 +1,10 @@
+import type {
+	CSSProperties,
+	ReactNode} from "react";
 import React, {
 	useEffect,
 	useRef,
-	useCallback,
-	CSSProperties,
-	ReactNode,
+	useCallback
 } from "react";
 
 function hexToRgba(hex: string, alpha: number = 1): string {

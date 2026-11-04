@@ -5,7 +5,7 @@ import { SmallRoomInviteCard } from "@/features/rooms/components/SmallRoomInvite
 import { ResultsCard } from "@/features/rooms/components/ResultsCard";
 import { WeeklyRecapCard } from "@/features/rooms/components/WeeklyRecapCard";
 import { UpNextCard } from "@/features/series";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 
 function RoomDashboard() {
 	const { room } = useRoomContext();

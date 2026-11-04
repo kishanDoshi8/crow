@@ -11,7 +11,7 @@ import {
 	CircleQuestionMark,
 	TriangleAlert,
 } from "lucide-react";
-import { usePlayer } from "@/features/home";
+import { usePlayer } from "@/features/home/hooks/player";
 import Brand from "./Brand";
 import { RoomCardsList } from "@/features/rooms/components/RoomCardsList";
 import { useCreateRoom } from "@/features/rooms/hooks/room";

@@ -2,7 +2,7 @@ import { AlertCircleIcon } from "lucide-react";
 import { SkeletonList } from "@/shared/ui";
 import { ActivityCardSkeleton } from "@/features/activities/components/ActivityCard";
 import { ActivityCardRegistry } from "@/features/activities/components/ActivityCardRegistry";
-import { RoomActivity } from "@/features/activities/types/types";
+import type { RoomActivity } from "@/features/activities/types/types";
 
 type RoomActivitiesFeedProps = {
 	activities: RoomActivity[];

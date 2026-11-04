@@ -1,4 +1,5 @@
-import { betsNeededLabel, LeaderboardEntry } from "@/features/leaderboard";
+import { betsNeededLabel } from "@/features/leaderboard/lib/standings";
+import type { LeaderboardEntry } from "@/features/leaderboard/types/types";
 import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import { cn, formatSignedPoints } from "@/shared/lib/utils";
 import { CoinsIcon, FlameIcon } from "lucide-react";

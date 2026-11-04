@@ -1,12 +1,12 @@
 import { Badge, Button, Skeleton } from "@/shared/ui";
 import { usePredictionDuelRealtime } from "@/features/rooms";
-import { usePredictionDuelSummary, usePredictionDuels } from "@/features/duels";
+import { usePredictionDuelSummary, usePredictionDuels } from "@/features/duels/hooks/duel";
 import { usePrediction } from "@/features/predictions";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { DuelCard } from "@/features/duels";
+import { DuelCard } from "@/features/duels/components/DuelCard";
 import { CircleQuestionMarkIcon, SwordsIcon } from "lucide-react";
-import { DuelPredictionHeader } from "@/features/duels";
+import DuelPredictionHeader from "@/features/duels/components/DuelPredictionHeader";
 import { DuelsHowItWorksDialog } from "@/features/onboarding";
 import React from "react";
 

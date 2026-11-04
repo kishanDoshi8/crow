@@ -1,4 +1,4 @@
-import { LeaderboardEntry } from "./types"
+import type { LeaderboardEntry } from "./types"
 
 export type RoomStatType = "podium" | "default"
 export type RoomStat = PodiumRoomStat | DefaultRoomStat

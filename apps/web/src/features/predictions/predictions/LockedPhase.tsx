@@ -1,9 +1,9 @@
 import { Badge, FadeContent, Skeleton } from "@/shared/ui";
-import { Prediction } from "@/features/predictions";
+import type { Prediction } from "@/features/predictions/types/types";
 import PredictionTitle from "../components/PredictionTitle";
 import PredictionOptions from "../widgets/PredictionOptions";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
-import { useBets } from "@/features/predictions";
+import { useRoomContext } from "@/shared/lib/roomContext";
+import { useBets } from "@/features/predictions/hooks/bet";
 import { useEffect } from "react";
 import { usePlayer } from "@/features/home";
 import { getOptionColor } from "@/shared/hooks/useOptionColor";

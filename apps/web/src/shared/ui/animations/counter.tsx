@@ -1,4 +1,5 @@
-import { MotionValue, motion, useSpring, useTransform } from "framer-motion";
+import type { MotionValue} from "framer-motion";
+import { motion, useSpring, useTransform } from "framer-motion";
 import type React from "react";
 import { useEffect } from "react";
 

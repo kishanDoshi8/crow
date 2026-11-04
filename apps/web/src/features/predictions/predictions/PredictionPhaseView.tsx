@@ -1,5 +1,5 @@
 import DraftPhase from "@/features/predictions/predictions/DraftPhase";
-import { Prediction } from "@/features/predictions";
+import type { Prediction } from "@/features/predictions/types/types";
 import LockedPhase from "./LockedPhase";
 import ResolvedPhase from "./ResolvedPhase";
 import NoResult from "./NoResult";

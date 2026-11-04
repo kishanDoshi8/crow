@@ -1,4 +1,4 @@
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { useRoomActions } from "@/shared/lib/roomActions";
 import { Button } from "@/shared/ui";
 import { UsersIcon } from "lucide-react";

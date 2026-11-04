@@ -1,4 +1,5 @@
-import Home, { HomeTab } from "@/features/home/components/Home";
+import type { HomeTab } from "@/features/home/components/Home";
+import Home from "@/features/home/components/Home";
 import { useAppNavigation } from "@/shared/lib/navigation";
 import { joinRoom } from "@/shared/lib/api";
 import { roomKeys } from "@/shared/constants/queryKeys";
@@ -6,7 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import React, { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { usePlayer } from "@/features/home";
+import { usePlayer } from "@/features/home/hooks/player";
 import { usePlayerRooms } from "@/features/rooms/hooks/room";
 import { Loading } from "@/shared/ui";
 

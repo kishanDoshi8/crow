@@ -1,6 +1,7 @@
-import { usePrediction, PredictionPhaseView } from "@/features/predictions";
+import { usePrediction } from "@/features/predictions/hooks/prediction";
+import { PredictionPhaseView } from "@/features/predictions/predictions/PredictionPhaseView";
 import { useEffect, useState } from "react";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { usePredictionDuelSummary, DuelSummaryCard } from "@/features/duels";
 import { usePredictionDuelRealtime } from "@/features/rooms";

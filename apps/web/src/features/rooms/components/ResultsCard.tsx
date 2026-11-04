@@ -1,4 +1,4 @@
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { useCurrentSeries } from "@/features/series";
 import {
 	useMarkResultsSeen,

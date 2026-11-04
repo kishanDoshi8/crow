@@ -1,3 +1,6 @@
+// The signed-in player's profile (balance, last visited room, ...).
+export const playerQueryKey = ["player"];
+
 export const roomKeys = {
   all: ["rooms"] as const,
 

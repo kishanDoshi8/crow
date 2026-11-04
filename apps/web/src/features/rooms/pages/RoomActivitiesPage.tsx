@@ -1,6 +1,7 @@
-import { useRoomContext } from "@/app/layouts/RoomLayout";
-import { useRoomActivities, ActivityFilter } from "@/features/activities";
-import { useMarkRoomActivitiesSeen } from "@/features/rooms";
+import { useRoomContext } from "@/shared/lib/roomContext";
+import type { ActivityFilter } from "@/features/activities";
+import { useRoomActivities } from "@/features/activities";
+import { useMarkRoomActivitiesSeen } from "@/features/rooms/hooks/room";
 import {
 	ActivityFeedSkeleton,
 	RoomActivitiesFeed,

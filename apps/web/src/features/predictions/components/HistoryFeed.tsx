@@ -1,10 +1,11 @@
+import type {
+	PredictionHistoryFilter} from "@/features/leaderboard";
 import {
 	PredictionHistoryFeed,
 	PredictionHistoryFeedSkeleton,
-	usePredictionHistory,
-	PredictionHistoryFilter,
+	usePredictionHistory
 } from "@/features/leaderboard";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Input, Button } from "@/shared/ui";
 import {

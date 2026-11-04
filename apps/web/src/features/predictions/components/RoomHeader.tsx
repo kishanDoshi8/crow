@@ -1,6 +1,7 @@
 import { Button } from "@/shared/ui/button";
 import { useRoomRole } from "@/features/rooms";
-import { Room, RoomMenuDrawer } from "@/features/rooms";
+import type { Room} from "@/features/rooms";
+import { RoomMenuDrawer } from "@/features/rooms";
 import {
 	BellIcon,
 	ChevronDownIcon,

@@ -1,5 +1,5 @@
 import { FadeContent, Skeleton } from "@/shared/ui";
-import { Prediction } from "@/features/predictions";
+import type { Prediction } from "@/features/predictions/types/types";
 import { PredictionTags } from "@/features/predictions/components/PredictionTags";
 
 type Props = {

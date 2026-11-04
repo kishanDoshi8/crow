@@ -6,8 +6,8 @@ import {
 	formatPredictionSeries,
 	resolveActivityHref,
 } from "@/features/activities/lib/activity";
-import { PredictionRevealedActivity } from "@/features/activities/types/types";
-import { ActivityCardComponentProps } from "@/features/activities/components/cards/types";
+import type { PredictionRevealedActivity } from "@/features/activities/types/types";
+import type { ActivityCardComponentProps } from "@/features/activities/components/cards/types";
 
 export function PredictionRevealedCard({
 	activity,

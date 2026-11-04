@@ -1,4 +1,4 @@
-import { useCreatePlayer, usePlayer } from "@/features/home";
+import { useCreatePlayer, usePlayer } from "@/features/home/hooks/player";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Brand from "./Brand";

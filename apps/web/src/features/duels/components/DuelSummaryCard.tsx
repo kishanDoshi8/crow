@@ -1,6 +1,6 @@
 import { cn } from "@/shared/lib/utils";
-import { DuelSummary } from "@/features/duels";
-import { PredictionStatus } from "@/features/predictions";
+import type { DuelSummary } from "@/features/duels/types/types";
+import type { PredictionStatus } from "@/features/predictions";
 import {
 	ChevronRightIcon,
 	CoinsIcon,

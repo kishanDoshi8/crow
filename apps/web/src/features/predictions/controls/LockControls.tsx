@@ -1,9 +1,9 @@
 import { useRoomRole } from "@/features/rooms";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { Button } from "@/shared/ui";
 import { ResolvePredictionDrawer } from "@/features/predictions/components/ResolvePredictionDrawer";
 import { useState } from "react";
-import { Prediction } from "@/features/predictions";
+import type { Prediction } from "@/features/predictions/types/types";
 
 type LockControlsProps = {
 	prediction: Prediction;

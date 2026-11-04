@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Share2Icon } from "lucide-react";
 import { Button } from "@/shared/ui";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
-import { useSeriesWeeklyRecap } from "@/features/leaderboard";
+import { useRoomContext } from "@/shared/lib/roomContext";
+import { useSeriesWeeklyRecap } from "@/features/leaderboard/hooks/leaderboard";
 import type { Series } from "@/features/series/types/series";
 import {
 	WeeklyStandingsCard,

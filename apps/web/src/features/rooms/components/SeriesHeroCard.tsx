@@ -1,4 +1,4 @@
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { usePlayer } from "@/features/home";
 import {
 	betsNeededLabel,
@@ -6,12 +6,12 @@ import {
 	splitStandings,
 	useSeriesLeaderboard,
 	useSeriesWeeklyRecap,
+	ShareStandingsButton,
+	ShareWeeklyButton,
 } from "@/features/leaderboard";
 import { useActivePredictions } from "@/features/predictions";
 import {
 	SeriesStatusBadge,
-	ShareStandingsButton,
-	ShareWeeklyButton,
 	useCurrentSeries,
 	useSeriesWallet,
 } from "@/features/series";

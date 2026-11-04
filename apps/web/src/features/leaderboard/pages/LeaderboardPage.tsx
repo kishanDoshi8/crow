@@ -1,21 +1,25 @@
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { usePlayer } from "@/features/home";
 import {
 	useRoomOverallStandings,
 	useSeriesLeaderboard,
-	splitStandings,
-	LeaderboardList,
+} from "@/features/leaderboard/hooks/leaderboard";
+import { splitStandings } from "@/features/leaderboard/lib/standings";
+import { LeaderboardList } from "@/features/leaderboard/components/leaderboard/LeaderboardList";
+import {
 	OverallStandingsList,
+} from "@/features/leaderboard/components/leaderboard/OverallStandingsList";
+import {
 	TopThreePodium,
 	type PodiumEntry,
-	RankingRuleHint,
-} from "@/features/leaderboard";
+} from "@/features/leaderboard/components/leaderboard/TopThreePodium";
+import { RankingRuleHint } from "@/features/leaderboard/components/leaderboard/RankingRuleHint";
 import {
 	SeriesScopeToggle,
 	type SeriesScope,
-	ShareWeeklyButton,
 	useCurrentSeries,
 } from "@/features/series";
+import { ShareWeeklyButton } from "@/features/leaderboard/components/ShareWeeklyButton";
 import { formatSignedPoints } from "@/shared/lib/utils";
 import { InfoHint } from "@/shared/ui";
 import React, { Suspense, lazy } from "react";

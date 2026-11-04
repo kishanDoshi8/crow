@@ -7,7 +7,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/shared/ui";
-import { SeriesSelectorMode } from "@/shared/lib/api";
+import type { SeriesSelectorMode } from "@/shared/lib/api";
 import { useSeriesSelector } from "@/features/series/hooks/series";
 
 const ALL_SERIES_VALUE = "__all_series__";

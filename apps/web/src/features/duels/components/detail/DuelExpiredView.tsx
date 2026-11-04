@@ -1,6 +1,6 @@
 import { Button } from "@/shared/ui";
 import { Hourglass, RotateCw, Swords } from "lucide-react";
-import { Duel } from "@/features/duels";
+import type { Duel } from "@/features/duels/types/types";
 import DuelQueueHistoryCard from "@/features/duels/components/detail/DuelQueueHistoryCard";
 import {
 	SectionLabel,

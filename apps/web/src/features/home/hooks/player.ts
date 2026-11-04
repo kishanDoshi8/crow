@@ -1,8 +1,7 @@
 import { getPlayer, createPlayer, setLastVisitedRoom } from "@/shared/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Player } from "@/features/home/types/player";
-
-export const playerQueryKey = ["player"];
+import { playerQueryKey } from "@/shared/constants/queryKeys";
 
 export const usePlayer = () => {
     return useQuery({

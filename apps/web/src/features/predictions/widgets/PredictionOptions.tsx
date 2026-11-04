@@ -10,10 +10,10 @@ import {
 	Skeleton,
 	SkeletonList,
 } from "@/shared/ui";
-import { useBets } from "@/features/predictions";
-import { Prediction } from "@/features/predictions";
+import { useBets } from "@/features/predictions/hooks/bet";
+import type { Prediction } from "@/features/predictions/types/types";
 import React from "react";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { useOptionColor } from "@/shared/hooks/useOptionColor";
 
 const OPTIONS_LIST = "mt-4 grid gap-3";

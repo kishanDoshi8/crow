@@ -1,10 +1,6 @@
-import {
-    useCancelDuel,
-    useCancelDuelQueue,
-    useJoinDuelQueue,
-    Duel
-} from "@/features/duels";
-import { Prediction } from "@/features/predictions";
+import { useCancelDuel, useCancelDuelQueue, useJoinDuelQueue } from "@/features/duels/hooks/duel";
+import type { Duel } from "@/features/duels/types/types";
+import type { Prediction } from "@/features/predictions";
 import { toast } from "sonner";
 
 interface UsePredictionDuelActionsArgs {

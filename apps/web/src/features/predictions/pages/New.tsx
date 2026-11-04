@@ -1,9 +1,9 @@
 import { Button } from "@/shared/ui/button";
 import { useAppNavigation } from "@/shared/lib/navigation";
 import { toast } from "sonner";
-import { useCreatePrediction } from "@/features/predictions";
+import { useCreatePrediction } from "@/features/predictions/hooks/prediction";
 import { PredictionForm } from "@/features/predictions/components/PredictionForm";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { useCurrentSeries } from "@/features/series";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { useRoomRole } from "@/features/rooms";

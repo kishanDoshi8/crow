@@ -3,12 +3,12 @@ import {
 	Outlet,
 	useMatches,
 	useNavigate,
-	useOutletContext,
 	useParams,
 } from "react-router-dom";
+import type {
+	Room} from "@/features/rooms";
 import {
 	useRoom,
-	Room,
 	RoomPrefetcher,
 	RoomInviteShare,
 	RoomSwitcherDrawer,
@@ -18,6 +18,7 @@ import {
 import { RoomPreferencesDialog } from "@/features/preferences";
 import { SeriesPickerDrawer } from "@/features/series";
 import { RoomActionsContext, type RoomActions } from "@/shared/lib/roomActions";
+import type { RoomOutletContext } from "@/shared/lib/roomContext";
 import { RoomHeader } from "@/features/predictions";
 import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { usePlayer, useSetLastVisitedRoom } from "@/features/home";
@@ -130,7 +131,7 @@ export default function RoomLayout() {
 			/>
 
 			<main className='max-w-280 w-full mx-auto flex-1 flex flex-col'>
-				<Outlet context={{ room, roomCode }} />
+				<Outlet context={{ room, roomCode } satisfies RoomOutletContext} />
 			</main>
 			<RoomPrefetcher roomId={room.id} />
 
@@ -206,11 +207,6 @@ function RoomSeriesPicker({
 	);
 }
 
-export type RoomOutletContext = {
-	room: Room;
-	roomCode: string;
-};
-
 type RoomHeaderHandle = {
 	leftAction: "home" | "back" | "none";
 	title?: string;
@@ -221,12 +217,4 @@ type RoomHeaderHandle = {
 
 type RoomRouteHandle = {
 	header?: RoomHeaderHandle;
-};
-
-export const useRoomContext = () => {
-	const context = useOutletContext<RoomOutletContext>();
-	if (!context) {
-		throw new Error("useRoomContext must be used within a RoomLayout");
-	}
-	return context;
 };

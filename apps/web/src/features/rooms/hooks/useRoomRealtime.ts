@@ -1,8 +1,7 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/shared/lib/supabase";
-import { roomKeys } from "@/shared/constants/queryKeys";
-import { playerQueryKey } from "@/features/home";
+import { playerQueryKey, roomKeys } from "@/shared/constants/queryKeys";
 import { invalidateRoomResults } from "@/shared/lib/roomCache";
 
 export function useRoomRealtime(roomId: string | null) {

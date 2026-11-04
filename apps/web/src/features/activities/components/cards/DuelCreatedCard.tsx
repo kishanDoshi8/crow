@@ -5,8 +5,8 @@ import {
 	formatPoints,
 	resolveActivityHref,
 } from "@/features/activities/lib/activity";
-import { DuelCreatedActivity } from "@/features/activities/types/types";
-import { ActivityCardComponentProps } from "@/features/activities/components/cards/types";
+import type { DuelCreatedActivity } from "@/features/activities/types/types";
+import type { ActivityCardComponentProps } from "@/features/activities/components/cards/types";
 
 export function DuelCreatedCard({
 	activity,
