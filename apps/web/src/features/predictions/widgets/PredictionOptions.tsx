@@ -105,21 +105,15 @@ export default function PredictionOptions({
 													{option.label}
 												</span>
 												{(() => {
-													let optionTextClass = "";
-													if (
+													const optionTextClass =
 														prediction.winning_option_id
-													) {
-														optionTextClass =
-															prediction.winning_option_id ===
-															option.id
+															? prediction.winning_option_id ===
+																option.id
 																? "text-win"
-																: "text-loss";
-													} else {
-														optionTextClass =
-															useOptionColor(
-																option.id,
-															);
-													}
+																: "text-loss"
+															: useOptionColor(
+																	option.id,
+																);
 													return (
 														<p
 															className={`flex flex-col`}

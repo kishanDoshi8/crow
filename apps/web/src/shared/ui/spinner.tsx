@@ -17,7 +17,7 @@ function Spinner({ className, ...props }: React.ComponentProps<"svg">) {
 }
 
 function Loading({
-	className,
+	className: _className,
 	...props
 }: Readonly<React.ComponentProps<"svg">>) {
 	return (
@@ -32,7 +32,7 @@ function Loading({
 
 // Default values shown
 function PingLoading({
-	className,
+	className: _className,
 	size = 32,
 	...props
 }: Readonly<React.ComponentProps<"svg"> & { size?: number }>) {
