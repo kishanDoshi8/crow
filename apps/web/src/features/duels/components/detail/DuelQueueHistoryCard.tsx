@@ -1,4 +1,4 @@
-import { DuelQueueEntry } from "@/features/duels";
+import type { DuelQueueEntry } from "@/features/duels/types/types";
 import {
 	DuelAvatarTile,
 	QueueStatusChip,

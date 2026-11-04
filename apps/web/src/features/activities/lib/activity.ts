@@ -1,4 +1,4 @@
-import { PredictionActivityMetadata, RoomActivity } from "@/features/activities/types/types";
+import type { PredictionActivityMetadata, RoomActivity } from "@/features/activities/types/types";
 import { FEATURES } from "@/shared/constants/features";
 
 export function formatPoints(value: number | null | undefined) {

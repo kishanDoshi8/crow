@@ -1,4 +1,4 @@
-import {
+import type {
 	AchievementMilestoneActivity,
 	AchievementStreakMilestoneActivity,
 	DuelCancelledActivity,
@@ -15,21 +15,33 @@ import {
 	RoomJoinedActivity,
 } from "@/features/activities/types/types";
 import { RoomJoinedCard } from "@/features/activities/components/cards/RoomJoinedCard";
-import { PredictionCreatedCard } from "@/features/activities/components/cards/PredictionCreatedCard";
+import {
+	PredictionCreatedCard,
+} from "@/features/activities/components/cards/PredictionCreatedCard";
 import { PredictionLockedCard } from "@/features/activities/components/cards/PredictionLockedCard";
-import { PredictionRevealedCard } from "@/features/activities/components/cards/PredictionRevealedCard";
-import { PredictionCancelledCard } from "@/features/activities/components/cards/PredictionCancelledCard";
-import { PredictionNoResultCard } from "@/features/activities/components/cards/PredictionNoResultCard";
+import {
+	PredictionRevealedCard,
+} from "@/features/activities/components/cards/PredictionRevealedCard";
+import {
+	PredictionCancelledCard,
+} from "@/features/activities/components/cards/PredictionCancelledCard";
+import {
+	PredictionNoResultCard,
+} from "@/features/activities/components/cards/PredictionNoResultCard";
 import { DuelCreatedCard } from "@/features/activities/components/cards/DuelCreatedCard";
 import { DuelMatchedCard } from "@/features/activities/components/cards/DuelMatchedCard";
 import { DuelResolvedCard } from "@/features/activities/components/cards/DuelResolvedCard";
 import { DuelCancelledCard } from "@/features/activities/components/cards/DuelCancelledCard";
 import { DuelExpiredCard } from "@/features/activities/components/cards/DuelExpiredCard";
-import { AchievementStreakMilestoneCard } from "@/features/activities/components/cards/AchievementStreakMilestoneCard";
-import { AchievementMilestoneCard } from "@/features/activities/components/cards/AchievementMilestoneCard";
+import {
+	AchievementStreakMilestoneCard,
+} from "@/features/activities/components/cards/AchievementStreakMilestoneCard";
+import {
+	AchievementMilestoneCard,
+} from "@/features/activities/components/cards/AchievementMilestoneCard";
 import { FEATURES } from "@/shared/constants/features";
 import { Reveal } from "@/shared/ui";
-import { ActivityCardComponentProps } from "@/features/activities/components/cards/types";
+import type { ActivityCardComponentProps } from "@/features/activities/components/cards/types";
 
 type RegistryProps = {
 	activity: RoomActivity;

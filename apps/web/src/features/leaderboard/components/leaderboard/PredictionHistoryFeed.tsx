@@ -1,4 +1,4 @@
-import { PredictionHistoryEntry } from "@/features/leaderboard";
+import type { PredictionHistoryEntry } from "@/features/leaderboard/types/types";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton, SkeletonList } from "@/shared/ui/skeleton";
 import { cn, formatSignedPoints } from "@/shared/lib/utils";
@@ -12,7 +12,7 @@ import {
 import Dot from "@/shared/ui/dot";
 import { Link } from "react-router-dom";
 import { Reveal } from "@/shared/ui";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 
 const CARD_SHELL = "border-2 rounded-xl p-3 flex flex-col gap-2";
 

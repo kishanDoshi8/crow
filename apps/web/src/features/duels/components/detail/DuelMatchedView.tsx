@@ -1,7 +1,7 @@
 import { Button } from "@/shared/ui";
 import { cn } from "@/shared/lib/utils";
 import { Clock, Lock, Trophy } from "lucide-react";
-import { Duel } from "@/features/duels";
+import type { Duel } from "@/features/duels/types/types";
 import {
 	EscrowCard,
 	StatusBanner,

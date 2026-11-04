@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Share2Icon } from "lucide-react";
 import { Button } from "@/shared/ui";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
-import { splitStandings, useSeriesLeaderboard } from "@/features/leaderboard";
-import { useSeriesAwards } from "@/features/series/hooks/series";
+import { useRoomContext } from "@/shared/lib/roomContext";
+import { useSeriesLeaderboard } from "@/features/leaderboard/hooks/leaderboard";
+import { splitStandings } from "@/features/leaderboard/lib/standings";
+import { useSeriesAwards } from "@/features/series";
 import type { Series } from "@/features/series/types/series";
 import { StandingsCard, type StandingsCardData } from "@/features/share/cards/StandingsCard";
 import { shareHost, shareLink, ShareSheet } from "@/features/share";

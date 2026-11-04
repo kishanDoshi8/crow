@@ -1,4 +1,4 @@
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import type { Prediction } from "@/features/predictions/types/types";
 import { cn } from "@/shared/lib/utils";
 

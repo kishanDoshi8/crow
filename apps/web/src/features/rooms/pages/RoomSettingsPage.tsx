@@ -1,4 +1,4 @@
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { useAppNavigation } from "@/shared/lib/navigation";
 import { useUpdateRoom } from "@/features/rooms/hooks/staff";
 import { useRoomRole } from "@/features/rooms/hooks/useRoomRole";

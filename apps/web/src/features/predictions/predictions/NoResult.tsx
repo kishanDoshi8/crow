@@ -1,13 +1,13 @@
-import { Prediction } from "@/features/predictions";
+import type { Prediction } from "@/features/predictions/types/types";
 import PredictionOptions from "../widgets/PredictionOptions";
 import PredictionTitle from "../components/PredictionTitle";
 import { BetListSkeleton } from "../components/BetListSkeleton";
 import { ResolvedByLine } from "../components/ResolvedByLine";
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui";
 import { InfoIcon } from "lucide-react";
-import { useBets } from "@/features/predictions";
+import { useBets } from "@/features/predictions/hooks/bet";
 import { useOptionColor } from "@/shared/hooks/useOptionColor";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { usePlayer } from "@/features/home";
 
 type Props = {

@@ -1,4 +1,4 @@
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { usePlayer } from "@/features/home";
 import { useSetMemberRole, useTransferOwnership } from "@/features/rooms/hooks/staff";
 import { useRoomRole } from "@/features/rooms/hooks/useRoomRole";

@@ -1,4 +1,4 @@
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { useManageQueue } from "@/features/rooms/hooks/staff";
 import { useRoomRole } from "@/features/rooms/hooks/useRoomRole";
 import type { ManageQueueItem } from "@/features/rooms/types/types";

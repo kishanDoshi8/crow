@@ -24,12 +24,28 @@ This document defines guardrails for `apps/web` so architecture quality stays hi
 - Other layers should import from `@/features/<feature>` instead of internals.
 - Route modules may lazy-load page entry points from `@/features/<feature>/pages/*`.
 - Internal folders (`components`, `hooks`, `lib`, `types`, `context`) are private unless exported by feature `index.ts`.
+- Pages are not exported from `index.ts`. The router imports them from
+  `@/features/<feature>/pages/*` (or the feature root, e.g. `home/HomePage`).
+  A barrel that exports pages drags every feature those pages use into any
+  module that imports one hook from it, which creates import cycles.
+- Keep page-level views that compose other features' UI (e.g.
+  `SeriesDetailView`) out of `index.ts` too; import them directly from the page.
 
 ## 4. Import conventions
 
 - Use alias imports (`@/...`) instead of deep relative paths.
 - Keep imports grouped by external, app/features, shared.
-- Avoid duplicate imports and circular dependencies.
+- Avoid duplicate imports and circular dependencies. `import/no-cycle` is an
+  error at any depth, so CI fails on a cycle.
+- Inside a feature, import the defining module (`@/features/rooms/hooks/room`),
+  never the feature's own `@/features/rooms`: the barrel re-exports the file
+  doing the importing.
+- Mark type-only imports with `import type` (enforced by
+  `@typescript-eslint/consistent-type-imports`). They're erased at build time,
+  so they never form a runtime cycle.
+- Context hooks that features read but `src/app` provides live in
+  `src/shared/lib` (`roomContext.ts`, `roomActions.ts`), so features never
+  import from `src/app`.
 - `src/app/**` cannot import feature internals directly; use feature public API or page entrypoints.
 
 ## 5. Feature conventions

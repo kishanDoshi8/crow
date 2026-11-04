@@ -1,8 +1,10 @@
 import { UserPlusIcon } from "lucide-react";
-import { ActivityPlayerIdentity } from "@/features/activities/components/cards/ActivityPlayerIdentity";
+import {
+	ActivityPlayerIdentity,
+} from "@/features/activities/components/cards/ActivityPlayerIdentity";
 import { formatActivityTimestamp } from "@/features/activities/lib/activity";
-import { RoomJoinedActivity } from "@/features/activities/types/types";
-import { ActivityCardComponentProps } from "@/features/activities/components/cards/types";
+import type { RoomJoinedActivity } from "@/features/activities/types/types";
+import type { ActivityCardComponentProps } from "@/features/activities/components/cards/types";
 
 export function RoomJoinedCard({
 	activity,

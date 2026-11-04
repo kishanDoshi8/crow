@@ -1,7 +1,14 @@
-import { cancelBet, getBetsForPrediction, getMyBet, placeBet, type SeriesWallet } from "@/shared/lib/api";
-import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	cancelBet,
+	getBetsForPrediction,
+	getMyBet,
+	placeBet,
+	type SeriesWallet,
+} from "@/shared/lib/api";
+import type { QueryClient} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { roomKeys } from "@/shared/constants/queryKeys";
-import { Bet } from "@/features/predictions";
+import type { Bet } from "@/features/predictions/types/bet";
 
 // Moves points into or out of escrow in the cached series wallet, so the
 // available balance updates before the server answers.

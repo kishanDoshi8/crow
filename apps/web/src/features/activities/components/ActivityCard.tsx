@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { ChevronRightIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/shared/lib/utils";

@@ -8,7 +8,7 @@ import {
 	ShieldIcon,
 	UserIcon,
 } from "lucide-react";
-import { DuelQueueStatus } from "@/features/duels";
+import type { DuelQueueStatus } from "@/features/duels/types/types";
 import {
 	fmtPts,
 	initials,

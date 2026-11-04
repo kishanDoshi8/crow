@@ -1,4 +1,4 @@
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { useAppNavigation } from "@/shared/lib/navigation";
 import { usePrediction, useUpdatePrediction } from "@/features/predictions/hooks/prediction";
 import { PredictionForm } from "@/features/predictions/components/PredictionForm";

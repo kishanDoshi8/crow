@@ -4,8 +4,8 @@ import {
 	formatActivityTimestamp,
 	resolveActivityHref,
 } from "@/features/activities/lib/activity";
-import { DuelCancelledActivity } from "@/features/activities/types/types";
-import { ActivityCardComponentProps } from "@/features/activities/components/cards/types";
+import type { DuelCancelledActivity } from "@/features/activities/types/types";
+import type { ActivityCardComponentProps } from "@/features/activities/components/cards/types";
 
 export function DuelCancelledCard({
 	activity,

@@ -1,9 +1,18 @@
-import { Duel, DuelSummary } from "@/features/duels";
-import { Player } from "@/features/home";
-import { PredictionHistoryPage, PredictionHistoryFilter, LeaderboardEntry, OverallStandingEntry, RoomMemberRecentPrediction, RoomMemberStats, SeriesWeeklyRecap } from "@/features/leaderboard";
-import { Prediction, PredictionStatus } from "@/features/predictions";
-import { Series } from "@/features/series/types/series";
-import { ManageQueue, Room, RoomMember, RoomRole } from "@/features/rooms";
+import type { Duel, DuelSummary } from "@/features/duels/types/types";
+import type { Player } from "@/features/home/types/player";
+import type {
+	PredictionHistoryPage,
+	PredictionHistoryFilter,
+	LeaderboardEntry,
+	OverallStandingEntry,
+	RoomMemberRecentPrediction,
+	RoomMemberStats,
+	SeriesWeeklyRecap,
+} from "@/features/leaderboard/types/types";
+import type { Prediction, PredictionStatus } from "@/features/predictions/types/types";
+import type { Series } from "@/features/series/types/series";
+import type { ManageQueue, Room, RoomMember } from "@/features/rooms/types/types";
+import type { RoomRole } from "@/features/rooms/lib/roles";
 import type { ActivityFilter, RoomActivitiesPage } from "@/features/activities/types/types";
 import type { Json } from '@/shared/lib/supabase.types'
 import type { SeriesAwardType } from "@/shared/lib/seriesRewards";

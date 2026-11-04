@@ -1,4 +1,4 @@
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { useAppNavigation } from "@/shared/lib/navigation";
 import { useRoomRole } from "@/features/rooms";
 import {
@@ -6,11 +6,9 @@ import {
 	useSeriesLeaderboard,
 } from "@/features/leaderboard";
 import { useActivePredictions } from "@/features/predictions";
-import {
-	SeriesDetailView,
-	SeriesListView,
-	SeriesOverviewCardSkeleton,
-} from "@/features/series/components";
+import { SeriesDetailView } from "@/features/series/components/SeriesDetailView";
+import { SeriesListView } from "@/features/series/components/SeriesListView";
+import { SeriesOverviewCardSkeleton } from "@/features/series/components/SeriesOverviewCard";
 import {
 	useRoomSeries,
 	useSeriesAwards,
@@ -18,8 +16,8 @@ import {
 	useUpdateSeries,
 	useCompleteSeries,
 	useArchiveSeries,
-	useCurrentSeries,
-} from "@/features/series";
+} from "@/features/series/hooks/series";
+import { useCurrentSeries } from "@/features/series/hooks/wallets";
 import type { Series } from "@/features/series/types/series";
 import type { SeriesFormState } from "@/features/series/components/SeriesEditDialog";
 import { parseExpectedGames } from "@/features/series/components/SeriesGamesField";

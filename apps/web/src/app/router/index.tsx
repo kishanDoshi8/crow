@@ -1,7 +1,8 @@
 import { Suspense, lazy, type ReactElement } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import { HomePage } from "@/features/home";
-import { AuthCallbackPage, ProtectedRoute } from "@/features/auth";
+import { HomePage } from "@/features/home/HomePage";
+import { ProtectedRoute } from "@/features/auth";
+import { AuthCallbackPage } from "@/features/auth/pages/AuthCallbackPage";
 import { RouteFallback } from "@/app/router/RouteFallback";
 import { RouteErrorBoundary } from "@/app/router/RouteErrorBoundary";
 import { AppShell } from "@/app/router/AppShell";
@@ -42,10 +43,8 @@ const ResetPasswordPage = lazy(() =>
 const CreatePlayer = lazy(
 	() => import("@/features/home/components/CreatePlayer"),
 );
-const SeriesCreatePage = lazy(() =>
-	import("@/features/series").then((module) => ({
-		default: module.SeriesCreatePage,
-	})),
+const SeriesCreatePage = lazy(
+	() => import("@/features/series/pages/SeriesCreatePage"),
 );
 const JoinRoomPage = lazy(() =>
 	import("@/features/rooms/pages/JoinRoomPage").then((module) => ({

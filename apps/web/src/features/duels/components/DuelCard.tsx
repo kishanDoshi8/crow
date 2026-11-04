@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, Badge } from "@/shared/ui";
 import { cn } from "@/shared/lib/utils";
 import { usePlayer } from "@/features/home";
-import { Duel } from "@/features/duels";
+import type { Duel } from "@/features/duels/types/types";
 import { ChevronRightIcon, LockIcon, UsersIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 

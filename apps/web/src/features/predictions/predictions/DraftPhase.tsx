@@ -1,11 +1,12 @@
 import React from "react";
 import { Badge } from "@/shared/ui/badge";
-import { Prediction, Countdown } from "@/features/predictions";
+import type { Prediction } from "@/features/predictions/types/types";
+import { Countdown } from "@/features/predictions/widgets/CountDown";
 import { usePlayer } from "@/features/home";
 import { Skeleton } from "@/shared/ui/skeleton";
 import PredictionOptions from "../widgets/PredictionOptions";
 import DraftControls from "../controls/DraftControls";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { useRoomBetRealtime } from "@/features/rooms";
 import PredictionTitle from "../components/PredictionTitle";
 import PredictionData from "./PredictionData";

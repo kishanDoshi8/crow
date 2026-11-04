@@ -11,7 +11,7 @@ import {
 	SkeletonList,
 } from "@/shared/ui";
 import { useNotificationPermission } from "@/shared/hooks/useNotificationPermission";
-import { PreferenceSettings, RoomPreferenceOverrides } from "@/shared/lib/api";
+import type { PreferenceSettings, RoomPreferenceOverrides } from "@/shared/lib/api";
 import {
 	needsHomeScreenInstall,
 	registerForPushNotifications,
@@ -21,7 +21,7 @@ import {
 	useResetRoomPreferences,
 	useUpdateGlobalPreferences,
 	useUpdateRoomPreferences,
-} from "@/features/preferences";
+} from "@/features/preferences/hooks/preferences";
 import { BellOffIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";

@@ -1,7 +1,8 @@
-export { SeriesDetailView } from "./SeriesDetailView";
+// Page-level views (SeriesDetailView, SeriesListView) are imported directly by
+// SeriesPage, not exported here: they pull in other features' UI, and other
+// features import this barrel.
 export { SeriesEditDialog } from "./SeriesEditDialog";
 export { SeriesHallOfFameSection } from "./SeriesHallOfFameSection";
-export { SeriesListView } from "./SeriesListView";
 export { SeriesOrganizerActionsMenu } from "./SeriesOrganizerActionsMenu";
 export { SeriesOverviewCard, SeriesOverviewCardSkeleton } from "./SeriesOverviewCard";
 export { SeriesSectionHeader } from "./SeriesSectionHeader";
@@ -11,6 +12,4 @@ export { SeriesSelector } from "./SeriesSelector";
 export { SeriesPickerDrawer } from "./SeriesPickerDrawer";
 export { WalletPopover } from "./WalletPopover";
 export { SeriesScopeToggle, type SeriesScope } from "./SeriesScopeToggle";
-export { ShareStandingsButton } from "./ShareStandingsButton";
-export { ShareWeeklyButton } from "./ShareWeeklyButton";
 export { UpNextCard } from "./UpNextCard";

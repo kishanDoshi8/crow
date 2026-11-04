@@ -1,10 +1,11 @@
+import type {
+  PreferenceResponse,
+  PreferenceSettings,
+  RoomPreferenceOverrides} from "@/shared/lib/api";
 import {
   getPreferences,
   markHowToPlaySeen,
-  PreferenceResponse,
-  PreferenceSettings,
   resetRoomPreferences,
-  RoomPreferenceOverrides,
   updateGlobalPreferences,
   updateRoomPreferences,
 } from "@/shared/lib/api";

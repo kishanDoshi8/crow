@@ -1,5 +1,5 @@
-import { Duel, DuelQueueStatus } from "@/features/duels";
-import { Bet, Prediction } from "@/features/predictions";
+import type { Duel, DuelQueueStatus } from "@/features/duels/types/types";
+import type { Bet, Prediction } from "@/features/predictions";
 
 export type DuelVisualState =
 | "join"

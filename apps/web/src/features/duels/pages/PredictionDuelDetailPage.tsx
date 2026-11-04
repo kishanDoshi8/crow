@@ -1,10 +1,11 @@
 import { Spinner } from "@/shared/ui";
 import { useBets, useMyBet, usePrediction } from "@/features/predictions";
-import { usePredictionDuels, DuelPredictionHeader } from "@/features/duels";
+import { usePredictionDuels } from "@/features/duels/hooks/duel";
+import DuelPredictionHeader from "@/features/duels/components/DuelPredictionHeader";
 import { usePlayer } from "@/features/home";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import DuelJoinView from "@/features/duels/components/detail/DuelJoinView";
 import DuelMatchedView from "@/features/duels/components/detail/DuelMatchedView";
 import DuelResolvedView from "@/features/duels/components/detail/DuelResolvedView";

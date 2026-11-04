@@ -6,14 +6,11 @@ import {
 	Button,
 	Spinner,
 } from "@/shared/ui";
-import {
-	useCreateDuel,
-	usePredictionDuelSummary,
-	StakeBreakdown,
-} from "@/features/duels";
+import { useCreateDuel, usePredictionDuelSummary } from "@/features/duels/hooks/duel";
+import { StakeBreakdown } from "@/features/duels/components/StakeBreakdown";
 import { usePrediction, useMyBet } from "@/features/predictions";
 import { usePlayer } from "@/features/home";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";

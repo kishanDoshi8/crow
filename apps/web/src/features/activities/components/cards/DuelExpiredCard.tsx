@@ -4,8 +4,8 @@ import {
 	formatActivityTimestamp,
 	resolveActivityHref,
 } from "@/features/activities/lib/activity";
-import { DuelExpiredActivity } from "@/features/activities/types/types";
-import { ActivityCardComponentProps } from "@/features/activities/components/cards/types";
+import type { DuelExpiredActivity } from "@/features/activities/types/types";
+import type { ActivityCardComponentProps } from "@/features/activities/components/cards/types";
 
 export function DuelExpiredCard({
 	activity,

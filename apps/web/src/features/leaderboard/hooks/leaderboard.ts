@@ -9,8 +9,12 @@ import {
     getSeriesWeeklyRecap,
     getRoomOverallStandings,
 } from '@/shared/lib/api'
-import { PredictionHistoryFilter, PredictionHistoryPage } from "@/features/leaderboard";
-import { InfiniteData, keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import type {
+	PredictionHistoryFilter,
+	PredictionHistoryPage,
+} from "@/features/leaderboard/types/types";
+import type { InfiniteData} from '@tanstack/react-query';
+import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { roomKeys } from '@/shared/constants/queryKeys'
 
 // Last week's top 5 and biggest movers, for the weekly share card.

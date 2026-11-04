@@ -1,7 +1,7 @@
 import { SeriesEditDialog } from "@/features/series/components/SeriesEditDialog";
 import { SeriesHallOfFameSection } from "@/features/series/components/SeriesHallOfFameSection";
 import { SeriesOverviewCard } from "@/features/series/components/SeriesOverviewCard";
-import { ShareStandingsButton } from "@/features/series/components/ShareStandingsButton";
+import { ShareStandingsButton } from "@/features/leaderboard";
 import type {
 	LeaderboardEntry,
 	PredictionHistoryEntry,
@@ -16,7 +16,7 @@ import { EyeIcon, RocketIcon } from "lucide-react";
 import { toast } from "sonner";
 import { ViewingMark } from "@/features/series/components/SeriesTile";
 import { useNavigate } from "react-router-dom";
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { useCurrentSeries } from "@/features/series/hooks/wallets";
 
 import type { SeriesFormState } from "@/features/series/components/SeriesEditDialog";

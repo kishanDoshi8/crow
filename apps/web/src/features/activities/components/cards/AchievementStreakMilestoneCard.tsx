@@ -1,8 +1,10 @@
 import { FlameIcon } from "lucide-react";
-import { ActivityCardComponentProps } from "@/features/activities/components/cards/types";
-import { ActivityPlayerIdentity } from "@/features/activities/components/cards/ActivityPlayerIdentity";
+import type { ActivityCardComponentProps } from "@/features/activities/components/cards/types";
+import {
+	ActivityPlayerIdentity,
+} from "@/features/activities/components/cards/ActivityPlayerIdentity";
 import { formatActivityTimestamp } from "@/features/activities/lib/activity";
-import { AchievementStreakMilestoneActivity } from "@/features/activities/types/types";
+import type { AchievementStreakMilestoneActivity } from "@/features/activities/types/types";
 
 export function AchievementStreakMilestoneCard({
 	activity,

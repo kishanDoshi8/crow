@@ -1,9 +1,15 @@
 import { clearReferral, peekReferral } from "@/shared/lib/referral";
-import { createRoom, getPlayerRooms, joinRoom, markRoomActivitiesSeen, spectateRoom } from "@/shared/lib/api";
+import {
+	createRoom,
+	getPlayerRooms,
+	joinRoom,
+	markRoomActivitiesSeen,
+	spectateRoom,
+} from "@/shared/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { roomKeys } from "@/shared/constants/queryKeys";
 import type { Room } from "@/features/rooms/types/types";
-import { playerQueryKey } from "@/features/home";
+import { playerQueryKey } from "@/shared/constants/queryKeys";
 
 export const useRoom = (roomCode?: string) => {
     return useQuery({

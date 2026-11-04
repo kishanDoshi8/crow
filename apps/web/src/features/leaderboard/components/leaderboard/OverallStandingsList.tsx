@@ -2,7 +2,7 @@ import { Reveal } from "@/shared/ui";
 import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import { cn, formatSignedPoints } from "@/shared/lib/utils";
 import { TrophyIcon } from "lucide-react";
-import type { OverallStandingEntry } from "@/features/leaderboard";
+import type { OverallStandingEntry } from "@/features/leaderboard/types/types";
 import { STANDINGS_ROW_SHELL, StandingsListSkeleton } from "./LeaderboardRow";
 
 type Props = {

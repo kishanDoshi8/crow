@@ -1,6 +1,6 @@
 import { FadeContent, Skeleton } from "@/shared/ui";
-import { useBets } from "@/features/predictions";
-import { Prediction } from "@/features/predictions";
+import { useBets } from "@/features/predictions/hooks/bet";
+import type { Prediction } from "@/features/predictions/types/types";
 import { CoinsIcon, UsersIcon } from "lucide-react";
 
 type Props = {

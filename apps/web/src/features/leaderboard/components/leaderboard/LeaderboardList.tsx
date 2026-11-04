@@ -1,9 +1,6 @@
 import { Reveal } from "@/shared/ui";
-import {
-	LeaderboardEntry,
-	rankingRuleLabel,
-	splitStandings,
-} from "@/features/leaderboard";
+import type { LeaderboardEntry } from "@/features/leaderboard/types/types";
+import { rankingRuleLabel, splitStandings } from "@/features/leaderboard/lib/standings";
 import { LeaderboardRow, StandingsListSkeleton } from "./LeaderboardRow";
 
 type Props = {

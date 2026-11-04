@@ -1,7 +1,7 @@
 import { Button } from "@/shared/ui";
 import { cn } from "@/shared/lib/utils";
 import { ChevronLeft, Crown, Flame, Sparkles, Trophy } from "lucide-react";
-import { Duel, RivalrySummary } from "@/features/duels";
+import type { Duel, RivalrySummary } from "@/features/duels/types/types";
 import DuelQueueHistoryCard from "@/features/duels/components/detail/DuelQueueHistoryCard";
 import {
 	DuelAvatarTile,

@@ -1,4 +1,4 @@
-import { useRoomContext } from "@/app/layouts/RoomLayout";
+import { useRoomContext } from "@/shared/lib/roomContext";
 import { cn } from "@/shared/lib/utils";
 import { HistoryIcon, HomeIcon, MedalIcon, TrophyIcon } from "lucide-react";
 import { useAppNavigation } from "@/shared/lib/navigation";
