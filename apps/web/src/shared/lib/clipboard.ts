@@ -18,7 +18,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 	document.body.appendChild(field);
 	field.select();
 	field.setSelectionRange(0, text.length);
-	let copied = false;
+	let copied: boolean;
 	try {
 		copied = document.execCommand("copy");
 	} catch {
