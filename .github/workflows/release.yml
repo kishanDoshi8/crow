@@ -1,9 +1,10 @@
 name: Release
 
 # Pushing a version tag (e.g. `git tag -a v0.5.0 -m "v0.5.0" && git push origin v0.5.0`)
-# checks the tag, runs CI, deploys that exact tag to the server and creates a
+# checks the tag, runs CI, builds that exact tag here on GitHub, uploads it to
+# the server as a new release folder, switches the site to it and creates a
 # GitHub Release. "Run workflow" in the Actions tab redeploys any existing tag,
-# which is also how you roll back.
+# which is also how you roll back. Server setup: docs/server-setup.md.
 #
 # Database migrations are NOT applied here: run them by hand before tagging,
 # and keep each migration working with the previous frontend.
@@ -55,15 +56,89 @@ jobs:
     if: github.event_name == 'push'
     uses: ./.github/workflows/ci.yml
 
-  deploy:
-    name: Deploy to production
+  # Builds the tagged commit on GitHub's runner (the 1 GB droplet runs out of
+  # memory building it) and keeps the result as a downloadable artifact.
+  build:
+    name: Build
     needs: [verify, ci]
     if: ${{ !cancelled() && needs.verify.result == 'success' && contains(fromJSON('["success","skipped"]'), needs.ci.result) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ env.TAG }}
+          # Full history and tags, so the build ID reads "v0.5.0" (git describe).
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      # VITE_* values end up inside the public JavaScript bundle, so they're
+      # repository variables (Settings > Secrets and variables > Actions >
+      # Variables), not secrets.
+      - name: Build
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+          VITE_WEB_PUSH_PUBLIC_KEY: ${{ vars.VITE_WEB_PUSH_PUBLIC_KEY }}
+          VITE_SHORT_INVITE_LINKS: ${{ vars.VITE_SHORT_INVITE_LINKS }}
+        run: |
+          for name in VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Repository variable $name is not set"
+              exit 1
+            fi
+          done
+          npm run build
+
+      - name: Check the build is the tag
+        run: |
+          release=$(jq -r .release apps/web/dist/version.json)
+          if [ "$release" != "$TAG" ]; then
+            echo "::error::Build reports '$release', expected '$TAG'"
+            exit 1
+          fi
+
+      # nginx serves these .gz files directly (gzip_static), so the droplet's
+      # single CPU never compresses bundles. -n leaves out the timestamp, so
+      # unchanged files produce identical .gz files.
+      - name: Precompress
+        run: |
+          find apps/web/dist -type f -size +1k \
+            \( -name '*.js' -o -name '*.css' -o -name '*.html' -o -name '*.json' \
+               -o -name '*.svg' -o -name '*.webmanifest' \) \
+            -exec gzip -9 -k -n {} +
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-${{ env.TAG }}
+          path: apps/web/dist/
+          include-hidden-files: false
+          retention-days: 30
+
+  # Uploads the build as a new release folder on the droplet and switches the
+  # "current" symlink to it. The only job with access to the server.
+  deploy:
+    name: Deploy to production
+    needs: build
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
     runs-on: ubuntu-latest
     environment:
       name: production
       url: ${{ vars.APP_URL }}
+    env:
+      HOST: ${{ secrets.DEPLOY_HOST }}
+      SSH_USER: ${{ secrets.DEPLOY_USER }}
+      PORT: ${{ vars.DEPLOY_PORT || '22' }}
+      APP_DIR: ${{ vars.DEPLOY_PATH || '/var/www/predikt' }}
     steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-${{ env.TAG }}
+          path: dist
+
       - name: Set up SSH
         env:
           SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
@@ -72,39 +147,60 @@ jobs:
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
           printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host server
+            HostName $HOST
+            User $SSH_USER
+            Port $PORT
+            IdentityFile ~/.ssh/deploy_key
+            BatchMode yes
+          EOF
 
-      - name: Pull and build on the server
-        env:
-          HOST: ${{ secrets.DEPLOY_HOST }}
-          SSH_USER: ${{ secrets.DEPLOY_USER }}
-          PORT: ${{ vars.DEPLOY_PORT || '22' }}
-          APP_DIR: ${{ vars.DEPLOY_PATH || 'predict' }}
+      - name: Upload release
         run: |
-          ssh -i ~/.ssh/deploy_key -p "$PORT" -o BatchMode=yes "$SSH_USER@$HOST" \
-            bash -s "$TAG" "$APP_DIR" <<'REMOTE'
+          # Sorts by date: releases/20261104T153000Z-v0.5.0
+          release_dir="releases/$(date -u +%Y%m%dT%H%M%SZ)-$TAG"
+          echo "RELEASE_DIR=$release_dir" >> "$GITHUB_ENV"
+
+          ssh server mkdir -p "$APP_DIR/releases"
+          # --link-dest: files identical to the live release (most hashed
+          # bundles) become hard links instead of new uploads and copies.
+          # --checksum compares content, since every build has new timestamps.
+          rsync --recursive --links --perms --checksum --compress --delete \
+            --chmod=D755,F644 \
+            --link-dest="$APP_DIR/current/" \
+            dist/ "server:$APP_DIR/$release_dir/"
+
+      - name: Switch to the new release
+        id: activate
+        run: |
+          ssh server bash -s "$APP_DIR" "$RELEASE_DIR" <<'REMOTE'
           set -euo pipefail
-          tag="$1"
-          cd "$2"
+          cd "$1"
+          new="$2"
 
-          # Non-interactive SSH doesn't read ~/.bashrc, so load nvm if Node came from it.
-          if [ -s "$HOME/.nvm/nvm.sh" ]; then . "$HOME/.nvm/nvm.sh"; fi
+          # previous -> the release that was live, so its bundles stay
+          # reachable for phones that loaded the page just before this deploy.
+          if [ -L current ]; then
+            ln -sfn "$(readlink current)" previous.tmp
+            mv -Tf previous.tmp previous
+          fi
 
-          # Check out exactly the tag (not the tip of master), so redeploying an
-          # older tag rolls back. Leaves the checkout on a detached HEAD.
-          git fetch --tags --force origin
-          git checkout --detach "refs/tags/$tag"
+          # Point "current" at the new release. mv -T renames over the old
+          # symlink in one step, so nginx never sees it missing.
+          ln -sfn "$new" current.tmp
+          mv -Tf current.tmp current
+          echo "Live: $new"
 
-          npm ci
-
-          # Build next to the live files, then swap, so nginx never serves a
-          # half-written dist/. The previous build stays in dist-prev/.
-          npm run build --workspace=apps/web -- --outDir dist-next
-          cd apps/web
-          rm -rf dist-prev
-          if [ -d dist ]; then mv dist dist-prev; fi
-          mv dist-next dist
-
-          echo "Deployed $tag ($(git rev-parse --short HEAD))"
+          # Keep the 5 newest releases, plus whatever current/previous point at.
+          live=$(readlink current)
+          prev=$(readlink previous 2>/dev/null || true)
+          ls -1d releases/*/ | sed 's#/$##' | sort -r | tail -n +6 | while read -r dir; do
+            if [ "$dir" != "$live" ] && [ "$dir" != "$prev" ]; then
+              rm -rf -- "$dir"
+              echo "Removed old release $dir"
+            fi
+          done
           REMOTE
 
       - name: Check the live version
@@ -123,6 +219,18 @@ jobs:
           done
           echo "::error::${APP_URL%/}/version.json doesn't report $TAG"
           exit 1
+
+      # If anything failed after the switch, put the previous release back.
+      - name: Roll back
+        if: failure() && steps.activate.outcome == 'success'
+        run: |
+          ssh server bash -s "$APP_DIR" <<'REMOTE'
+          set -euo pipefail
+          cd "$1"
+          ln -sfn "$(readlink previous)" current.tmp
+          mv -Tf current.tmp current
+          echo "Rolled back to $(readlink current)"
+          REMOTE
 
   release:
     name: GitHub Release

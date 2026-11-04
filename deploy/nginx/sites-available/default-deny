@@ -1,0 +1,21 @@
+# Catch-all for requests that don't name one of the sites on this server:
+# bots scanning the droplet's IP address, or other domains pointed at it.
+# They get no answer, instead of whichever site nginx would pick by default.
+#
+# Installed as /etc/nginx/sites-available/default-deny and enabled with a
+# symlink in /etc/nginx/sites-enabled/. Needs nginx 1.19.4 or newer for
+# ssl_reject_handshake (check: nginx -v). See docs/server-setup.md.
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    listen 443 ssl http2 default_server;
+    listen [::]:443 ssl http2 default_server;
+    server_name _;
+
+    # HTTPS: refuse the connection before any certificate is shown, so the
+    # IP address doesn't reveal which domains are hosted here.
+    ssl_reject_handshake on;
+
+    # HTTP: 444 is nginx's "close the connection without replying".
+    return 444;
+}

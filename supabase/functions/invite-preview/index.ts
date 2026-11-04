@@ -19,7 +19,7 @@ const CODE = /^[A-Za-z0-9]{4,12}$/;
 const REF = /^[a-z][a-z-]{0,31}$/;
 
 // Link-preview crawlers get the page with preview tags; everyone else is sent
-// straight to the app. Keep in sync with deploy/nginx/verdict-invite-map.conf.
+// straight to the app. Keep in sync with deploy/nginx/conf.d/verdict-invite-map.conf.
 // (iMessage previews identify as facebookexternalhit / Twitterbot.)
 const PREVIEW_BOT =
 	/facebookexternalhit|facebot|whatsapp|twitterbot|telegrambot|slackbot|discordbot|linkedinbot|skypeuripreview|applebot|googlebot|bingbot|embedly|pinterest|redditbot|vkshare|iframely|mastodon/i;

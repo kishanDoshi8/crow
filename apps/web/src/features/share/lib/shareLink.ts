@@ -1,7 +1,7 @@
 import type { ShareKind } from "@/shared/lib/referral";
 
 // Short /i/<code> links show the room's name and counts when pasted into a
-// chat. They need the nginx block from deploy/nginx/verdict-invite.conf, so
+// chat. They need the /i/ block in deploy/nginx/sites-available/kishandoshi.me, so
 // they're used only once VITE_SHORT_INVITE_LINKS=true is set for the build.
 const useShortLinks = import.meta.env.VITE_SHORT_INVITE_LINKS === "true";
 
