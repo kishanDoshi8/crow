@@ -32,47 +32,18 @@ storage for the site.
 - **If a deploy removed a code chunk** the open app still needed, the app
   reloads instead of showing an error.
 
-## One-time server change (nginx)
+## Server caching rules (nginx)
 
 The steps above work on their own, but the headers stop the browser guessing
-in the first place.
+in the first place. They're part of the site config in
+[`deploy/nginx/sites-available/kishandoshi.me`](../deploy/nginx/sites-available/kishandoshi.me):
 
-1. **Check the current headers** (from any computer):
+- `index.html`, `sw.js`, `manifest.json` and `version.json`: `Cache-Control: no-cache`
+  (always revalidate; a tiny 304 when unchanged).
+- `/assets/` (hashed bundles): `public, max-age=31536000, immutable`.
+- Other files from `public/` (icons, images): one day.
 
-   ```bash
-   curl -sI https://kishandoshi.me/ | grep -i -E "cache-control|last-modified"
-   ```
-
-   If there's a `Last-Modified` line but no `Cache-Control`, this change is
-   needed.
-
-2. **SSH into the server and open the site config:**
-
-   ```bash
-   ls /etc/nginx/sites-enabled/          # find the file for the app
-   sudo nano /etc/nginx/sites-available/<your-site>
-   ```
-
-3. **Paste in the rules.** Inside the app's `server { ... }` block, replace the
-   existing `location / { ... }` with the three location blocks from
-   [`deploy/nginx/verdict-cache.conf`](../deploy/nginx/verdict-cache.conf).
-   Keep `root` pointing at `apps/web/dist` as it does today.
-
-   If the server block has other `add_header` lines (for example security
-   headers), copy them into each new location too. nginx drops server-level
-   headers inside a location that sets its own.
-
-4. **Test and reload.** This doesn't drop connections, and no rebuild is needed:
-
-   ```bash
-   sudo nginx -t && sudo systemctl reload nginx
-   ```
-
-5. **Check again.** Run the curl from step 1. It should now show
-   `Cache-Control: no-cache`. A bundle under `/assets/` should show
-   `public, max-age=31536000, immutable`.
-
-Deploys stay the same: `git pull && npm run build`.
+Setup and deploys: [server-setup.md](server-setup.md).
 
 ## Phones that already have an old copy
 
@@ -85,16 +56,6 @@ Chrome → Settings → Site settings → All sites → kishandoshi.me →
 
 This also turns off push notifications on that phone; switch them back on from
 the room menu.
-
-## Later: smoother deploys (free, not set up yet)
-
-- **Build next to the live folder, then swap.** Today `npm run build` empties
-  `dist/` while it rebuilds, so for a few seconds the site has no files. Building
-  into a separate folder and then renaming it over `dist/` (or switching a
-  symlink) avoids that gap.
-- **Deploy on push.** A GitHub Actions workflow (free for this size) can SSH into
-  the server and run the same `git pull && npm ci && npm run build` whenever
-  master changes.
 
 ## Rich invite links (`/i/<code>`)
 
@@ -123,21 +84,11 @@ white page with a single link.
    npx supabase secrets set APP_URL=https://kishandoshi.me
    ```
 
-2. **Add the nginx rules.**
-   - Copy [`deploy/nginx/verdict-invite-map.conf`](../deploy/nginx/verdict-invite-map.conf)
-     to `/etc/nginx/conf.d/verdict-invite-map.conf`. It tells crawlers apart
-     from people.
-   - Paste the block from
-     [`deploy/nginx/verdict-invite.conf`](../deploy/nginx/verdict-invite.conf)
-     into the same `server { ... }` block as before (replace the old `/i/`
-     block if you added it). Replace `YOUR-PROJECT-REF` in both places with
-     your project ref: the part before `.supabase.co` in `VITE_SUPABASE_URL`.
-
-   Then run:
-
-   ```bash
-   sudo nginx -t && sudo systemctl reload nginx
-   ```
+2. **The nginx rules** are already in the site config
+   ([`deploy/nginx/sites-available/kishandoshi.me`](../deploy/nginx/sites-available/kishandoshi.me),
+   the `location ^~ /i/` block) together with
+   [`deploy/nginx/conf.d/verdict-invite-map.conf`](../deploy/nginx/conf.d/verdict-invite-map.conf),
+   which tells crawlers apart from people. See [server-setup.md](server-setup.md).
 
 3. **Check it** (use your room code):
 
@@ -151,12 +102,9 @@ white page with a single link.
    The first should show `302` and `Location: .../rooms/F4C36D/join`; the
    second, the room's counts.
 
-4. **Switch the app to short links.** Add this line to `apps/web/.env` on the
-   server, then deploy as usual (`git pull && npm run build`):
-
-   ```
-   VITE_SHORT_INVITE_LINKS=true
-   ```
+4. **Switch the app to short links.** Set the repository variable
+   `VITE_SHORT_INVITE_LINKS` to `true` (GitHub → Settings → Secrets and
+   variables → Actions → Variables), then deploy a new tag.
 
    Until this is set, invites and shared cards keep using the longer
    `/rooms/<code>/join` links, which work without the steps above.

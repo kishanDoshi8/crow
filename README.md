@@ -5,7 +5,7 @@ Private prediction game. Friends play series of predictions on real-life outcome
 ## Stack
 - **Frontend**: React + Vite + TypeScript (PWA)
 - **Backend**: Supabase (Postgres + Realtime)
-- **Hosting**: Vercel + Supabase Cloud
+- **Hosting**: DigitalOcean droplet with nginx (see `docs/server-setup.md`) + Supabase Cloud
 
 ---
 
