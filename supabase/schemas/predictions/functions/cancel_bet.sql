@@ -29,6 +29,11 @@ begin
     raise exception 'Prediction not found or not in draft phase' using errcode = 'P0006';
   end if;
 
+  -- Picks are final at the deadline, even before the lock job catches up.
+  if v_prediction.deadline <= now() then
+    raise exception 'Betting deadline has passed' using errcode = 'P0007';
+  end if;
+
   select exists (
     select 1 from public.room_members
     where room_id = v_prediction.room_id and player_id = v_player.id

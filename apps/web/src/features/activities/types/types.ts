@@ -8,6 +8,7 @@ export type ActivityType =
 	| "prediction_revealed"
 	| "prediction_cancelled"
 	| "prediction_no_result"
+	| "prediction_corrected"
 	| "duel_created"
 	| "duel_matched"
 	| "duel_resolved"
@@ -153,6 +154,13 @@ export type PredictionNoResultActivity = RoomActivityBase<
 	"prediction_no_result",
 	PredictionActivityMetadata
 >;
+export type PredictionCorrectedActivity = RoomActivityBase<
+	"prediction_corrected",
+	PredictionActivityMetadata & {
+		previousStatus: "revealed" | "no_result";
+		previousWinningOptionLabel: string | null;
+	}
+>;
 
 export type DuelCreatedActivity = RoomActivityBase<
 	"duel_created",
@@ -185,6 +193,7 @@ export type RoomActivity =
 	| PredictionRevealedActivity
 	| PredictionCancelledActivity
 	| PredictionNoResultActivity
+	| PredictionCorrectedActivity
 	| DuelCreatedActivity
 	| DuelMatchedActivity
 	| DuelResolvedActivity

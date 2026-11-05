@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(37);
+select plan(40);
 
 -- ------------------------------------------------------------
 -- Fixtures: Alice owns a room. Bob, Carol and Dave join.
@@ -180,13 +180,27 @@ reset role;
 select pg_temp.login('00000000-0000-0000-0000-00000000ca01');
 set local role authenticated;
 select throws_ok(
-  format($$ select public.update_prediction(%L, 'Who wins?', now() + interval '2 days', array['IND', 'AUS']) $$, pg_temp.setting('winner')),
+  format($$ select public.update_prediction(%L, 'Who wins ODI 1 at Perth?', now() + interval '2 days', array['IND', 'AUS']) $$, pg_temp.setting('winner')),
   'P0001', 'Options can''t change once someone has bet',
   'options are locked once someone has bet'
 );
+select throws_ok(
+  format($$ select public.update_prediction(%L, 'Who loses ODI 1?', now() + interval '2 days') $$, pg_temp.setting('winner')),
+  'P0001', 'The question can''t change once someone has bet',
+  'the question is locked once someone has bet'
+);
+select throws_ok(
+  format($$ select public.set_prediction_details(%L, 'Decided by run rate', array[]::text[]) $$, pg_temp.setting('winner')),
+  'P0001', 'The details can''t change once someone has bet',
+  'the details are locked once someone has bet'
+);
 select lives_ok(
-  format($$ select public.update_prediction(%L, 'Who wins ODI 1?', now() + interval '3 days', array['India', 'Australia', 'No result']) $$, pg_temp.setting('winner')),
-  'the title and deadline can still change after bets when the options are unchanged'
+  format($$ select public.update_prediction(%L, 'Who wins ODI 1 at Perth?', now() + interval '3 days', array['India', 'Australia', 'No result']) $$, pg_temp.setting('winner')),
+  'the deadline can still change after bets when the question and options are unchanged'
+);
+select lives_ok(
+  format($$ select public.set_prediction_details(%L, null, array['ODI']) $$, pg_temp.setting('winner')),
+  'tags can still change after bets'
 );
 reset role;
 

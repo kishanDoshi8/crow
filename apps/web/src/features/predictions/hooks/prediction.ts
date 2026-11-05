@@ -1,4 +1,4 @@
-import { createPrediction, getActivePrediction, getActivePredictions, getPrediction, getRoomTags, resolvePrediction, setPredictionDetails, updatePrediction } from "@/shared/lib/api";
+import { correctPredictionResult, createPrediction, getActivePrediction, getActivePredictions, getPrediction, getRoomTags, resolvePrediction, setPredictionDetails, updatePrediction } from "@/shared/lib/api";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { roomKeys } from "@/shared/constants/queryKeys";
 import { invalidateRoomResults } from "@/shared/lib/roomCache";
@@ -84,6 +84,30 @@ export const useResolvePrediction = () => {
         },
         onError: (error) => {
             console.error("Error resolving prediction:", error);
+        },
+    });
+}
+
+type CorrectPredictionParams = {
+    predictionId: string;
+    outcome: 'win' | 'no_result';
+    winningOptionId?: string;
+    roomId: string;
+    noResultReason?: string | null;
+}
+
+// Organizers fix a revealed or no-result prediction. Points, ratings and
+// streaks move, so everything a result touches is refetched.
+export const useCorrectPrediction = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: CorrectPredictionParams) =>
+            correctPredictionResult(data.predictionId, data.roomId, data.outcome, data.winningOptionId, data.noResultReason),
+        onSuccess: (_, variables) => {
+            invalidateRoomResults(queryClient, variables.roomId);
+            queryClient.invalidateQueries({
+                queryKey: roomKeys.prediction(variables.roomId, variables.predictionId),
+            });
         },
     });
 }

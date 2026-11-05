@@ -726,7 +726,7 @@ export async function createPrediction(
 export async function getPrediction(predictionId: string) {
   const { data, error } = await supabase
     .from('predictions')
-    .select(`*, series:series_id(title), prediction_tags(id, prediction_id, tag, created_at)`)
+    .select(`*, series:series_id(title, status), prediction_tags(id, prediction_id, tag, created_at)`)
     .eq('id', predictionId)
     .maybeSingle()
   
@@ -746,6 +746,7 @@ export async function getPrediction(predictionId: string) {
     seriesId: data.series_id,
     seriesPredictionNumber: data.series_prediction_number,
     seriesTitle: data.series?.title ?? null,
+    seriesStatus: data.series?.status ?? null,
     tags: data.prediction_tags ?? [],
     status: data.status as PredictionStatus,
     prediction_options: predictionOptions ?? [],
@@ -884,6 +885,24 @@ export async function resolvePrediction(
   noResultReason?: string | null,
 ) {  
   const { data, error } = await supabase.rpc('resolve_prediction_v2', {
+    p_prediction_id: predictionId,
+    p_room_id: roomId,
+    p_outcome: outcome,
+    p_winning_option_id: winningOptionId ?? undefined,
+    p_no_result_reason: noResultReason ?? undefined,
+  })
+  return assertOk(data, error)
+}
+
+// Organizers fix a result that went out wrong, while the series runs.
+export async function correctPredictionResult(
+  predictionId: string,
+  roomId: string,
+  outcome: 'win' | 'no_result',
+  winningOptionId?: string,
+  noResultReason?: string | null,
+) {
+  const { data, error } = await supabase.rpc('correct_prediction_result', {
     p_prediction_id: predictionId,
     p_room_id: roomId,
     p_outcome: outcome,

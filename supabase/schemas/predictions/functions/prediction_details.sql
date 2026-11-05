@@ -55,6 +55,13 @@ begin
     raise exception 'Keep each tag under 24 characters' using errcode = 'P0001';
   end if;
 
+  -- The details say how the winner is decided, so they're fixed once someone has bet.
+  if v_description is distinct from (select p.description from public.predictions p where p.id = p_prediction_id)
+    and exists (select 1 from public.bets b where b.prediction_id = p_prediction_id)
+  then
+    raise exception 'The details can''t change once someone has bet' using errcode = 'P0001';
+  end if;
+
   update public.predictions set description = v_description where id = p_prediction_id;
 
   delete from public.prediction_tags where prediction_id = p_prediction_id;

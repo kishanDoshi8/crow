@@ -48,8 +48,8 @@ type PredictionFormProps = {
 	};
 	// Create mode: the series to preselect.
 	initialSeriesId?: string | null;
-	// Options can't change once anyone has bet.
-	optionsLocked?: boolean;
+	// The question, details and options can't change once anyone has bet.
+	lockedByBets?: boolean;
 	isSubmitting: boolean;
 	onSubmit: (values: PredictionFormValues) => void;
 	onCancel: () => void;
@@ -60,7 +60,7 @@ export function PredictionForm({
 	roomId,
 	initial,
 	initialSeriesId = null,
-	optionsLocked = false,
+	lockedByBets = false,
 	isSubmitting,
 	onSubmit,
 	onCancel,
@@ -206,7 +206,14 @@ export function PredictionForm({
 							value={question}
 							onChange={(e) => setQuestion(e.target.value)}
 							aria-invalid={errors.includes("question")}
+							disabled={lockedByBets}
 						/>
+						{lockedByBets ? (
+							<p className='flex items-center gap-2 text-xs text-muted-foreground'>
+								<LockIcon className='size-3.5' />
+								The question and details can't change once someone has bet.
+							</p>
+						) : null}
 					</Field>
 					<Field>
 						<FieldLabel htmlFor='tags'>
@@ -224,6 +231,7 @@ export function PredictionForm({
 							value={description}
 							maxLength={500}
 							onChange={(e) => setDescription(e.target.value)}
+							disabled={lockedByBets}
 						/>
 						{description.length > 400 ? (
 							<p className='text-right text-xs text-muted-foreground tabular-nums'>
@@ -235,10 +243,10 @@ export function PredictionForm({
 						<FieldLabel htmlFor='answer' className={`flex`}>
 							<span className={`flex-1`}>Outcome Options</span>
 							<span className={`text-muted-foreground`}>
-								{optionsLocked ? "Locked" : "Min 2 Required"}
+								{lockedByBets ? "Locked" : "Min 2 Required"}
 							</span>
 						</FieldLabel>
-						{optionsLocked ? (
+						{lockedByBets ? (
 							<p className='flex items-center gap-2 text-xs text-muted-foreground'>
 								<LockIcon className='size-3.5' />
 								Options can't change once someone has bet.
@@ -255,7 +263,7 @@ export function PredictionForm({
 										`option-${option.id}`,
 									)}
 									value={option.text}
-									disabled={optionsLocked}
+									disabled={lockedByBets}
 									onChange={(e) => {
 										const newOptions = options.map((opt) =>
 											opt.id === option.id
@@ -273,7 +281,7 @@ export function PredictionForm({
 											: `Option ${i + 1}`
 									}
 								/>
-								{optionsLocked ? null : (
+								{lockedByBets ? null : (
 									<Button
 										variant={"outline"}
 										size={"icon"}
@@ -287,7 +295,7 @@ export function PredictionForm({
 								)}
 							</div>
 						))}
-						{optionsLocked ? null : (
+						{lockedByBets ? null : (
 							<Button
 								variant={"outline"}
 								size={"sm"}

@@ -9,27 +9,43 @@ const VERB: Partial<Record<Prediction["status"], string>> = {
 };
 
 // "Revealed by Raj": who closed the prediction, so results stay accountable
-// when several people run the room.
+// when several people run the room. A fixed result also says who corrected it.
 export function ResolvedByLine({
 	prediction,
 	className,
 }: Readonly<{
-	prediction: Pick<Prediction, "status" | "resolved_by">;
+	prediction: Pick<Prediction, "status" | "resolved_by" | "corrected_by">;
 	className?: string;
 }>) {
 	const { room } = useRoomContext();
-	const verb = VERB[prediction.status];
-	const name = room.members.find(
-		(member) => member.player_id === prediction.resolved_by,
-	)?.player.username;
+	// After a correction the first closer's verb may no longer fit the result.
+	const verb = prediction.corrected_by ? "Closed by" : VERB[prediction.status];
+	const nameOf = (playerId?: string | null) =>
+		room.members.find((member) => member.player_id === playerId)?.player
+			.username;
+	const name = nameOf(prediction.resolved_by);
+	const correctedBy = prediction.corrected_by
+		? (nameOf(prediction.corrected_by) ?? "an organizer")
+		: null;
 
-	if (!verb || !name) {
+	if (!verb || (!name && !correctedBy)) {
 		return null;
 	}
 
 	return (
 		<p className={cn("text-xs text-muted-foreground", className)}>
-			{verb} <span className='font-medium text-foreground'>{name}</span>
+			{name ? (
+				<>
+					{verb} <span className='font-medium text-foreground'>{name}</span>
+				</>
+			) : null}
+			{name && correctedBy ? " · " : null}
+			{correctedBy ? (
+				<>
+					Corrected by{" "}
+					<span className='font-medium text-foreground'>{correctedBy}</span>
+				</>
+			) : null}
 		</p>
 	);
 }

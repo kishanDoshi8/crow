@@ -9,4 +9,4 @@ drop policy if exists "bets_no_direct_update" on public.bets;
 create policy "bets_no_direct_update" on public.bets for update using (false);
 drop policy if exists "bets_no_direct_delete" on public.bets;
 create policy "bets_no_direct_delete" on public.bets for delete using (false);
-grant select (id, prediction_id, player_id, option_id, amount, payout, placed_at, updated_at) on public.bets to authenticated;
+grant select (id, prediction_id, player_id, option_id, amount, payout, rating_change, placed_at, updated_at) on public.bets to authenticated;

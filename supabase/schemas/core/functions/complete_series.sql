@@ -138,57 +138,12 @@ begin
     from player_participation pp
     where pp.prediction_count >= v_required_bets
   ),
-  revealed_player_results as (
-    select
-      b.player_id,
-      coalesce(sp.series_prediction_number, 2147483647) as sort_number,
-      sp.created_at,
-      sp.id as prediction_id,
-      (b.option_id = sp.winning_option_id) as is_win
-    from public.bets b
-    join series_predictions sp
-      on sp.id = b.prediction_id
-     and sp.status = 'revealed'
-     and sp.winning_option_id is not null
-    join eligible_players ep on ep.player_id = b.player_id
-  ),
-  win_groups as (
-    select
-      rpr.player_id,
-      rpr.sort_number,
-      rpr.created_at,
-      rpr.prediction_id,
-      rpr.is_win,
-      sum(case when rpr.is_win then 0 else 1 end) over (
-        partition by rpr.player_id
-        order by rpr.sort_number asc, rpr.created_at asc, rpr.prediction_id asc
-      ) as loss_group
-    from revealed_player_results rpr
-  ),
-  streak_runs as (
-    select
-      wg.player_id,
-      wg.is_win,
-      row_number() over (
-        partition by wg.player_id, wg.loss_group
-        order by wg.sort_number asc, wg.created_at asc, wg.prediction_id asc
-      ) as win_run
-    from win_groups wg
-  ),
+  -- The same streaks the series standings showed all season, results in the
+  -- order they came in.
   player_streaks as (
-    select
-      sr.player_id,
-      coalesce(
-        max(
-          case
-            when sr.is_win then sr.win_run
-            else 0
-          end
-        ),
-        0
-      )::numeric as award_value
-    from streak_runs sr
-    group by sr.player_id
+    select ss.player_id, ss.highest_streak::numeric as award_value
+    from private.series_streaks(p_series_id) ss
+    join eligible_players ep on ep.player_id = ss.player_id
   ),
   top_value as (
     select max(ps.award_value) as value

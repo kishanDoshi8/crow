@@ -117,6 +117,39 @@ begin
         rated_predictions_count = rated_predictions_count + 1,
         rating_system_version = v_config.version
     where id = v_member.id;
+
+    -- Kept so a corrected result can undo exactly this change.
+    update public.bets
+    set rating_change = v_new_rating - v_member.prediction_rating
+    where prediction_id = p_prediction_id
+      and player_id = v_participant.player_id;
   end loop;
+end;
+$$;
+
+-- Undoes the rating changes a revealed prediction made, before its result is
+-- corrected. Peak ratings are left as they are.
+create or replace function private.reverse_prediction_ratings(
+  p_prediction_id uuid
+)
+returns void
+language plpgsql
+set search_path = public, private
+as $$
+begin
+  update public.room_members rm
+  set prediction_rating = greatest(0, rm.prediction_rating - b.rating_change),
+      rated_predictions_count = greatest(0, rm.rated_predictions_count - 1)
+  from public.bets b
+  join public.predictions p on p.id = b.prediction_id
+  where b.prediction_id = p_prediction_id
+    and b.rating_change is not null
+    and rm.room_id = p.room_id
+    and rm.player_id = b.player_id;
+
+  update public.bets
+  set rating_change = null
+  where prediction_id = p_prediction_id
+    and rating_change is not null;
 end;
 $$;

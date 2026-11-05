@@ -17,7 +17,13 @@ create table if not exists public.predictions (
   -- Set once staff have been pushed that the result is overdue.
   notified_result_needed boolean not null default false,
   -- Optional context shown on the prediction page: how it's decided, etc.
-  description text check (description is null or char_length(description) <= 500)
+  description text check (description is null or char_length(description) <= 500),
+  -- Set when organizers fix a result after it was revealed.
+  corrected_at timestamptz,
+  corrected_by uuid references public.players(id) on delete set null,
+  -- False for predictions revealed before rating changes were recorded per
+  -- bet: their ratings can't be undone, so their result can't be corrected.
+  ratings_reversible boolean not null default true
 );
 
 do $$
