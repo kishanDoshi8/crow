@@ -3,6 +3,7 @@ import PredictionOptions from "../widgets/PredictionOptions";
 import PredictionTitle from "../components/PredictionTitle";
 import { BetListSkeleton } from "../components/BetListSkeleton";
 import { ResolvedByLine } from "../components/ResolvedByLine";
+import { CorrectResultLink } from "../components/CorrectResultLink";
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui";
 import { InfoIcon } from "lucide-react";
 import { useBets } from "@/features/predictions/hooks/bet";
@@ -41,6 +42,7 @@ function NoResult({ prediction }: Readonly<Props>) {
 					{prediction?.no_result_reason ??
 						"All bets have been returned."}
 					{prediction ? <ResolvedByLine prediction={prediction} /> : null}
+					{prediction ? <CorrectResultLink prediction={prediction} /> : null}
 				</AlertDescription>
 			</Alert>
 

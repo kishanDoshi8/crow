@@ -46,6 +46,7 @@ export type Database = {
           option_id: string
           payout: number | null
           placed_at: string
+          rating_change: number | null
           player_id: string
           prediction_id: string
           updated_at: string
@@ -56,6 +57,7 @@ export type Database = {
           option_id: string
           payout?: number | null
           placed_at?: string
+          rating_change?: number | null
           player_id: string
           prediction_id: string
           updated_at?: string
@@ -66,6 +68,7 @@ export type Database = {
           option_id?: string
           payout?: number | null
           placed_at?: string
+          rating_change?: number | null
           player_id?: string
           prediction_id?: string
           updated_at?: string
@@ -459,6 +462,8 @@ export type Database = {
       predictions: {
         Row: {
           affects_rating: boolean
+          corrected_at: string | null
+          corrected_by: string | null
           created_at: string
           created_by: string
           description: string | null
@@ -467,6 +472,7 @@ export type Database = {
           no_result_reason: string | null
           notified_1h: boolean
           notified_result_needed: boolean
+          ratings_reversible: boolean
           resolved_at: string | null
           resolved_by: string | null
           room_id: string
@@ -478,6 +484,8 @@ export type Database = {
         }
         Insert: {
           affects_rating?: boolean
+          corrected_at?: string | null
+          corrected_by?: string | null
           created_at?: string
           created_by: string
           description?: string | null
@@ -486,6 +494,7 @@ export type Database = {
           no_result_reason?: string | null
           notified_1h?: boolean
           notified_result_needed?: boolean
+          ratings_reversible?: boolean
           resolved_at?: string | null
           resolved_by?: string | null
           room_id: string
@@ -497,6 +506,8 @@ export type Database = {
         }
         Update: {
           affects_rating?: boolean
+          corrected_at?: string | null
+          corrected_by?: string | null
           created_at?: string
           created_by?: string
           description?: string | null
@@ -505,6 +516,7 @@ export type Database = {
           no_result_reason?: string | null
           notified_1h?: boolean
           notified_result_needed?: boolean
+          ratings_reversible?: boolean
           resolved_at?: string | null
           resolved_by?: string | null
           room_id?: string
@@ -520,6 +532,13 @@ export type Database = {
             columns: ["winning_option_id"]
             isOneToOne: false
             referencedRelation: "prediction_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "predictions_corrected_by_fkey"
+            columns: ["corrected_by"]
+            isOneToOne: false
+            referencedRelation: "players"
             referencedColumns: ["id"]
           },
           {
@@ -1584,6 +1603,16 @@ export type Database = {
       claim_weekly_points: { Args: { p_auto_claimed?: boolean }; Returns: Json }
       collect_series_rewards: { Args: { series_id: string }; Returns: Json }
       complete_series: { Args: { p_series_id: string }; Returns: Json }
+      correct_prediction_result: {
+        Args: {
+          p_no_result_reason?: string
+          p_outcome: string
+          p_prediction_id: string
+          p_room_id: string
+          p_winning_option_id?: string
+        }
+        Returns: Json
+      }
       create_duel: {
         Args: {
           p_bet_id: string

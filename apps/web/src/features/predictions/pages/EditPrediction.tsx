@@ -7,8 +7,8 @@ import { Skeleton } from "@/shared/ui";
 import { Navigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
-// Organizers fix a prediction while it's open for picks: the question, the
-// deadline, and the options until someone bets.
+// Organizers fix a prediction while it's open for picks: the deadline and
+// tags, and the question, details and options until someone bets.
 export default function EditPrediction() {
 	const { room } = useRoomContext();
 	const { can } = useRoomRole(room);
@@ -40,7 +40,7 @@ export default function EditPrediction() {
 	const options = [...prediction.prediction_options].sort(
 		(a, b) => a.display_order - b.display_order,
 	);
-	const optionsLocked = options.some((option) => option.total_bet > 0);
+	const hasBets = options.some((option) => option.total_bet > 0);
 
 	return (
 		<PredictionForm
@@ -53,7 +53,7 @@ export default function EditPrediction() {
 				description: prediction.description ?? "",
 				tags: (prediction.tags ?? []).map((tag) => tag.tag),
 			}}
-			optionsLocked={optionsLocked}
+			lockedByBets={hasBets}
 			isSubmitting={isSaving}
 			onSubmit={({ title, options: labels, deadline, description, tags }) =>
 				updatePrediction(
@@ -62,7 +62,7 @@ export default function EditPrediction() {
 						predictionId: prediction.id,
 						title,
 						deadline,
-						options: optionsLocked ? undefined : labels,
+						options: hasBets ? undefined : labels,
 						description,
 						tags,
 					},

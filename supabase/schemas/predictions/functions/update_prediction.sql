@@ -1,5 +1,5 @@
--- Organizers fix a prediction that's still open for picks: title, deadline,
--- and the options while nobody has bet. Pass null options to keep them.
+-- Organizers fix a prediction that's still open for picks: the deadline, and
+-- the question and options while nobody has bet. Pass null options to keep them.
 create or replace function public.update_prediction(
   p_prediction_id uuid,
   p_title         text,
@@ -52,6 +52,13 @@ begin
 
   if p_deadline is null or p_deadline <= now() then
     raise exception 'Deadline must be in the future' using errcode = 'P0001';
+  end if;
+
+  -- Once someone has bet, the question they bet on stays as it was.
+  if trim(p_title) is distinct from v_prediction.title
+    and exists (select 1 from public.bets where prediction_id = p_prediction_id)
+  then
+    raise exception 'The question can''t change once someone has bet' using errcode = 'P0001';
   end if;
 
   if p_options is not null then

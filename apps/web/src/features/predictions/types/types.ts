@@ -36,6 +36,13 @@ export interface Prediction {
   resolved_at:       string | null
   // Staff member who revealed, marked no result, or cancelled it.
   resolved_by?:      string | null
+  // Organizer who last fixed the result, and when.
+  corrected_by?:     string | null
+  corrected_at?:     string | null
+  // False for results revealed before corrections existed.
+  ratings_reversible?: boolean
+  // Results can be corrected only while the series runs.
+  seriesStatus?:     string | null
   prediction_options: PredictionOption[]
   no_result_reason?: string | null
 }

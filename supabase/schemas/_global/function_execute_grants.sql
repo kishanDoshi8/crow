@@ -65,6 +65,7 @@ grant execute on function public.place_bet(uuid, uuid, integer) to authenticated
 grant execute on function public.register_player(text) to authenticated;
 grant execute on function public.reset_room_preferences(uuid) to authenticated;
 grant execute on function public.resolve_prediction_v2(uuid, uuid, text, uuid, character varying) to authenticated;
+grant execute on function public.correct_prediction_result(uuid, uuid, text, uuid, character varying) to authenticated;
 grant execute on function public.set_last_visited_room(uuid) to authenticated;
 grant execute on function public.set_member_role(uuid, uuid, text) to authenticated;
 grant execute on function public.transfer_ownership(uuid, uuid) to authenticated;

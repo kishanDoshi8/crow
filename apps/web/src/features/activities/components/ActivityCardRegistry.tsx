@@ -7,6 +7,7 @@ import type {
 	DuelMatchedActivity,
 	DuelResolvedActivity,
 	PredictionCancelledActivity,
+	PredictionCorrectedActivity,
 	PredictionCreatedActivity,
 	PredictionLockedActivity,
 	PredictionNoResultActivity,
@@ -18,6 +19,7 @@ import { RoomJoinedCard } from "@/features/activities/components/cards/RoomJoine
 import {
 	PredictionCreatedCard,
 } from "@/features/activities/components/cards/PredictionCreatedCard";
+import { PredictionCorrectedCard } from "@/features/activities/components/cards/PredictionCorrectedCard";
 import { PredictionLockedCard } from "@/features/activities/components/cards/PredictionLockedCard";
 import {
 	PredictionRevealedCard,
@@ -64,6 +66,7 @@ type RegistryMap = {
 	prediction_revealed: CardFor<PredictionRevealedActivity>;
 	prediction_cancelled: CardFor<PredictionCancelledActivity>;
 	prediction_no_result: CardFor<PredictionNoResultActivity>;
+	prediction_corrected: CardFor<PredictionCorrectedActivity>;
 	duel_created: CardFor<DuelCreatedActivity>;
 	duel_matched: CardFor<DuelMatchedActivity>;
 	duel_resolved: CardFor<DuelResolvedActivity>;
@@ -80,6 +83,7 @@ const registry: RegistryMap = {
 	prediction_revealed: PredictionRevealedCard,
 	prediction_cancelled: PredictionCancelledCard,
 	prediction_no_result: PredictionNoResultCard,
+	prediction_corrected: PredictionCorrectedCard,
 	duel_created: DuelCreatedCard,
 	duel_matched: DuelMatchedCard,
 	duel_resolved: DuelResolvedCard,

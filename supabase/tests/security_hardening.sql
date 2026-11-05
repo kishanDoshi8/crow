@@ -187,7 +187,7 @@ select is(
   ),
   array[
     'activate_series', 'archive_series', 'cancel_bet', 'cancel_duel_queue_view', 'cancel_duel_view',
-    'collect_series_rewards', 'complete_series',
+    'collect_series_rewards', 'complete_series', 'correct_prediction_result',
     'create_prediction', 'create_room', 'create_series', 'delete_my_push_subscription', 'dismiss_weekly_recap', 'get_my_series_wallets', 'get_my_unseen_results', 'get_my_weekly_recap', 'get_player', 'get_prediction_duel_summary',
     'get_prediction_duels_view', 'get_preferences', 'get_room_activities', 'get_room_by_code',
     'get_room_has_unseen_activities', 'get_room_manage_queue', 'get_room_member_recent_predictions',

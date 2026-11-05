@@ -1,5 +1,6 @@
 import { Badge, FadeContent, Skeleton } from "@/shared/ui";
 import { ResolvedByLine } from "../components/ResolvedByLine";
+import { CorrectResultLink } from "../components/CorrectResultLink";
 import type { Prediction } from "@/features/predictions/types/types";
 import { useBets } from "@/features/predictions/hooks/bet";
 import PredictionTitle from "../components/PredictionTitle";
@@ -129,6 +130,7 @@ function ResolvedPhase({ prediction }: Readonly<Props>) {
 				</div>
 
 				<ResolvedByLine prediction={prediction} className='-mt-2' />
+				<CorrectResultLink prediction={prediction} />
 
 				<PredictionData
 					prediction={prediction}

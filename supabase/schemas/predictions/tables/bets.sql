@@ -5,6 +5,8 @@ create table if not exists public.bets (
   option_id uuid not null references public.prediction_options(id) on delete cascade,
   amount integer not null check (amount >= 1),
   payout integer,
+  -- The rating points this bet moved, so a corrected result can undo them.
+  rating_change integer,
   placed_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (prediction_id, player_id)
