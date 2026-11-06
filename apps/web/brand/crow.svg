@@ -1,0 +1,10 @@
+<!-- The Crow mark: a crow mid-caw, on a 512 grid. Source for every icon file
+     (node brand/render-icons.mjs) and for CrowGlyph in src/shared/ui/crow-mark.tsx;
+     change the path in both places. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <mask id="eye">
+    <rect width="512" height="512" fill="#fff"/>
+    <circle cx="290" cy="188" r="15" fill="#000"/>
+  </mask>
+  <path mask="url(#eye)" fill="currentColor" d="M492 190 L344 154 L296 130 L228 140 L186 182 L170 248 L162 312 L122 366 L182 354 L158 414 L216 392 L210 446 L274 406 L316 350 L340 294 L358 262 L482 294 L366 234 Z"/>
+</svg>

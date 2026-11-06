@@ -53,7 +53,7 @@ export function InviteCard({
 		<CardCanvas format={format} gap={format === "story" ? 56 : 44}>
 			<div style={{ display: "flex", alignItems: "center", gap: 24 }}>
 				<LogoTile />
-				<span style={{ fontSize: 40, fontWeight: 700 }}>Verdict</span>
+				<span style={{ fontSize: 40, fontWeight: 700, letterSpacing: "-0.05em" }}>crow</span>
 			</div>
 
 			<div style={{ display: "flex", flexDirection: "column", gap: 20 }}>

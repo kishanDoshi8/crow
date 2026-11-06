@@ -11,6 +11,7 @@ export const app = {
 	faint: "color-mix(in srgb, var(--muted-foreground) 60%, transparent)",
 	accent: "var(--accent)",
 	onGradient: "var(--primary-foreground)",
+	brandInk: "var(--brand-ink)",
 	gradient: "linear-gradient(90deg, var(--primary), var(--accent))",
 	win: "var(--win)",
 	loss: "var(--loss)",

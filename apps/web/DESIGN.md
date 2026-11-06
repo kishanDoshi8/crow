@@ -1,5 +1,5 @@
 ---
-name: Verdict
+name: Crow
 description: Private-first prediction UI for friend groups with compact, state-explicit interaction design.
 colors:
     primary-live-rose: "oklch(0.645 0.246 16.439)"
@@ -87,13 +87,13 @@ components:
         height: "2rem"
 ---
 
-# Design System: Verdict
+# Design System: Crow
 
 ## 1. Overview
 
 **Creative North Star: "Friendly Matchday Ledger"**
 
-Verdict’s interface behaves like a fast, trustworthy score desk for friend-group competition. It keeps social energy visible, but it never sacrifices legibility or game-rule clarity for spectacle. The visual rhythm is compact, direct, and state-explicit, so players can make decisions quickly and verify outcomes without friction.
+Crow’s interface behaves like a fast, trustworthy score desk for friend-group competition. It keeps social energy visible, but it never sacrifices legibility or game-rule clarity for spectacle. The visual rhythm is compact, direct, and state-explicit, so players can make decisions quickly and verify outcomes without friction.
 
 The voice is calm precision with competitive energy: sharp information hierarchy, disciplined color semantics, and interaction states that always declare intent. Primary color appears as signal, not decoration. Surfaces stay neutral so scoring cues, rank cues, and outcome cues remain cognitively immediate.
 
@@ -103,6 +103,10 @@ The voice is calm precision with competitive energy: sharp information hierarchy
 - Monospace-forward typography for scoreboarding clarity and numerical stability.
 - Restrained base surfaces with high-contrast competitive accents.
 - Interaction-first depth: motion and elevation only when state changes.
+
+### Logo
+
+The mark is a black crow mid-caw on the rose-to-amber tile (`CrowTile` / `CrowGlyph` in `src/shared/ui/crow-mark.tsx`). The crow uses `--brand-ink` in both themes; the tile is the `primary` → `accent` gradient at 135°. The wordmark is lowercase "crow" in Fira Code, set tight. Icon files come from `brand/crow.svg` via `node brand/render-icons.mjs`.
 
 ## 2. Colors
 
@@ -162,7 +166,7 @@ The palette is a restrained product system where neutral architecture carries re
 
 ## 4. Elevation
 
-Verdict is flat by default. Elevation appears only when interaction state changes (hover, active tab, modal open) or when focus needs explicit affordance.
+Crow is flat by default. Elevation appears only when interaction state changes (hover, active tab, modal open) or when focus needs explicit affordance.
 
 ### Shadow Vocabulary
 

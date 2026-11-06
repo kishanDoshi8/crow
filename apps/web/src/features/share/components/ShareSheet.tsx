@@ -23,7 +23,7 @@ type Props = {
 	onOpenChange: (open: boolean) => void;
 	title: string;
 	description: string;
-	// The message sent alongside the image, e.g. "I called it on Verdict".
+	// The message sent alongside the image, e.g. "Called it on Crow".
 	message: string;
 	link: string;
 	kind: ShareKind;

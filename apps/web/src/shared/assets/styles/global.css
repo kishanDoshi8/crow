@@ -67,6 +67,7 @@
     --color-loss: var(--loss);
     --color-live: var(--live);
     --color-activity: var(--activity);
+    --color-brand-ink: var(--brand-ink);
     --color-activity-foreground: var(--activity-foreground);
     --color-hot: var(--hot);
     --color-rank-1: var(--rank-1);
@@ -142,6 +143,8 @@
     /* Rose-500 #f43f5e */
     --live: oklch(0.645 0.246 16.439);
     /* Rose-500 (pulsing live) */
+    /* The crow in the logo: black on the sunset tile in both themes. */
+    --brand-ink: oklch(0.129 0.042 264.695);
     --activity: oklch(0.715 0.129 215.221);
     /* Cyan-leaning activity signal */
     --activity-foreground: oklch(0.294 0.075 236.824);
@@ -244,6 +247,7 @@
     /* Rose-500 #f43f5e */
     --live: oklch(0.645 0.246 16.439);
     /* Rose-500 */
+    --brand-ink: oklch(0.129 0.042 264.695);
     --activity: oklch(0.785 0.125 212.104);
     /* Bright cyan for dark surfaces */
     --activity-foreground: oklch(0.21 0.006 285.885);

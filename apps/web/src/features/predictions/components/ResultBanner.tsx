@@ -23,13 +23,13 @@ export function ResultBanner({ roomId, predictionId, data }: Readonly<Props>) {
 	const won = !!call && call.pick === data.winner;
 
 	let headline = `${data.winner} won`;
-	if (call) headline = won ? "You called it" : `You picked ${call.pick}`;
+	if (call) headline = won ? "You called it" : `You picked ${call.pick}. Time to eat crow.`;
 	const total = call
 		? `${call.net > 0 ? "+" : call.net < 0 ? "−" : "±"}${Math.abs(call.net).toLocaleString()}`
 		: null;
 
 	const message = won
-		? `I called it on Verdict: ${data.question}`
+		? `Called it on Crow: ${data.question}`
 		: `${data.winner} it is: ${data.question}`;
 
 	return (
@@ -58,7 +58,7 @@ export function ResultBanner({ roomId, predictionId, data }: Readonly<Props>) {
 				onClick={() => setIsSheetOpen(true)}
 			>
 				<Share2Icon />
-				Share result
+				{won ? "Crow about it" : "Share result"}
 			</Button>
 			<ShareSheet
 				open={isSheetOpen}
@@ -73,7 +73,7 @@ export function ResultBanner({ roomId, predictionId, data }: Readonly<Props>) {
 				)}
 				kind='brag-card'
 				roomId={roomId}
-				fileName={`verdict-${predictionId.slice(0, 8)}`}
+				fileName={`crow-${predictionId.slice(0, 8)}`}
 				renderCard={(format) => <ResultCard data={{ ...data, host: shareHost() }} format={format} />}
 			/>
 		</div>

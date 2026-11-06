@@ -250,7 +250,7 @@ export function StandingsCard({
 			) : null}
 
 			<CardFooter
-				label='Next series on Verdict'
+				label='Next series on Crow'
 				host={data.host}
 				roomCode={data.roomCode}
 			/>

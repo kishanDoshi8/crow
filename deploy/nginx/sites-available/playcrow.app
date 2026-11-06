@@ -1,12 +1,12 @@
-# kishandoshi.me: the Verdict web app.
+# playcrow.app: the Crow web app.
 #
-# Installed as /etc/nginx/sites-available/kishandoshi.me and enabled with a
+# Installed as /etc/nginx/sites-available/playcrow.app and enabled with a
 # symlink in /etc/nginx/sites-enabled/. Full walkthrough: docs/server-setup.md.
 #
-# Files are served from /var/www/predikt/current, a symlink to the live
+# Files are served from /var/www/crow/current, a symlink to the live
 # release that the Release workflow switches on each deploy:
 #
-#   /var/www/predikt/
+#   /var/www/crow/
 #     releases/20261104T153000Z-v0.1.1/   one folder per deploy (last 5 kept)
 #     current  -> releases/<live release>
 #     previous -> releases/<release before it>
@@ -16,44 +16,44 @@
 server {
     listen 80;
     listen [::]:80;
-    server_name kishandoshi.me www.kishandoshi.me;
+    server_name playcrow.app www.playcrow.app;
 
-    return 301 https://kishandoshi.me$request_uri;
+    return 301 https://playcrow.app$request_uri;
 }
 
 # --- www -> main domain ----------------------------------------------------
 # One canonical address, so links, cookies and the installed app all agree.
-# Needs www.kishandoshi.me on the certificate (check: sudo certbot certificates).
+# Needs www.playcrow.app on the certificate (check: sudo certbot certificates).
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
-    server_name www.kishandoshi.me;
+    server_name www.playcrow.app;
 
-    ssl_certificate /etc/letsencrypt/live/kishandoshi.me/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/kishandoshi.me/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/playcrow.app/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/playcrow.app/privkey.pem;
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-    return 301 https://kishandoshi.me$request_uri;
+    return 301 https://playcrow.app$request_uri;
 }
 
 # --- The app -----------------------------------------------------------------
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
-    server_name kishandoshi.me;
+    server_name playcrow.app;
 
-    ssl_certificate /etc/letsencrypt/live/kishandoshi.me/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/kishandoshi.me/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/playcrow.app/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/playcrow.app/privkey.pem;
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-    root /var/www/predikt/current;
+    root /var/www/crow/current;
     index index.html;
 
     # Logs per site, so this app's traffic isn't mixed with others'.
-    access_log /var/log/nginx/kishandoshi.me.access.log;
-    error_log /var/log/nginx/kishandoshi.me.error.log;
+    access_log /var/log/nginx/playcrow.app.access.log;
+    error_log /var/log/nginx/playcrow.app.error.log;
 
     # --- Compression ---
     # CI uploads a .gz next to each text file; gzip_static serves it as-is,
@@ -92,7 +92,7 @@ server {
     # old bundles. They're gone from the new release, so look in the previous
     # one before giving up.
     location @previous_assets {
-        root /var/www/predikt/previous;
+        root /var/www/crow/previous;
         include snippets/security-headers.conf;
         add_header Cache-Control "public, max-age=31536000, immutable";
         try_files $uri =404;
@@ -107,11 +107,11 @@ server {
         try_files $uri =404;
     }
 
-    # Short invite links: https://kishandoshi.me/i/<code>
+    # Short invite links: https://playcrow.app/i/<code>
     # People are redirected to the room's join page. Link-preview crawlers
     # (WhatsApp, iMessage, ...) get the room's preview from the invite-preview
     # Supabase function. $is_link_preview_bot comes from
-    # /etc/nginx/conf.d/verdict-invite-map.conf.
+    # /etc/nginx/conf.d/link-preview-bots.conf.
     location ^~ /i/ {
         # People: /i/F4C36D?ref=invite-link -> /rooms/F4C36D/join?ref=invite-link
         # ("if" is only safe with return/rewrite inside, as here.)

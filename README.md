@@ -1,4 +1,4 @@
-# Predikt
+# Crow
 
 Private prediction game. Friends play series of predictions on real-life outcomes; everyone starts each series with the same points.
 
@@ -134,7 +134,7 @@ import { sendPushNotificationTrigger } from "@/lib/api";
 await sendPushNotificationTrigger({
   event_type: "prediction_live",
   payload: {
-    title: "Predikt test notification",
+    title: "Crow test notification",
     body: "Push notifications are working.",
     url: window.location.pathname,
   },
@@ -160,7 +160,7 @@ limit 20;
 ## Project Structure
 
 ```
-predikt/
+crow/
 ├── apps/
 │   └── web/                      # React PWA
 │       └── src/

@@ -200,7 +200,7 @@ export function RoomPreferencesDialog({
 					position: "top-center",
 				});
 			} else if (result === "needs-install") {
-				toast.info("Add Verdict to your Home Screen first.", {
+				toast.info("Add Crow to your Home Screen first.", {
 					description: "On iPhone and iPad, notifications only work from the installed app.",
 					duration: 8000,
 					position: "top-center",
@@ -250,7 +250,7 @@ export function RoomPreferencesDialog({
 						<p>
 							On iPhone and iPad, notifications only work from the
 							installed app. Tap Share, then Add to Home Screen, and
-							open Verdict from there.
+							open Crow from there.
 						</p>
 					</div>
 				) : permission !== "granted" ? (

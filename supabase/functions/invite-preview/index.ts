@@ -19,7 +19,7 @@ const CODE = /^[A-Za-z0-9]{4,12}$/;
 const REF = /^[a-z][a-z-]{0,31}$/;
 
 // Link-preview crawlers get the page with preview tags; everyone else is sent
-// straight to the app. Keep in sync with deploy/nginx/conf.d/verdict-invite-map.conf.
+// straight to the app. Keep in sync with deploy/nginx/conf.d/link-preview-bots.conf.
 // (iMessage previews identify as facebookexternalhit / Twitterbot.)
 const PREVIEW_BOT =
 	/facebookexternalhit|facebot|whatsapp|twitterbot|telegrambot|slackbot|discordbot|linkedinbot|skypeuripreview|applebot|googlebot|bingbot|embedly|pinterest|redditbot|vkshare|iframely|mastodon/i;
@@ -81,7 +81,7 @@ function page(options: {
 <title>${title}</title>
 <meta name="description" content="${description}">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Verdict">
+<meta property="og:site_name" content="Crow">
 <meta property="og:title" content="${title}">
 <meta property="og:description" content="${description}">
 <meta property="og:url" content="${escapeHtml(options.pageUrl)}">
@@ -137,12 +137,12 @@ Deno.serve(async (request) => {
 	const preview = code ? await loadPreview(code).catch(() => null) : null;
 
 	let destination = `${origin}/`;
-	let title = "You're invited to Verdict";
+	let title = "You're invited to Crow";
 	let description = "Join your friends' prediction series. Same points for everyone, top balance wins.";
 
 	if (preview) {
 		destination = joinUrl(origin, preview.room_code, ref, next);
-		title = `Join ${preview.name} on Verdict`;
+		title = `Join ${preview.name} on Crow`;
 		const parts = [
 			plural(preview.member_count, "friend playing", "friends playing"),
 			plural(preview.active_prediction_count, "prediction live", "predictions live"),

@@ -346,7 +346,7 @@ Deno.serve(async (req) => {
 	}
 
 	const payload = {
-		title: body.payload?.title ?? "Predikt",
+		title: body.payload?.title ?? "Crow",
 		body: body.payload?.body ?? "You have a new update.",
 		data: {
 			event_type: eventType,

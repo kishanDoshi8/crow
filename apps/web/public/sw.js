@@ -29,7 +29,7 @@ self.addEventListener("push", (event) => {
 		}
 	}
 
-	const title = payload.title ?? "Predikt";
+	const title = payload.title ?? "Crow";
 	const options = {
 		body: payload.body ?? "You have a new notification.",
 		icon: payload.icon ?? "/pwa-192x192.png",

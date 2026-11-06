@@ -18,28 +18,29 @@
   }
   .copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 28px; }
   .brand { display: flex; align-items: center; gap: 20px; font-size: 36px; font-weight: 700; }
-  .tile { width: 72px; height: 72px; border-radius: 20px; background: linear-gradient(135deg, #f43f5e, #fb923c); display: flex; align-items: center; justify-content: center; }
+  .tile { width: 72px; height: 72px; border-radius: 20px; background: linear-gradient(135deg, #ff2056, #fe9a00); display: flex; align-items: center; justify-content: center; }
   h1 { margin: 0; font-size: 64px; font-weight: 700; line-height: 1.08; letter-spacing: -2px; }
   .rule { font-size: 26px; color: #a1a1aa; line-height: 1.5; }
-  .card { width: 400px; flex-shrink: 0; border-radius: 32px; border: 2px solid rgba(244, 63, 94, 0.35); background: linear-gradient(160deg, rgba(244, 63, 94, 0.14), #18181b 55%); padding: 36px; display: flex; flex-direction: column; gap: 22px; box-sizing: border-box; }
-  .pill { align-self: flex-start; font-size: 20px; font-weight: 600; color: #fb7185; background: rgba(244, 63, 94, 0.18); border-radius: 999px; padding: 6px 16px; }
+  .card { width: 400px; flex-shrink: 0; border-radius: 32px; border: 2px solid rgba(255, 32, 86, 0.35); background: linear-gradient(160deg, rgba(255, 32, 86, 0.14), #18181b 55%); padding: 36px; display: flex; flex-direction: column; gap: 22px; box-sizing: border-box; }
+  .pill { align-self: flex-start; font-size: 20px; font-weight: 600; color: #fb7185; background: rgba(255, 32, 86, 0.18); border-radius: 999px; padding: 6px 16px; }
   .q { font-size: 32px; font-weight: 700; line-height: 1.2; }
   .opt { display: flex; flex-direction: column; gap: 8px; }
   .row { display: flex; justify-content: space-between; font-size: 22px; }
   .row span:last-child { color: #a1a1aa; }
   .track { height: 10px; border-radius: 999px; background: #27272a; }
-  .fill { height: 10px; border-radius: 999px; background: linear-gradient(90deg, #f43f5e, #fb923c); }
+  .fill { height: 10px; border-radius: 999px; background: linear-gradient(90deg, #ff2056, #fe9a00); }
 </style>
 </head>
 <body>
   <div class="copy">
     <div class="brand">
       <div class="tile">
-        <svg width="48" height="48" viewBox="0 0 512 512" aria-hidden="true"><path d="M112 270 L225 383 L404 204" stroke="#ffffff" stroke-width="48" stroke-linecap="round" stroke-linejoin="round" fill="none"></path><rect x="137" y="155" width="140" height="44" rx="10" transform="rotate(-45 207 177)" fill="#ffffff"></rect><rect x="229" y="197" width="60" height="60" rx="6" transform="rotate(45 259 227)" fill="#ffffff"></rect></svg>
+        <!-- The Crow mark (brand/crow.svg): ink crow, eye painted in the tile colour. -->
+        <svg width="58" height="58" viewBox="0 0 512 512" aria-hidden="true"><path fill="#020617" d="M492 190 L344 154 L296 130 L228 140 L186 182 L170 248 L162 312 L122 366 L182 354 L158 414 L216 392 L210 446 L274 406 L316 350 L340 294 L358 262 L482 294 L366 234 Z"/><circle cx="290" cy="188" r="15" fill="#ff5a3a"/></svg>
       </div>
-      Verdict
+      <span style="letter-spacing: -0.05em">crow</span>
     </div>
-    <h1>Call it before your friends do.</h1>
+    <h1>Call it.<br>Crow about it.</h1>
     <div class="rule">Prediction series for friends. Same points for everyone, top balance takes the title.</div>
   </div>
   <div class="card">

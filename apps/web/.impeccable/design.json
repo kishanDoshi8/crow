@@ -1,7 +1,7 @@
 {
 	"schemaVersion": 2,
 	"generatedAt": "2026-07-12T00:00:00.000Z",
-	"title": "Design System: Verdict",
+	"title": "Design System: Crow",
 	"extensions": {
 		"colorMeta": {
 			"primary-live-rose": {
@@ -218,7 +218,7 @@
 	],
 	"narrative": {
 		"northStar": "Friendly Matchday Ledger",
-		"overview": "Verdict’s interface behaves like a fast, trustworthy score desk for friend-group competition. It keeps social energy visible, but it never sacrifices legibility or game-rule clarity for spectacle. The visual rhythm is compact, direct, and state-explicit, so players can make decisions quickly and verify outcomes without friction.\n\nThe voice is calm precision with competitive energy: sharp information hierarchy, disciplined color semantics, and interaction states that always declare intent. Primary color appears as signal, not decoration. Surfaces stay neutral so scoring cues, rank cues, and outcome cues remain cognitively immediate.",
+		"overview": "Crow’s interface behaves like a fast, trustworthy score desk for friend-group competition. It keeps social energy visible, but it never sacrifices legibility or game-rule clarity for spectacle. The visual rhythm is compact, direct, and state-explicit, so players can make decisions quickly and verify outcomes without friction.\n\nThe voice is calm precision with competitive energy: sharp information hierarchy, disciplined color semantics, and interaction states that always declare intent. Primary color appears as signal, not decoration. Surfaces stay neutral so scoring cues, rank cues, and outcome cues remain cognitively immediate.",
 		"keyCharacteristics": [
 			"Compact spacing and explicit state signaling over decorative layout density.",
 			"Monospace-forward typography for scoreboarding clarity and numerical stability.",
