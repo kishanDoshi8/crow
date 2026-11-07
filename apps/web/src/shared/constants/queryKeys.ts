@@ -112,8 +112,5 @@ export const localStorageKeys = {
     theme: "theme",
     // Suffixed with the room id: the series a player last looked at in that room.
     currentSeries: "currentSeries",
-    bettingControls: {
-      collapsed: "bettingControls.collapsed",
-    }
   }
 }
