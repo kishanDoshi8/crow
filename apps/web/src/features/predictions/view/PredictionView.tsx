@@ -269,12 +269,13 @@ function LoadedPrediction({
 						) : showRevealBar ? (
 							<>
 								{sayButton}
-								<span className='flex-1 text-xs text-muted-foreground'>
+								<span className='min-w-0 flex-1 text-xs text-muted-foreground'>
 									Waiting on you for the result
 								</span>
 								<Button
 									variant='linear'
 									size='lg'
+									className='shrink-0'
 									onClick={() => setIsRevealOpen(true)}
 								>
 									Reveal result
@@ -283,11 +284,16 @@ function LoadedPrediction({
 						) : myBet ? (
 							<>
 								{sayButton}
-								<span className='flex-1 leading-tight'>
+								{/* min-w-0 lets this shrink, so a long option name truncates
+								    instead of pushing "Change" off the screen. */}
+								<span className='min-w-0 flex-1 leading-tight'>
 									<span className='block text-xs text-muted-foreground'>
 										Your pick
 									</span>
-									<span className='font-semibold truncate'>
+									<span
+										className='block truncate font-semibold'
+										title={labelOf(myBet.option_id)}
+									>
 										{labelOf(myBet.option_id)}
 									</span>
 									<span className='block text-muted-foreground tabular-nums'>
@@ -297,6 +303,7 @@ function LoadedPrediction({
 								<Button
 									variant='outline'
 									size='lg'
+									className='shrink-0'
 									onClick={() => openSheet(myBet.option_id)}
 								>
 									Change
@@ -305,7 +312,7 @@ function LoadedPrediction({
 						) : (
 							<>
 								{sayButton}
-								<div className={`text-xs`}>
+								<div className='min-w-0 flex-1 text-xs'>
 									<p className='flex-1 text-muted-foreground'>
 										Tap an option to make your call
 									</p>
