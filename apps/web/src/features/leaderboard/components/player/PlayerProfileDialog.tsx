@@ -32,7 +32,7 @@ import {
 import { EASE_OUT } from "@/shared/lib/motion";
 import { cn } from "@/shared/lib/utils";
 import { FEATURES } from "@/shared/constants/features";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import {
 	CalendarCheckIcon,
 	CoinsIcon,
@@ -263,7 +263,7 @@ export function PlayerProfileDialog({
 				<div className='min-h-0 overflow-auto no-scrollbar p-4 pt-2'>
 					<AnimatePresence mode='wait' initial={false}>
 						{showCabinet ? (
-							<motion.div
+							<m.div
 								key='cabinet'
 								initial={{ opacity: 0, x: 16 }}
 								animate={{ opacity: 1, x: 0 }}
@@ -275,9 +275,9 @@ export function PlayerProfileDialog({
 									milestones={milestones}
 									onBack={() => setCabinetPlayerId(null)}
 								/>
-							</motion.div>
+							</m.div>
 						) : (
-							<motion.div
+							<m.div
 								key='card'
 								className='flex flex-col gap-5'
 								initial={{ opacity: 0, x: -16 }}
@@ -318,7 +318,7 @@ export function PlayerProfileDialog({
 										isLoading={isStatsLoading}
 									/>
 								</CardSection>
-							</motion.div>
+							</m.div>
 						)}
 					</AnimatePresence>
 				</div>

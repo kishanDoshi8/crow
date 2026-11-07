@@ -1,4 +1,4 @@
-import { motion, type HTMLMotionProps } from "framer-motion";
+import { m, type HTMLMotionProps } from "framer-motion";
 import { revealVariants } from "@/shared/lib/motion";
 
 type RevealElement = "div" | "li" | "section";
@@ -20,7 +20,7 @@ export function Reveal({
 	as = "div",
 	...props
 }: Readonly<RevealProps>) {
-	const Component = motion[as] as typeof motion.div;
+	const Component = m[as] as typeof m.div;
 	return (
 		<Component
 			variants={revealVariants}

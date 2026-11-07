@@ -1,5 +1,5 @@
 import type { MotionValue} from "framer-motion";
-import { motion, useSpring, useTransform } from "framer-motion";
+import { m, useSpring, useTransform } from "framer-motion";
 import type React from "react";
 import { useEffect } from "react";
 
@@ -30,7 +30,7 @@ function NumberCounter({ mv, number, height }: Readonly<NumberProps>) {
 		justifyContent: "center",
 	};
 
-	return <motion.span style={{ ...baseStyle, y }}>{number}</motion.span>;
+	return <m.span style={{ ...baseStyle, y }}>{number}</m.span>;
 }
 
 function normalizeNearInteger(num: number): number {

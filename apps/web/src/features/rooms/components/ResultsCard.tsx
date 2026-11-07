@@ -8,7 +8,7 @@ import type { UnseenResult } from "@/shared/lib/api";
 import { cn, formatSignedPoints } from "@/shared/lib/utils";
 import { Skeleton } from "@/shared/ui";
 import { CheckIcon, CircleSlashIcon, XIcon } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { Link } from "react-router-dom";
 
 const VISIBLE_ROWS = 3;
@@ -89,7 +89,7 @@ export function ResultsCard() {
 						{visible.map((result) => {
 							const outcome = outcomeOf(result);
 							return (
-								<motion.li
+								<m.li
 									key={result.prediction_id}
 									layout
 									initial={{ opacity: 0, y: 6 }}
@@ -144,7 +144,7 @@ export function ResultsCard() {
 									>
 										<XIcon className='size-3.5' />
 									</button>
-								</motion.li>
+								</m.li>
 							);
 						})}
 					</AnimatePresence>

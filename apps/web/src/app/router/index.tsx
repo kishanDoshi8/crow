@@ -5,6 +5,7 @@ import { ProtectedRoute } from "@/features/auth";
 import { AuthCallbackPage } from "@/features/auth/pages/AuthCallbackPage";
 import { RouteFallback } from "@/app/router/RouteFallback";
 import { RouteErrorBoundary } from "@/app/router/RouteErrorBoundary";
+import { roomPageLoaders } from "@/app/router/roomPages";
 import { AppShell } from "@/app/router/AppShell";
 import RoomLayout from "@/app/layouts/RoomLayout";
 import RoomTabsLayout from "@/app/layouts/RoomTabsLayout";
@@ -19,7 +20,7 @@ import SeriesPage from "@/features/series/pages/SeriesPage";
 import { PredictionPage } from "@/features/predictions/pages/PredictionPage";
 import { LeaderboardPage } from "@/features/leaderboard/pages/LeaderboardPage";
 
-const UpNextPage = lazy(() => import("@/features/series/pages/UpNextPage"));
+const UpNextPage = lazy(roomPageLoaders.upNext);
 const PrivacyPage = lazy(() => import("@/features/legal/pages/PrivacyPage"));
 const TermsPage = lazy(() => import("@/features/legal/pages/TermsPage"));
 const DeleteAccountPage = lazy(
@@ -48,23 +49,17 @@ const ResetPasswordPage = lazy(() =>
 const CreatePlayer = lazy(
 	() => import("@/features/home/components/CreatePlayer"),
 );
-const SeriesCreatePage = lazy(
-	() => import("@/features/series/pages/SeriesCreatePage"),
-);
+const SeriesCreatePage = lazy(roomPageLoaders.seriesCreate);
 const JoinRoomPage = lazy(() =>
 	import("@/features/rooms/pages/JoinRoomPage").then((module) => ({
 		default: module.JoinRoomPage,
 	})),
 );
-const PredictionNew = lazy(() => import("@/features/predictions/pages/New"));
-const EditPrediction = lazy(
-	() => import("@/features/predictions/pages/EditPrediction"),
-);
-const ManagePage = lazy(() => import("@/features/rooms/pages/ManagePage"));
-const MembersPage = lazy(() => import("@/features/rooms/pages/MembersPage"));
-const RoomSettingsPage = lazy(
-	() => import("@/features/rooms/pages/RoomSettingsPage"),
-);
+const PredictionNew = lazy(roomPageLoaders.predictionNew);
+const EditPrediction = lazy(roomPageLoaders.editPrediction);
+const ManagePage = lazy(roomPageLoaders.manage);
+const MembersPage = lazy(roomPageLoaders.members);
+const RoomSettingsPage = lazy(roomPageLoaders.settings);
 const PredictionDuelsPage = lazy(() =>
 	import("@/features/duels/pages/PredictionDuelsPage").then((module) => ({
 		default: module.PredictionDuelsPage,

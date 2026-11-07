@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import type { ReactNode } from "react";
 import { collapseTransition } from "@/shared/lib/motion";
 
@@ -14,7 +14,7 @@ export function Collapse({ open, children, className }: Readonly<CollapseProps>)
 	return (
 		<AnimatePresence initial={false}>
 			{open ? (
-				<motion.div
+				<m.div
 					key='collapse'
 					className={className}
 					initial={{ height: 0, opacity: 0, overflow: "hidden" }}
@@ -27,7 +27,7 @@ export function Collapse({ open, children, className }: Readonly<CollapseProps>)
 					transition={collapseTransition}
 				>
 					{children}
-				</motion.div>
+				</m.div>
 			) : null}
 		</AnimatePresence>
 	);

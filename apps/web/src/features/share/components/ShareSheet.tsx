@@ -1,6 +1,5 @@
-import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { toBlob } from "html-to-image";
 import { CheckIcon, CopyIcon, Share2Icon } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -36,6 +35,10 @@ const PREVIEW_WIDTH = 264;
 
 // Shows the card as it will be shared, lets the player pick a post or story
 // format, and shares the image together with a link back into the room.
+// The image renderer is only needed to share, so it loads when a share sheet
+// opens rather than with the app.
+const loadHtmlToImage = () => import("html-to-image");
+
 export function ShareSheet({
 	open,
 	onOpenChange,
@@ -86,12 +89,21 @@ export function ShareSheet({
 		return ok;
 	};
 
+	// Start loading the renderer as the sheet opens, so tapping Share doesn't
+	// wait on it (Safari only allows sharing shortly after the tap).
+	useEffect(() => {
+		if (open) void loadHtmlToImage();
+	}, [open]);
+
 	const share = async () => {
 		const node = captureRef.current;
 		if (!node) return;
 		setIsSharing(true);
 		try {
-			await document.fonts.ready;
+			const [{ toBlob }] = await Promise.all([
+				loadHtmlToImage(),
+				document.fonts.ready,
+			]);
 			const blob = await toBlob(node, {
 				pixelRatio: 1,
 				cacheBust: true,

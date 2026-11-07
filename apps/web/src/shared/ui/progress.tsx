@@ -1,5 +1,5 @@
 import * as React from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Progress as ProgressPrimitive } from "radix-ui";
 
 import { progressTransition } from "@/shared/lib/motion";
@@ -25,7 +25,7 @@ function Progress({
 		>
 			{/* Grows in from empty on mount, then follows value changes. */}
 			<ProgressPrimitive.Indicator asChild>
-				<motion.div
+				<m.div
 					data-slot='progress-indicator'
 					className={cn(
 						"h-full w-full flex-1 rounded-full",

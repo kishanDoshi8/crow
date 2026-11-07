@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/features/auth";
 import {
 	Button,
@@ -20,6 +20,9 @@ export const CROW_LAUNCH_DATE = "2026-11-20";
 // Long enough for anyone still playing to have seen it.
 const SHOW_FOR_DAYS = 60;
 const SEEN_KEY = "crow.rebrandWelcomeSeen";
+// Let the page the person landed on paint first, so the note doesn't flash
+// up over a loading screen.
+const SETTLE_MS = 600;
 
 function shouldShow(accountCreatedAt: string | undefined) {
 	if (!accountCreatedAt) return false;
@@ -34,10 +37,23 @@ function shouldShow(accountCreatedAt: string | undefined) {
 	}
 }
 
+// Mounted by the pages people land on (a room, or Home when there's no room
+// to jump to), not the app shell: Home redirects to the last room straight
+// away, and that redirect would close a dialog opened on Home. Leaving the
+// page unmounts it without counting as seen; only closing it does.
 export default function RebrandWelcomeDialog() {
 	const { user } = useAuth();
 	const [dismissed, setDismissed] = useState(false);
-	const open = !dismissed && shouldShow(user?.created_at);
+	const [settled, setSettled] = useState(false);
+	const wanted = shouldShow(user?.created_at);
+
+	useEffect(() => {
+		if (!wanted) return;
+		const timer = setTimeout(() => setSettled(true), SETTLE_MS);
+		return () => clearTimeout(timer);
+	}, [wanted]);
+
+	const open = wanted && settled && !dismissed;
 
 	const close = () => {
 		try {

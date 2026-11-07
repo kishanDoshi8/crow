@@ -30,6 +30,8 @@ export default tseslint.config(
 			},
 		},
 		rules: {
+			// Debug logging stays out of production; warnings and errors are fine.
+			"no-console": ["error", { allow: ["warn", "error"] }],
 			"import/first": "error",
 			"import/newline-after-import": "error",
 			"import/no-cycle": "error",
