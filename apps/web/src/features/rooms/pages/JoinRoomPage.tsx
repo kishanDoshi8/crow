@@ -29,6 +29,16 @@ export function JoinRoomPage() {
 		return <Navigate to='/create-player' replace />;
 	}
 
+	// Codes are upper case; a link typed in lower case still works.
+	if (roomCode && roomCode !== roomCode.toUpperCase()) {
+		return (
+			<Navigate
+				to={`/rooms/${roomCode.toUpperCase()}/join${location.search}`}
+				replace
+			/>
+		);
+	}
+
 	if (!room || isError || room.code !== roomCode) {
 		return <Navigate to='/404' replace />;
 	}
@@ -139,16 +149,23 @@ export function JoinRoomPage() {
 
 			<div className='fixed inset-x-0 bottom-0 z-50 border-t bg-card/95 p-4 backdrop-blur-xl'>
 				<div className='max-w-md mx-auto'>
-					<Button
-						variant='linear'
-						size='lg'
-						className='w-full'
-						onClick={handleJoinRoom}
-						disabled={isJoining}
-					>
-						{isJoining && <Spinner />}
-						Join {room.name}
-					</Button>
+					{room.is_removed ? (
+						<p className='text-center text-sm text-muted-foreground'>
+							You were removed from this room. Ask the owner to let you
+							back in.
+						</p>
+					) : (
+						<Button
+							variant='linear'
+							size='lg'
+							className='w-full'
+							onClick={handleJoinRoom}
+							disabled={isJoining}
+						>
+							{isJoining && <Spinner />}
+							Join {room.name}
+						</Button>
+					)}
 				</div>
 			</div>
 		</div>

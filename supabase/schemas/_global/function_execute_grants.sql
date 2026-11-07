@@ -87,3 +87,10 @@ grant execute on function public.get_my_weekly_recap(uuid, uuid) to authenticate
 grant execute on function public.dismiss_weekly_recap(uuid, text) to authenticated;
 grant execute on function public.set_prediction_details(uuid, text, text[]) to authenticated;
 grant execute on function public.get_room_tags(uuid) to authenticated;
+grant execute on function public.remove_room_member(uuid, uuid) to authenticated;
+grant execute on function public.leave_room(uuid) to authenticated;
+grant execute on function public.allow_room_member_back(uuid, uuid) to authenticated;
+grant execute on function public.get_room_former_members(uuid) to authenticated;
+grant execute on function public.request_account_deletion(text) to authenticated;
+grant execute on function public.cancel_account_deletion() to authenticated;
+grant execute on function public.get_my_account_deletion() to authenticated;

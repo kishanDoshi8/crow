@@ -1,19 +1,30 @@
 import {
+	Button,
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
 	Drawer,
 	DrawerContent,
 	DrawerDescription,
 	DrawerHeader,
 	DrawerTitle,
+	Spinner,
 } from "@/shared/ui";
 import {
 	BellIcon,
 	CopyIcon,
+	DoorOpenIcon,
 	FlagIcon,
 	LayoutGridIcon,
 	LinkIcon,
 	LogOutIcon,
 	SettingsIcon,
 	Share2Icon,
+	UserXIcon,
 	UsersIcon,
 	type LucideIcon,
 } from "lucide-react";
@@ -25,7 +36,7 @@ import { SettingsRow } from "@/features/series/components/SeriesOrganizerActions
 import { useAuth } from "@/features/auth";
 import { copyToClipboard } from "@/shared/lib/clipboard";
 import { InviteSheet } from "./InviteSheet";
-import { useManageQueue } from "@/features/rooms/hooks/staff";
+import { useLeaveRoom, useManageQueue } from "@/features/rooms/hooks/staff";
 import { useRoomRole } from "@/features/rooms/hooks/useRoomRole";
 import { useRoomActions } from "@/shared/lib/roomActions";
 
@@ -39,6 +50,8 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 	const navigate = useNavigate();
 	const { user, hasGoogleIdentity, linkGoogle, signOut } = useAuth();
 	const [isInviteSheetOpen, setIsInviteSheetOpen] = useState(false);
+	const [isLeaveOpen, setIsLeaveOpen] = useState(false);
+	const { mutate: leaveRoom, isPending: isLeaving } = useLeaveRoom(room.id);
 	const { openInvite, openNotifications, openRoomSwitcher } =
 		useRoomActions();
 	const { can } = useRoomRole(room);
@@ -65,6 +78,22 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 				position: "top-center",
 			});
 		}
+	};
+
+	const handleLeave = () => {
+		leaveRoom(undefined, {
+			onSuccess: () => {
+				setIsLeaveOpen(false);
+				toast.success(`You left ${room.name}.`, { position: "top-center" });
+				navigate("/?tab=rooms", { replace: true });
+			},
+			onError: (error) => {
+				toast.error("Couldn't leave the room.", {
+					description: error.message,
+					position: "top-center",
+				});
+			},
+		});
 	};
 
 	const handleSignOut = async () => {
@@ -149,6 +178,17 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 					},
 				]
 			: []),
+		// The owner hands the room over first (Members & roles).
+		...(can.own
+			? []
+			: [
+					{
+						label: "Leave room",
+						detail: "Open bets come back to you",
+						icon: DoorOpenIcon,
+						onClick: close(() => setIsLeaveOpen(true)),
+					},
+				]),
 	];
 
 	const settingsSectionItems: Array<{
@@ -186,6 +226,12 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 			detail: user?.email ?? undefined,
 			icon: LogOutIcon,
 			onClick: close(() => void handleSignOut()),
+			isDanger: true,
+		},
+		{
+			label: "Delete account",
+			icon: UserXIcon,
+			onClick: close(() => navigate("/account/delete")),
 			isDanger: true,
 		},
 	];
@@ -256,6 +302,34 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 				open={isInviteSheetOpen}
 				onOpenChange={setIsInviteSheetOpen}
 			/>
+			<Dialog open={isLeaveOpen} onOpenChange={setIsLeaveOpen}>
+				<DialogContent className='sm:max-w-md mx-auto'>
+					<DialogHeader>
+						<DialogTitle>Leave {room.name}?</DialogTitle>
+						<DialogDescription>
+							Bets on open predictions come back to you. Locked ones still
+							settle. Your past results stay, and if you rejoin with the
+							code you pick up where you left off.
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter className='gap-4'>
+						<DialogClose asChild>
+							<Button variant='outline' size='lg' disabled={isLeaving}>
+								Stay
+							</Button>
+						</DialogClose>
+						<Button
+							variant='destructive'
+							size='lg'
+							onClick={handleLeave}
+							disabled={isLeaving}
+						>
+							{isLeaving && <Spinner />}
+							Leave room
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</>
 	);
 }

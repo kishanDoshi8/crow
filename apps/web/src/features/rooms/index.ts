@@ -3,6 +3,7 @@ export * from "./hooks/useRoomRealtime";
 export * from "./hooks/useRoomRole";
 export * from "./hooks/staff";
 export * from "./lib/roles";
+export * from "./lib/memberNames";
 export * from "./types/types";
 export * from "./components";
 

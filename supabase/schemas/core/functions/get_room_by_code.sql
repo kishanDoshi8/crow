@@ -37,6 +37,13 @@ begin
     'predictions_limit', v_room.predictions_limit,
     'result_reminder_hours', v_room.result_reminder_hours,
     'is_member',         private.is_room_member(v_room.id),
+    -- Removed by the owner: the join screen explains instead of offering Join.
+    'is_removed', exists (
+      select 1 from public.room_former_members f
+      where f.room_id = v_room.id
+        and f.player_id = v_player_id
+        and f.status in ('removed', 'deleted')
+    ),
     'member_count', (
       select count(*)::int
       from public.room_members rm

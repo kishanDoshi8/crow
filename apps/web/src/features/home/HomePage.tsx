@@ -1,7 +1,6 @@
 import type { HomeTab } from "@/features/home/components/Home";
 import Home from "@/features/home/components/Home";
-import { useAppNavigation } from "@/shared/lib/navigation";
-import { joinRoom } from "@/shared/lib/api";
+import { spectateRoom } from "@/shared/lib/api";
 import { roomKeys } from "@/shared/constants/queryKeys";
 import { useQueryClient } from "@tanstack/react-query";
 import React, { useEffect } from "react";
@@ -13,7 +12,6 @@ import { Loading } from "@/shared/ui";
 
 export function HomePage() {
 	const navigate = useNavigate();
-	const { switchRoom } = useAppNavigation();
 	const [searchParams] = useSearchParams();
 	const { data: player, isPending: isPlayerLoading } = usePlayer();
 	const queryClient = useQueryClient();
@@ -78,14 +76,17 @@ export function HomePage() {
 		if (roomCode.length === 6) {
 			setIsLoading(true);
 			try {
+				// Look the room up first, then show who's in it before joining,
+				// so a typo never drops anyone into a stranger's room.
+				const code = roomCode.toUpperCase();
 				const room = await queryClient.fetchQuery({
-					queryKey: roomKeys.byCode(roomCode),
-					queryFn: () => joinRoom(roomCode),
+					queryKey: roomKeys.byCode(code),
+					queryFn: () => spectateRoom(code),
 				});
-				switchRoom(room.code);
-			} catch (error) {
-				toast("Failed to enter room.", {
-					description: (error as Error).message,
+				navigate(`/rooms/${room.code}/join`);
+			} catch {
+				toast("No room with that code.", {
+					description: "Check the code with whoever invited you.",
 				});
 				setValidatedCode(true); // Set validation state to true if code is invalid
 			} finally {

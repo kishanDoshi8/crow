@@ -10,7 +10,7 @@ import { getOptionColor } from "@/shared/hooks/useOptionColor";
 import { ClockIcon, LockIcon } from "lucide-react";
 import LockControls from "../controls/LockControls";
 import { BetListSkeleton } from "../components/BetListSkeleton";
-import { useRoomBetRealtime } from "@/features/rooms";
+import { roomPlayerName, useRoomBetRealtime } from "@/features/rooms";
 import PredictionData from "./PredictionData";
 
 type Props = {
@@ -49,8 +49,7 @@ export default function LockedPhase({
 		if (player?.id === playerId) {
 			return player.username + " (You)";
 		}
-		const member = room.members.find((m) => m.player_id === playerId);
-		return member ? member.player.username : "Unknown";
+		return roomPlayerName(room, playerId) ?? "Unknown";
 	};
 
 	return (

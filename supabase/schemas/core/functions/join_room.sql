@@ -13,6 +13,7 @@ declare
   v_room      public.rooms%rowtype;
   v_member    public.room_members%rowtype;
   v_was_inserted boolean := false;
+  v_former_status text;
   v_ref       text;
 begin
   -- Which shared link brought them in, e.g. "brag-card"; anything else is dropped.
@@ -36,6 +37,24 @@ begin
 
   if not found then
     raise exception 'Room not found or closed' using errcode = 'P0002';
+  end if;
+
+  -- Former members come back with their stats; removed ones need the owner's OK.
+  select f.status into v_former_status
+  from public.room_former_members f
+  where f.room_id = v_room.id
+    and f.player_id = v_player_id
+  for update;
+
+  if v_former_status in ('removed', 'deleted') then
+    raise exception 'You were removed from this room. Ask the owner to let you back in.' using errcode = 'P0012';
+  elsif v_former_status = 'left' then
+    perform private.restore_room_member(v_room.id, v_player_id);
+    -- Series that started while they were away need a wallet.
+    perform private.ensure_series_wallet(s.id, v_player_id)
+    from public.series s
+    where s.room_id = v_room.id
+      and s.status = 'active';
   end if;
 
   insert into public.room_members (room_id, player_id, joined_via)

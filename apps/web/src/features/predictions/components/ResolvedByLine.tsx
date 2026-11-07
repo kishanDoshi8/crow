@@ -1,4 +1,5 @@
 import { useRoomContext } from "@/shared/lib/roomContext";
+import { roomPlayerName } from "@/features/rooms";
 import type { Prediction } from "@/features/predictions/types/types";
 import { cn } from "@/shared/lib/utils";
 
@@ -20,9 +21,7 @@ export function ResolvedByLine({
 	const { room } = useRoomContext();
 	// After a correction the first closer's verb may no longer fit the result.
 	const verb = prediction.corrected_by ? "Closed by" : VERB[prediction.status];
-	const nameOf = (playerId?: string | null) =>
-		room.members.find((member) => member.player_id === playerId)?.player
-			.username;
+	const nameOf = (playerId?: string | null) => roomPlayerName(room, playerId);
 	const name = nameOf(prediction.resolved_by);
 	const correctedBy = prediction.corrected_by
 		? (nameOf(prediction.corrected_by) ?? "an organizer")

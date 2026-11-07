@@ -1544,7 +1544,12 @@ export type Database = {
     }
     Functions: {
       activate_series: { Args: { p_series_id: string }; Returns: Json }
+      allow_room_member_back: {
+        Args: { p_player_id: string; p_room_id: string }
+        Returns: Json
+      }
       archive_series: { Args: { p_series_id: string }; Returns: Json }
+      cancel_account_deletion: { Args: never; Returns: Json }
       cancel_bet: { Args: { p_prediction_id: string }; Returns: Json }
       cancel_duel: {
         Args: { p_duel_id: string; p_player_id: string }
@@ -1677,6 +1682,7 @@ export type Database = {
         Args: { p_endpoint: string }
         Returns: undefined
       }
+      get_my_account_deletion: { Args: never; Returns: Json }
       get_my_series_wallets: { Args: { p_room_id: string }; Returns: Json }
       get_player: { Args: never; Returns: Json }
       get_prediction_duel_summary: {
@@ -1700,6 +1706,7 @@ export type Database = {
         Returns: Json
       }
       get_room_by_code: { Args: { p_room_code: string }; Returns: Json }
+      get_room_former_members: { Args: { p_room_id: string }; Returns: Json }
       get_room_has_unseen_activities: {
         Args: { p_room_id: string }
         Returns: boolean
@@ -1805,6 +1812,7 @@ export type Database = {
         Args: { p_ref?: string; p_room_code: string }
         Returns: Json
       }
+      leave_room: { Args: { p_room_id: string }; Returns: Json }
       lock_prediction: { Args: { p_prediction_id: string }; Returns: Json }
       mark_how_to_play_seen: { Args: never; Returns: undefined }
       mark_ratings_tip_seen: { Args: never; Returns: undefined }
@@ -1825,9 +1833,17 @@ export type Database = {
         Returns: undefined
       }
       register_player: { Args: { p_username: string }; Returns: Json }
+      remove_room_member: {
+        Args: { p_player_id: string; p_room_id: string }
+        Returns: Json
+      }
       remove_series_suggestion: {
         Args: { p_suggestion_id: string }
         Returns: undefined
+      }
+      request_account_deletion: {
+        Args: { p_reason?: string }
+        Returns: Json
       }
       reset_room_preferences: { Args: { p_room_id: string }; Returns: Json }
       resolve_duels_for_prediction: {
