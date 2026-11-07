@@ -1,7 +1,7 @@
 -- Function access is an explicit allowlist.
 -- Supabase grants EXECUTE on new public functions to anon and authenticated by default,
 -- and Postgres grants it to PUBLIC, so every function starts locked down here and only the
--- RPCs the app calls are granted back. Internal helpers (stats, ratings, duel settlement)
+-- RPCs the app calls are granted back. Internal helpers (stats, ratings, settlement)
 -- run inside these RPCs as the owner and need no grant.
 -- When you add an RPC the app calls, add it below and to the allowlist in
 -- supabase/tests/security_hardening.sql.
@@ -16,17 +16,13 @@ grant execute on function private.get_player_id_from_auth() to authenticated;
 grant execute on function private.is_room_member(uuid) to authenticated;
 grant execute on function private.shares_room_with(uuid) to authenticated;
 grant execute on function private.can_view_prediction(uuid) to authenticated;
-grant execute on function private.can_view_duel(uuid) to authenticated;
 grant execute on function private.can_view_series(uuid) to authenticated;
 
 -- RPCs the web app calls.
--- Paused while duels are hidden: create_duel_view, join_duel_queue_view.
 -- Retired with series wallets: claim_weekly_points, get_room_leaderboard.
 grant execute on function public.activate_series(uuid) to authenticated;
 grant execute on function public.archive_series(uuid) to authenticated;
 grant execute on function public.cancel_bet(uuid) to authenticated;
-grant execute on function public.cancel_duel_queue_view(uuid, uuid) to authenticated;
-grant execute on function public.cancel_duel_view(uuid, uuid) to authenticated;
 grant execute on function public.collect_series_rewards(uuid) to authenticated;
 grant execute on function public.complete_series(uuid) to authenticated;
 grant execute on function public.create_prediction(uuid, text, text[], timestamp with time zone, uuid) to authenticated;
@@ -34,8 +30,6 @@ grant execute on function public.create_room(text) to authenticated;
 grant execute on function public.create_series(uuid, text, text, integer, integer, integer, integer) to authenticated;
 grant execute on function public.get_my_series_wallets(uuid) to authenticated;
 grant execute on function public.get_player() to authenticated;
-grant execute on function public.get_prediction_duel_summary(uuid) to authenticated;
-grant execute on function public.get_prediction_duels_view(uuid) to authenticated;
 grant execute on function public.get_preferences(uuid) to authenticated;
 grant execute on function public.get_room_activities(uuid, integer, timestamp with time zone, uuid, text, uuid) to authenticated;
 grant execute on function public.get_room_by_code(text) to authenticated;
