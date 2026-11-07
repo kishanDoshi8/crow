@@ -8,7 +8,6 @@ type ActivityTone =
 	| "neutral"
 	| "member"
 	| "prediction"
-	| "duel"
 	| "success"
 	| "warning"
 	| "danger";
@@ -63,13 +62,6 @@ const TONE_STYLES: Record<
 		openPill: "border-win/30 bg-win/10 text-win",
 	},
 	prediction: {
-		shell: "bg-activity/10 border-activity/30",
-		icon: "border-activity/35 bg-activity/18 text-activity",
-		typeBadge: "border-activity/30 bg-activity/15 text-activity",
-		summary: "border-activity/25 bg-activity/12 text-foreground/90",
-		openPill: "border-activity/30 bg-activity/12 text-activity",
-	},
-	duel: {
 		shell: "bg-activity/10 border-activity/30",
 		icon: "border-activity/35 bg-activity/18 text-activity",
 		typeBadge: "border-activity/30 bg-activity/15 text-activity",

@@ -73,7 +73,6 @@
     --color-rank-1: var(--rank-1);
     --color-rank-2: var(--rank-2);
     --color-rank-3: var(--rank-3);
-    --color-matched: var(--matched);
     --color-option-1: var(--option-1);
     --color-option-2: var(--option-2);
     --color-option-3: var(--option-3);
@@ -157,8 +156,6 @@
     /* Zinc-400 #a1a1aa (silver) */
     --rank-3: oklch(0.769 0.188 70.08);
     /* Orange-400 #fb923c (bronze) */
-    --matched: oklch(0.541 0.281 293.009);
-    /* Violet-600: duel matched */
 
     /* Prediction option colors (categorical), a shade darker for light backgrounds */
     --option-1: oklch(0.558 0.288 302.321);
@@ -260,8 +257,6 @@
     /* Silver */
     --rank-3: oklch(0.769 0.188 70.08);
     /* Bronze/Orange */
-    --matched: oklch(0.702 0.183 293.541);
-    /* Violet-400: duel matched */
 
     /* Prediction option colors (categorical) */
     --option-1: oklch(0.627 0.265 303.9);

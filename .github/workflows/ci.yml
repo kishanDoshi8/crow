@@ -36,3 +36,12 @@ jobs:
       # Applies every migration in supabase/migrations to a fresh local database.
       - run: supabase db start
       - run: supabase test db
+      # supabase/schemas must describe exactly what the migrations build, and
+      # apply cleanly in config.toml's order, or `supabase db diff` misleads.
+      - name: Schema files match migrations
+        run: supabase/scripts/check-schema-drift.sh postgres
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 54322
+          PGUSER: postgres
+          PGPASSWORD: postgres

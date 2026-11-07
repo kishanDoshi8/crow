@@ -1,3 +1,5 @@
+-- Posts to a room's feed. dedupe_key makes repeats a no-op; its unique index
+-- is partial (dedupe_key is not null), so the conflict target says so too.
 create or replace function private.create_room_activity(
   p_room_id uuid,
   p_activity_type text,
@@ -31,7 +33,9 @@ begin
     p_created_by_player_id,
     p_dedupe_key
   )
-  on conflict (room_id, dedupe_key) do nothing;
+  on conflict (room_id, dedupe_key)
+  where dedupe_key is not null
+  do nothing;
 end;
 $$;
 

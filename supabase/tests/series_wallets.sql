@@ -339,11 +339,7 @@ reset role;
 select pg_temp.login('00000000-0000-0000-0000-000000000b0b');
 set local role authenticated;
 select throws_ok($$ select public.claim_weekly_points(false) $$, '42501', null, 'weekly claims are retired');
-select throws_ok(
-  $$ select public.create_duel_view(gen_random_uuid(), gen_random_uuid(), gen_random_uuid(), 100) $$,
-  '42501', null,
-  'new duels are paused'
-);
+select hasnt_function('public', 'create_duel_view', 'duels are retired');
 reset role;
 
 select * from finish();

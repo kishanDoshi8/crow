@@ -38,10 +38,41 @@ verify_jwt = false
 
 [db.migrations]
 schema_paths = [
+  # Schemas and extensions first.
   "./schemas/_global/*.sql",
-  "./schemas/**/tables/*.sql",
+  # Tables in foreign-key order: a table comes after every table it
+  # references. Add new table files here; scripts/check-schema-drift.sh fails
+  # if one is missing or out of order.
+  "./schemas/core/tables/01_rooms.sql",
+  "./schemas/core/tables/02_players.sql",
+  "./schemas/core/tables/03_series.sql",
+  "./schemas/core/tables/04_series_wallets.sql",
+  "./schemas/core/tables/05_series_suggestions.sql",
+  "./schemas/core/tables/06_room_former_members.sql",
+  "./schemas/core/tables/07_account_deletion_requests.sql",
+  "./schemas/core/tables/08_series_results.sql",
+  "./schemas/core/tables/room_members.sql",
+  "./schemas/core/tables/share_events.sql",
+  "./schemas/core/tables/weekly_claims.sql",
+  "./schemas/activities/tables/room_activities.sql",
+  "./schemas/notifications/tables/notification_config.sql",
+  "./schemas/notifications/tables/notification_dispatch_log.sql",
+  "./schemas/notifications/tables/user_push_subscriptions.sql",
+  "./schemas/predictions/tables/predictions.sql",
+  "./schemas/predictions/tables/bets.sql",
+  "./schemas/predictions/tables/prediction_tags.sql",
+  "./schemas/predictions/tables/rating_system_config.sql",
+  "./schemas/preferences/tables/player_preferences.sql",
+  "./schemas/preferences/tables/room_preferences.sql",
+  "./schemas/stats/tables/home_seen.sql",
+  "./schemas/stats/tables/player_room_stats.sql",
+  "./schemas/stats/tables/room_member_milestones.sql",
+  "./schemas/stats/tables/room_stats.sql",
+  "./schemas/stats/tables/series_standing_snapshots.sql",
   "./schemas/**/functions/*.sql",
+  "./schemas/**/views/*.sql",
   "./schemas/**/policies/*.sql",
   "./schemas/**/triggers/*.sql",
-  "./schemas/**/views/*.sql"
+  # Last, once everything they name exists: function grants and realtime.
+  "./schemas/_final/*.sql",
 ]

@@ -11,14 +11,14 @@ The browser talks to Postgres directly with the public anon key, so the database
 ## Reads
 
 - Logged-out users (`anon`) can't read anything.
-- Logged-in users can only read rows belonging to rooms they are a member of. Policies use the helpers in `private`: `is_room_member`, `can_view_prediction`, `can_view_duel`, `can_view_series` and `shares_room_with`.
+- Logged-in users can only read rows belonging to rooms they are a member of. Policies use the helpers in `private`: `is_room_member`, `can_view_prediction`, `can_view_series` and `shares_room_with`.
 - Views must be created `with (security_invoker = true)`, otherwise they run as their owner and skip RLS.
 - `players` is readable column by column. `player_token`, `user_id` and `last_visited_room_id` are never granted.
 - Non-members see a room only through `get_room_by_code`, which returns just what the join screen needs.
 
 ## Functions
 
-- Function access is an allowlist in `supabase/schemas/_global/function_execute_grants.sql`. Supabase grants new public functions to `anon` and `authenticated` by default, and Postgres grants them to `PUBLIC`, so a new migration that creates a function must also revoke it:
+- Function access is an allowlist in `supabase/schemas/_final/function_execute_grants.sql`. Supabase grants new public functions to `anon` and `authenticated` by default, and Postgres grants them to `PUBLIC`, so a new migration that creates a function must also revoke it:
 
   ```sql
   revoke execute on function public.my_function(uuid) from public, anon, authenticated;
@@ -26,7 +26,7 @@ The browser talks to Postgres directly with the public anon key, so the database
   ```
 
 - When the app starts calling a new RPC, add it to the grants file and to the allowlist in `supabase/tests/security_hardening.sql`. The test fails if the two drift apart.
-- Internal functions (stats, ratings, duel settlement) are called from inside other RPCs and need no grant.
+- Internal functions (stats, ratings, settlement) are called from inside other RPCs and need no grant.
 
 ## Points
 

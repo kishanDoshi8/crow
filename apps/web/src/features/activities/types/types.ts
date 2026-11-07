@@ -8,32 +8,20 @@ export type ActivityType =
 	| "prediction_revealed"
 	| "prediction_cancelled"
 	| "prediction_no_result"
-	| "prediction_corrected"
-	| "duel_created"
-	| "duel_matched"
-	| "duel_resolved"
-	| "duel_cancelled"
-	| "duel_expired";
+	| "prediction_corrected";
 
 export type ActivityTier = 1 | 2 | 3;
 
 export type ActivityFilter =
 	| "all"
 	| "predictions"
-	| "duels"
 	| "members"
 	| "achievements";
 
-export type ActivityClickAction =
-	| {
-			type: "prediction";
-			predictionId: string;
-	  }
-	| {
-			type: "duel";
-			predictionId: string;
-			duelId: string;
-	  };
+export type ActivityClickAction = {
+	type: "prediction";
+	predictionId: string;
+};
 
 export type ActivityPlayer = {
 	id: string;
@@ -62,21 +50,6 @@ export type PredictionActivityMetadata = {
 	totalBets: number;
 	totalWagered: number;
 	optionTotals: PredictionActivityOptionTotal[];
-};
-
-export type DuelActivityMetadata = {
-	duelId: string;
-	predictionId: string;
-	predictionTitle: string;
-	status: "created" | "queued" | "matched" | "resolved" | "cancelled" | "expired";
-	challenger: ActivityPlayer;
-	opponent: ActivityPlayer | null;
-	winner: ActivityPlayer | null;
-	stakeAmount: number;
-	payout: number | null;
-	createdAt: string;
-	matchedAt: string | null;
-	resolvedAt: string | null;
 };
 
 export type RoomJoinedMetadata = {
@@ -162,26 +135,6 @@ export type PredictionCorrectedActivity = RoomActivityBase<
 	}
 >;
 
-export type DuelCreatedActivity = RoomActivityBase<
-	"duel_created",
-	DuelActivityMetadata
->;
-export type DuelMatchedActivity = RoomActivityBase<
-	"duel_matched",
-	DuelActivityMetadata
->;
-export type DuelResolvedActivity = RoomActivityBase<
-	"duel_resolved",
-	DuelActivityMetadata
->;
-export type DuelCancelledActivity = RoomActivityBase<
-	"duel_cancelled",
-	DuelActivityMetadata
->;
-export type DuelExpiredActivity = RoomActivityBase<
-	"duel_expired",
-	DuelActivityMetadata
->;
 
 export type RoomActivity =
 	| RoomJoinedActivity
@@ -193,12 +146,7 @@ export type RoomActivity =
 	| PredictionRevealedActivity
 	| PredictionCancelledActivity
 	| PredictionNoResultActivity
-	| PredictionCorrectedActivity
-	| DuelCreatedActivity
-	| DuelMatchedActivity
-	| DuelResolvedActivity
-	| DuelCancelledActivity
-	| DuelExpiredActivity;
+	| PredictionCorrectedActivity;
 
 export type RoomActivitiesPage = {
 	items: RoomActivity[];

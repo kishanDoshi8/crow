@@ -1,11 +1,6 @@
 import type {
 	AchievementMilestoneActivity,
 	AchievementStreakMilestoneActivity,
-	DuelCancelledActivity,
-	DuelCreatedActivity,
-	DuelExpiredActivity,
-	DuelMatchedActivity,
-	DuelResolvedActivity,
 	PredictionCancelledActivity,
 	PredictionCorrectedActivity,
 	PredictionCreatedActivity,
@@ -30,18 +25,12 @@ import {
 import {
 	PredictionNoResultCard,
 } from "@/features/activities/components/cards/PredictionNoResultCard";
-import { DuelCreatedCard } from "@/features/activities/components/cards/DuelCreatedCard";
-import { DuelMatchedCard } from "@/features/activities/components/cards/DuelMatchedCard";
-import { DuelResolvedCard } from "@/features/activities/components/cards/DuelResolvedCard";
-import { DuelCancelledCard } from "@/features/activities/components/cards/DuelCancelledCard";
-import { DuelExpiredCard } from "@/features/activities/components/cards/DuelExpiredCard";
 import {
 	AchievementStreakMilestoneCard,
 } from "@/features/activities/components/cards/AchievementStreakMilestoneCard";
 import {
 	AchievementMilestoneCard,
 } from "@/features/activities/components/cards/AchievementMilestoneCard";
-import { FEATURES } from "@/shared/constants/features";
 import { Reveal } from "@/shared/ui";
 import type { ActivityCardComponentProps } from "@/features/activities/components/cards/types";
 
@@ -67,11 +56,6 @@ type RegistryMap = {
 	prediction_cancelled: CardFor<PredictionCancelledActivity>;
 	prediction_no_result: CardFor<PredictionNoResultActivity>;
 	prediction_corrected: CardFor<PredictionCorrectedActivity>;
-	duel_created: CardFor<DuelCreatedActivity>;
-	duel_matched: CardFor<DuelMatchedActivity>;
-	duel_resolved: CardFor<DuelResolvedActivity>;
-	duel_cancelled: CardFor<DuelCancelledActivity>;
-	duel_expired: CardFor<DuelExpiredActivity>;
 };
 
 const registry: RegistryMap = {
@@ -84,18 +68,12 @@ const registry: RegistryMap = {
 	prediction_cancelled: PredictionCancelledCard,
 	prediction_no_result: PredictionNoResultCard,
 	prediction_corrected: PredictionCorrectedCard,
-	duel_created: DuelCreatedCard,
-	duel_matched: DuelMatchedCard,
-	duel_resolved: DuelResolvedCard,
-	duel_cancelled: DuelCancelledCard,
-	duel_expired: DuelExpiredCard,
 };
 
-// Activity from features that are switched off. Ratings still update in the
-// background but aren't shown while the series standings are the one ranking.
+// Ratings still update in the background but aren't shown while the series
+// standings are the one ranking.
 function isHiddenActivity(activityType: RoomActivity["activityType"]) {
-	if (activityType === "achievement_rating_tier_reached") return true;
-	return !FEATURES.duels && activityType.startsWith("duel_");
+	return activityType === "achievement_rating_tier_reached";
 }
 
 export function ActivityCardRegistry({

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/shared/lib/supabase";
-import { playerQueryKey, roomKeys } from "@/shared/constants/queryKeys";
+import { roomKeys } from "@/shared/constants/queryKeys";
 import { invalidateRoomResults } from "@/shared/lib/roomCache";
 
 // Changes arrive in bursts: revealing one result updates the prediction,
@@ -160,64 +160,4 @@ export function useRoomBetRealtime(
 			supabase.removeChannel(channel);
 		};
 	}, [roomId, predictionId, queryClient]);
-}
-
-export function usePredictionDuelRealtime(
-	roomId: string,
-	predictionId: string | null,
-) {
-	const queryClient = useQueryClient();
-
-	useEffect(() => {
-		if (!predictionId) return;
-
-		const client = supabase as unknown as {
-			channel: (name: string) => any;
-			removeChannel: (channel: unknown) => void;
-		};
-
-		const channel = client
-			.channel(`duels:${predictionId}`)
-			.on(
-				"postgres_changes",
-				{
-					event: "*",
-					schema: "public",
-					table: "duels",
-					filter: `prediction_id=eq.${predictionId}`,
-				},
-				() => {
-					queryClient.invalidateQueries({
-						queryKey: roomKeys.duels(roomId, predictionId),
-					});
-					queryClient.invalidateQueries({
-						queryKey: roomKeys.duelSummary(roomId, predictionId),
-					});
-					queryClient.invalidateQueries({
-						queryKey: playerQueryKey,
-					});
-				},
-			)
-			.on(
-				"postgres_changes",
-				{
-					event: "*",
-					schema: "public",
-					table: "duel_queue",
-				},
-				() => {
-					queryClient.invalidateQueries({
-						queryKey: roomKeys.duels(roomId, predictionId),
-					});
-					queryClient.invalidateQueries({
-						queryKey: roomKeys.duelSummary(roomId, predictionId),
-					});
-				},
-			)
-			.subscribe();
-
-		return () => {
-			client.removeChannel(channel);
-		};
-	}, [predictionId, queryClient, roomId]);
 }

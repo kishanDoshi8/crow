@@ -14,7 +14,7 @@ Crow (formerly Verdict, before that Predikt) is primarily for friends participat
 
 ## Product Purpose
 
-Crow is a fun, lightweight prediction companion for friend groups. It exists to make recurring private prediction play easy to run, easy to join, and easy to stay engaged with. Success means sustained, repeat engagement around core competitive loops, especially duels and leaderboard activity.
+Crow is a fun, lightweight prediction companion for friend groups. It exists to make recurring private prediction play easy to run, easy to join, and easy to stay engaged with. Success means sustained, repeat engagement around core competitive loops, especially series standings and weekly results.
 
 ## Positioning
 

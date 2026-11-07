@@ -58,7 +58,6 @@ begin
       and (
         v_filter = 'all'
         or (v_filter = 'predictions' and a.activity_type like 'prediction_%')
-        or (v_filter = 'duels' and a.activity_type like 'duel_%')
         or (v_filter = 'members' and a.activity_type like 'room_%')
         or (v_filter = 'achievements' and a.activity_type like 'achievement_%')
       )
@@ -70,12 +69,10 @@ begin
           where p.id = case
             when coalesce(
               a.metadata ->> 'predictionId',
-              a.metadata #>> '{duel,predictionId}',
               a.click_action ->> 'predictionId'
             ) ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
             then coalesce(
               a.metadata ->> 'predictionId',
-              a.metadata #>> '{duel,predictionId}',
               a.click_action ->> 'predictionId'
             )::uuid
             else null

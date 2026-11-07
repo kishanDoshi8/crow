@@ -43,7 +43,7 @@ events are batched: each kind of refresh runs once, 250 ms after the first
 event. After a reconnect everything catches up, since events sent while the
 socket was down are lost.
 
-Only publish a table for realtime (`supabase/schemas/_global/02_publications.sql`)
+Only publish a table for realtime (`supabase/schemas/_final/publications.sql`)
 when a client subscribes to it: every published change costs the database
 work, delivered or not.
 

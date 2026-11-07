@@ -64,10 +64,6 @@ begin
     raise exception 'This result was revealed before corrections were possible' using errcode = 'P0006';
   end if;
 
-  if exists (select 1 from public.duels d where d.prediction_id = p_prediction_id) then
-    raise exception 'Predictions with duels can''t be corrected' using errcode = 'P0006';
-  end if;
-
   select * into v_plan
   from private.plan_settlement(p_prediction_id, p_outcome, p_winning_option_id, p_no_result_reason);
 

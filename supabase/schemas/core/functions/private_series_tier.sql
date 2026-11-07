@@ -62,11 +62,6 @@ as $$
       when p_value >= 10 then 'silver'
       else 'bronze'
     end
-    when 'MOST_DUEL_WINS' then case
-      when p_value >= 0.25 * greatest(p_games, 1) then 'gold'
-      when p_value >= 0.10 * greatest(p_games, 1) then 'silver'
-      else 'bronze'
-    end
     -- Win rate, as a percentage of settled bets.
     when 'SHARPSHOOTER' then case
       when p_value >= 75 then 'gold'
