@@ -2,10 +2,17 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { visualizer } from 'rollup-plugin-visualizer'
+import { sentryVitePlugin } from '@sentry/vite-plugin'
 import { execSync } from 'node:child_process'
 import type { Plugin } from 'vite'
 
 const shouldAnalyze = process.env.ANALYZE === 'true'
+// Release builds upload source maps to Sentry so error reports show real
+// file names and lines. Needs SENTRY_AUTH_TOKEN, SENTRY_ORG and
+// SENTRY_PROJECT; without them nothing is generated or uploaded.
+const uploadSourceMaps = Boolean(
+  process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_ORG && process.env.SENTRY_PROJECT,
+)
 
 function git(args: string) {
   try {
@@ -28,51 +35,70 @@ function buildInfo() {
   const release = git('describe --tags --always --dirty') ?? commit
   const builtAt = new Date()
   return {
-    version: `${release}+${builtAt.getTime().toString(36)}`,
-    release,
-    commit,
-    builtAt: builtAt.toISOString(),
+      version: `${release}+${builtAt.getTime().toString(36)}`,
+      release,
+      commit,
+      builtAt: builtAt.toISOString(),
+    }
   }
-}
 
-// Bakes the build ID into the app and publishes it as /version.json, so an
-// open app can tell when a newer build has been deployed. Only `version` is
-// compared; the other fields are for people checking what's live.
-function appVersion(): Plugin {
-  let info: ReturnType<typeof buildInfo> | { version: string } = { version: 'dev' }
-  return {
-    name: 'app-version',
-    config(_, { command }) {
-      if (command === 'build') info = buildInfo()
-      return { define: { __APP_VERSION__: JSON.stringify(info.version) } }
+  // Bakes the build ID into the app and publishes it as /version.json, so an
+  // open app can tell when a newer build has been deployed. Only `version` is
+  // compared; the other fields are for people checking what's live.
+  function appVersion(info: ReturnType<typeof buildInfo> | { version: string }): Plugin {
+    return {
+      name: 'app-version',
+      config() {
+        return { define: { __APP_VERSION__: JSON.stringify(info.version) } }
+      },
+      generateBundle() {
+        this.emitFile({
+          type: 'asset',
+          fileName: 'version.json',
+          source: JSON.stringify(info),
+        })
+      },
+    }
+  }
+
+  export default defineConfig(({ command }) => {
+    const info = command === 'build' ? buildInfo() : { version: 'dev' }
+    return {
+    build: {
+      // "hidden": maps are made for the upload but browsers aren't pointed at them.
+      sourcemap: uploadSourceMaps ? 'hidden' : false,
     },
-    generateBundle() {
-      this.emitFile({
-        type: 'asset',
-        fileName: 'version.json',
-        source: JSON.stringify(info),
-      })
+    plugins: [
+      react(),
+      tailwindcss(),
+      appVersion(info),
+      ...(shouldAnalyze
+        ? [
+            visualizer({
+              filename: 'dist/stats.html',
+              gzipSize: true,
+              brotliSize: true,
+              open: false,
+            }),
+          ]
+        : []),
+      ...(uploadSourceMaps
+        ? [
+            sentryVitePlugin({
+              org: process.env.SENTRY_ORG,
+              project: process.env.SENTRY_PROJECT,
+              authToken: process.env.SENTRY_AUTH_TOKEN,
+              // Matches the release the app reports with (__APP_VERSION__).
+              release: { name: info.version },
+              // Never served: deleted once uploaded.
+              sourcemaps: { filesToDeleteAfterUpload: ['./dist/**/*.map'] },
+              telemetry: false,
+            }),
+          ]
+        : []),
+    ],
+    resolve: {
+      alias: { '@': '/src' },
     },
   }
-}
-
-export default defineConfig({
-  plugins: [
-    react(),
-    tailwindcss(),
-    appVersion(),
-    ...(shouldAnalyze
-      ? [
-          visualizer({
-            filename: 'dist/stats.html',
-            gzipSize: true,
-            brotliSize: true,
-            open: false,
-          }),
-        ]
-      : []),
-  ],
-  resolve: {
-    alias: { '@': '/src' },
-  },
 })

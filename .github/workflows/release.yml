@@ -84,6 +84,13 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
           VITE_WEB_PUSH_PUBLIC_KEY: ${{ vars.VITE_WEB_PUSH_PUBLIC_KEY }}
           VITE_SHORT_INVITE_LINKS: ${{ vars.VITE_SHORT_INVITE_LINKS }}
+          # Optional: error reporting. Unset builds without Sentry.
+          VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
+          # Optional: upload source maps so reports show real lines. Needs all
+          # three; the token is a secret (Sentry > Settings > Auth Tokens).
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
           for name in VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY; do
             if [ -z "${!name}" ]; then

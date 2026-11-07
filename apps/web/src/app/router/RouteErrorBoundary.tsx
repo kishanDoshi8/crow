@@ -1,4 +1,6 @@
 import { AlertTriangleIcon } from "lucide-react";
+import { useEffect } from "react";
+import { reportError } from "@/shared/lib/errorReporting";
 import { Button } from "@/shared/ui";
 import {
 	isRouteErrorResponse,
@@ -9,6 +11,13 @@ import {
 export function RouteErrorBoundary() {
 	const navigate = useNavigate();
 	const error = useRouteError();
+
+	// A crash while rendering a page. Missing pages (404s) aren't bugs.
+	useEffect(() => {
+		if (!isRouteErrorResponse(error)) {
+			reportError(error, { boundary: "route" });
+		}
+	}, [error]);
 
 	const title = isRouteErrorResponse(error)
 		? `${error.status} ${error.statusText}`

@@ -1,6 +1,11 @@
 import { useRoomContext } from "@/shared/lib/roomContext";
 import { usePlayer } from "@/features/home";
-import { useSetMemberRole, useTransferOwnership } from "@/features/rooms/hooks/staff";
+import {
+	useAllowRoomMemberBack,
+	useRemoveRoomMember,
+	useSetMemberRole,
+	useTransferOwnership,
+} from "@/features/rooms/hooks/staff";
 import { useRoomRole } from "@/features/rooms/hooks/useRoomRole";
 import {
 	ASSIGNABLE_ROLES,
@@ -8,7 +13,7 @@ import {
 	roomRoleRank,
 	type RoomRole,
 } from "@/features/rooms/lib/roles";
-import type { RoomMember } from "@/features/rooms/types/types";
+import type { FormerMember, RoomMember } from "@/features/rooms/types/types";
 import {
 	Avatar,
 	AvatarFallback,
@@ -31,7 +36,7 @@ import {
 	RadioGroupItem,
 	Spinner,
 } from "@/shared/ui";
-import { ChevronRightIcon, CrownIcon, ShieldAlertIcon } from "lucide-react";
+import { ChevronRightIcon, CrownIcon, ShieldAlertIcon, UserMinusIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -77,6 +82,14 @@ export default function MembersPage() {
 					);
 				})}
 			</ul>
+
+			{room.former_members?.length ? (
+				<FormerMembers
+					roomId={room.id}
+					formerMembers={room.former_members}
+					canLetBack={can.own}
+				/>
+			) : null}
 
 			{editing ? (
 				<RoleDrawer
@@ -262,6 +275,12 @@ function RoleDrawer({
 								Transfer ownership
 							</Button>
 						</div>
+						<RemoveMember
+							roomId={roomId}
+							member={member}
+							disabled={isPending}
+							onRemoved={onClose}
+						/>
 					</section>
 				</div>
 				<DrawerFooter>
@@ -277,5 +296,154 @@ function RoleDrawer({
 				</DrawerFooter>
 			</DrawerContent>
 		</Drawer>
+	);
+}
+
+// Danger zone: take someone out of the room. Two taps, so it's never by accident.
+function RemoveMember({
+	roomId,
+	member,
+	disabled,
+	onRemoved,
+}: Readonly<{
+	roomId: string;
+	member: RoomMember;
+	disabled: boolean;
+	onRemoved: () => void;
+}>) {
+	const [confirming, setConfirming] = useState(false);
+	const { mutate: removeMember, isPending } = useRemoveRoomMember(roomId);
+	const name = member.player.username;
+
+	const handleRemove = () => {
+		removeMember(member.player_id, {
+			onSuccess: () => {
+				toast.success(`${name} was removed from the room.`, {
+					position: "top-center",
+				});
+				onRemoved();
+			},
+			onError: (error) => {
+				toast.error("Couldn't remove them.", {
+					description: error.message,
+					position: "top-center",
+				});
+			},
+		});
+	};
+
+	return (
+		<div className='space-y-3 rounded-xl border border-destructive/40 bg-destructive/10 p-3'>
+			<p className='flex items-start gap-2 text-sm text-destructive'>
+				<UserMinusIcon className='mt-0.5 size-4 shrink-0' />
+				Remove {name} from the room. Bets on open predictions go back to
+				them; past results keep their name. They can't rejoin until you let
+				them back in.
+			</p>
+			{confirming ? (
+				<div className='grid grid-cols-2 gap-2'>
+					<Button
+						variant='outline'
+						onClick={() => setConfirming(false)}
+						disabled={isPending}
+					>
+						Keep {name}
+					</Button>
+					<Button
+						variant='destructive'
+						onClick={handleRemove}
+						disabled={isPending || disabled}
+					>
+						{isPending && <Spinner />}
+						Remove
+					</Button>
+				</div>
+			) : (
+				<Button
+					variant='destructive'
+					className='w-full'
+					onClick={() => setConfirming(true)}
+					disabled={disabled}
+				>
+					Remove from room
+				</Button>
+			)}
+		</div>
+	);
+}
+
+// People who left or were removed. Their results stay in history; the owner
+// can let removed players back in, and anyone who left can rejoin with the code.
+function FormerMembers({
+	roomId,
+	formerMembers,
+	canLetBack,
+}: Readonly<{
+	roomId: string;
+	formerMembers: FormerMember[];
+	canLetBack: boolean;
+}>) {
+	const { mutate: allowBack, isPending, variables } =
+		useAllowRoomMemberBack(roomId);
+
+	const handleAllowBack = (former: FormerMember) => {
+		allowBack(former.player_id, {
+			onSuccess: () => {
+				toast.success(
+					`${former.username} can rejoin with the room code.`,
+					{ position: "top-center" },
+				);
+			},
+			onError: (error) => {
+				toast.error("Couldn't let them back in.", {
+					description: error.message,
+					position: "top-center",
+				});
+			},
+		});
+	};
+
+	return (
+		<section className='space-y-2 pt-3'>
+			<p className='px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+				Former members
+			</p>
+			<ul className='divide-y rounded-2xl border bg-card'>
+				{formerMembers.map((former) => (
+					<li
+						key={former.player_id}
+						className='flex items-center gap-3 px-3 py-2.5'
+					>
+						<Avatar className='opacity-60 ring-1 ring-border/80'>
+							<AvatarFallback className='bg-muted/70 text-xs font-semibold text-muted-foreground'>
+								{former.username.slice(0, 2).toUpperCase()}
+							</AvatarFallback>
+						</Avatar>
+						<span className='min-w-0 flex-1 truncate text-sm text-muted-foreground'>
+							{former.username}
+						</span>
+						{former.status === "removed" && canLetBack ? (
+							<Button
+								variant='outline'
+								size='sm'
+								onClick={() => handleAllowBack(former)}
+								disabled={isPending}
+							>
+								{isPending && variables === former.player_id && <Spinner />}
+								Let back in
+							</Button>
+						) : (
+							<Badge variant='outline' className='text-muted-foreground'>
+								{former.status === "removed"
+									? "Removed"
+									: former.status === "deleted"
+										? "Account deleted"
+										: "Left"}
+							</Badge>
+						)}
+					</li>
+				))}
+			</ul>
+		</section>
 	);
 }

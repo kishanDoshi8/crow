@@ -9,6 +9,7 @@ import { type Session, type User } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 import { removePushSubscription } from "@/shared/lib/pushNotifications";
 import { supabase } from "@/shared/lib/supabase";
+import { setErrorReportingUser } from "@/shared/lib/errorReporting";
 
 interface AuthContextValue {
   user: User | null;
@@ -69,6 +70,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Error reports carry the auth id (never the email) of who hit them.
+  useEffect(() => {
+    setErrorReportingUser(user?.id ?? null);
+  }, [user?.id]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({

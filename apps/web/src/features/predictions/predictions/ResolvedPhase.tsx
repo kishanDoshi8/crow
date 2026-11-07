@@ -9,7 +9,7 @@ import PredictionOptions from "../widgets/PredictionOptions";
 import { CheckIcon, CrownIcon } from "lucide-react";
 import { useRoomContext } from "@/shared/lib/roomContext";
 import { usePlayer } from "@/features/home";
-import { useRoomBetRealtime } from "@/features/rooms";
+import { roomPlayerName, useRoomBetRealtime } from "@/features/rooms";
 import PredictionData from "./PredictionData";
 import { PlayerProfileDialog } from "@/features/leaderboard";
 import { useState } from "react";
@@ -87,8 +87,7 @@ function ResolvedPhase({ prediction }: Readonly<Props>) {
 		if (player?.id === playerId) {
 			return player.username + " (You)";
 		}
-		const member = room.members.find((m) => m.player_id === playerId);
-		return member ? member.player.username : "Unknown";
+		return roomPlayerName(room, playerId) ?? "Unknown";
 	};
 
 	return (

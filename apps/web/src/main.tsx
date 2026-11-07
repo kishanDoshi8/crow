@@ -3,7 +3,9 @@ import * as ReactDOM from "react-dom/client";
 import App from "@/app/App";
 import "@/shared/assets/styles/global.css";
 import { captureReferral } from "@/shared/lib/referral";
+import { initErrorReporting } from "@/shared/lib/errorReporting";
 
+initErrorReporting();
 captureReferral();
 
 if ("serviceWorker" in navigator) {

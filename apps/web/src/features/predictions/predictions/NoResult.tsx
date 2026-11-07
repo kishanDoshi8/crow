@@ -10,6 +10,7 @@ import { useBets } from "@/features/predictions/hooks/bet";
 import { useOptionColor } from "@/shared/hooks/useOptionColor";
 import { useRoomContext } from "@/shared/lib/roomContext";
 import { usePlayer } from "@/features/home";
+import { roomPlayerName } from "@/features/rooms";
 
 type Props = {
 	prediction: Prediction | null | undefined;
@@ -27,8 +28,7 @@ function NoResult({ prediction }: Readonly<Props>) {
 		if (player?.id === playerId) {
 			return player.username + " (You)";
 		}
-		const member = room.members.find((m) => m.player_id === playerId);
-		return member ? member.player.username : "Unknown";
+		return roomPlayerName(room, playerId) ?? "Unknown";
 	};
 
 	return (

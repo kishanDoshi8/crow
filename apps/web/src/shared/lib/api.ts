@@ -11,7 +11,7 @@ import type {
 } from "@/features/leaderboard/types/types";
 import type { Prediction, PredictionStatus } from "@/features/predictions/types/types";
 import type { Series } from "@/features/series/types/series";
-import type { ManageQueue, Room, RoomMember } from "@/features/rooms/types/types";
+import type { FormerMember, ManageQueue, Room, RoomMember } from "@/features/rooms/types/types";
 import type { RoomRole } from "@/features/rooms/lib/roles";
 import type { ActivityFilter, RoomActivitiesPage } from "@/features/activities/types/types";
 import type { Json } from '@/shared/lib/supabase.types'
@@ -317,6 +317,7 @@ type RoomByCode = {
   predictions_limit: number
   result_reminder_hours: number
   is_member: boolean
+  is_removed: boolean
   member_count: number
   active_prediction_count: number
   organizer_username: string | null
@@ -338,15 +339,68 @@ export async function spectateRoom(roomCode: string): Promise<Room> {
     }
   }
 
-  const members = await getRoomMembers(room.id)
-  const hasUnseenActivities = await getRoomHasUnseenActivities(room.id)
+  const [members, formerMembers, hasUnseenActivities] = await Promise.all([
+    getRoomMembers(room.id),
+    getRoomFormerMembers(room.id),
+    getRoomHasUnseenActivities(room.id),
+  ])
 
   return {
     ...room,
     code: room.room_code,
     members,
+    former_members: formerMembers,
     has_unseen_activities: hasUnseenActivities,
   }
+}
+
+// People who left or were removed, so old results keep their names.
+export async function getRoomFormerMembers(roomId: string): Promise<FormerMember[]> {
+  const { data, error } = await supabase.rpc('get_room_former_members', { p_room_id: roomId })
+  return (assertOk(data, error) ?? []) as unknown as FormerMember[]
+}
+
+// Owner only. They can't rejoin until allowRoomMemberBack.
+export async function removeRoomMember(roomId: string, playerId: string) {
+  const { data, error } = await supabase.rpc('remove_room_member', {
+    p_room_id: roomId,
+    p_player_id: playerId,
+  })
+  return assertOk(data, error)
+}
+
+export async function allowRoomMemberBack(roomId: string, playerId: string) {
+  const { data, error } = await supabase.rpc('allow_room_member_back', {
+    p_room_id: roomId,
+    p_player_id: playerId,
+  })
+  return assertOk(data, error)
+}
+
+// Anyone but the owner. Open bets are handed back; rejoining restores stats.
+export async function leaveRoom(roomId: string) {
+  const { data, error } = await supabase.rpc('leave_room', { p_room_id: roomId })
+  return assertOk(data, error)
+}
+
+type AccountDeletion = { status: 'pending'; requested_at: string }
+
+export async function getMyAccountDeletion(): Promise<AccountDeletion | null> {
+  const { data, error } = await supabase.rpc('get_my_account_deletion')
+  if (error) throw error
+  return (data ?? null) as AccountDeletion | null
+}
+
+export async function requestAccountDeletion(reason: string | null) {
+  const { data, error } = await supabase.rpc('request_account_deletion', {
+    p_reason: reason ?? undefined,
+  })
+  return assertOk(data, error) as unknown as AccountDeletion
+}
+
+export async function cancelAccountDeletion() {
+  const { data, error } = await supabase.rpc('cancel_account_deletion')
+  return assertOk(data, error)
 }
 
 // Staff only. Locked predictions to close and open ones, across the room.

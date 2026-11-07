@@ -14,6 +14,15 @@ export interface RoomMember {
   }
 }
 
+// Someone who left, was removed, or deleted their account. Old results still
+// show them, so their name stays known. Only the owner sees "removed".
+export interface FormerMember {
+  player_id: string
+  username:  string
+  status:    'left' | 'removed' | 'deleted'
+  left_at:   string
+}
+
 export interface Room {
   id:                string
   code:              string
@@ -22,6 +31,9 @@ export interface Room {
   status:            string
   created_at:        string
   members:           RoomMember[]
+  former_members?:   FormerMember[]
+  // The caller was removed and can't rejoin until the owner lets them back.
+  is_removed?:       boolean
   has_unseen_activities?: boolean
   // Max concurrent active (draft/locked) predictions. The owner can change it.
   predictions_limit: number

@@ -1,11 +1,15 @@
 import {
+	allowRoomMemberBack,
 	getRoomManageQueue,
+	leaveRoom,
+	removeRoomMember,
 	setMemberRole,
 	transferOwnership,
 	updateRoom,
 	type RoomSettings,
 } from "@/shared/lib/api";
 import { roomKeys } from "@/shared/constants/queryKeys";
+import { invalidateRoomResults } from "@/shared/lib/roomCache";
 import type { RoomRole } from "@/features/rooms/lib/roles";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 
@@ -42,6 +46,38 @@ export const useTransferOwnership = (roomId: string) => {
 	return useMutation({
 		mutationFn: (playerId: string) => transferOwnership(roomId, playerId),
 		onSuccess: () => refreshRoom(queryClient, roomId),
+	});
+};
+
+// Owner only. Their open bets come back and they drop out of the standings.
+export const useRemoveRoomMember = (roomId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (playerId: string) => removeRoomMember(roomId, playerId),
+		onSuccess: () => {
+			refreshRoom(queryClient, roomId);
+			invalidateRoomResults(queryClient, roomId);
+		},
+	});
+};
+
+export const useAllowRoomMemberBack = (roomId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (playerId: string) => allowRoomMemberBack(roomId, playerId),
+		onSuccess: () => refreshRoom(queryClient, roomId),
+	});
+};
+
+// Anyone but the owner. The caller loses access, so drop the room's cache.
+export const useLeaveRoom = (roomId: string) => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: () => leaveRoom(roomId),
+		onSuccess: () => {
+			queryClient.removeQueries({ queryKey: roomKeys.detail(roomId) });
+			refreshRoom(queryClient, roomId);
+		},
 	});
 };
 

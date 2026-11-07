@@ -20,6 +20,9 @@ import { PredictionPage } from "@/features/predictions/pages/PredictionPage";
 import { LeaderboardPage } from "@/features/leaderboard/pages/LeaderboardPage";
 
 const UpNextPage = lazy(() => import("@/features/series/pages/UpNextPage"));
+const DeleteAccountPage = lazy(
+	() => import("@/features/account/pages/DeleteAccountPage"),
+);
 const LoginPage = lazy(() =>
 	import("@/features/auth/pages/LoginPage").then((module) => ({
 		default: module.LoginPage,
@@ -124,6 +127,10 @@ export const router = createBrowserRouter([
 				children: [
 					{ path: "/", element: <HomePage /> },
 					{ path: "/create-player", element: withSuspense(<CreatePlayer />) },
+					{
+						path: "/account/delete",
+						element: withSuspense(<DeleteAccountPage />),
+					},
 					{
 						path: "/rooms/:roomCode",
 						children: [
