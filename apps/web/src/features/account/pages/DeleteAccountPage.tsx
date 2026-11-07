@@ -19,7 +19,7 @@ import {
 import { Textarea } from "@/shared/ui/textarea";
 import { ChevronLeftIcon, InfoIcon } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 // Players ask for their account to be deleted; it's carried out by hand
@@ -132,7 +132,13 @@ export default function DeleteAccountPage() {
 									up, under the name "Ghost crow" instead of yours.
 								</li>
 							</ul>
-							<p>We'll do it within 30 days of your request.</p>
+							<p>
+								We'll do it within 30 days of your request. More in our{" "}
+								<Link to='/privacy' className='text-accent hover:underline'>
+									Privacy Policy
+								</Link>
+								.
+							</p>
 						</div>
 
 						<Field>

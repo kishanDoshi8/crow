@@ -6,6 +6,7 @@ import { Input } from "@/shared/ui/input";
 import { Spinner } from "@/shared/ui/spinner";
 import { Brand } from "@/features/home";
 import { GoogleButton, OrDivider } from "@/features/auth/components/GoogleButton";
+import { AboutCrow } from "@/features/legal";
 
 export function SignupPage() {
 	const { signUp } = useAuth();
@@ -154,6 +155,8 @@ export function SignupPage() {
 					</Link>
 				</p>
 			</div>
+
+			<AboutCrow />
 		</div>
 	);
 }

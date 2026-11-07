@@ -7,6 +7,7 @@ import { Spinner } from "@/shared/ui/spinner";
 import { Brand } from "@/features/home";
 import { GoogleButton, OrDivider } from "@/features/auth/components/GoogleButton";
 import { takePostAuthRedirect } from "@/shared/lib/postAuthRedirect";
+import { AboutCrow } from "@/features/legal";
 
 export function LoginPage() {
 	const { signIn } = useAuth();
@@ -120,6 +121,8 @@ export function LoginPage() {
 					</span>
 				</div>
 			</div>
+
+			<AboutCrow />
 		</div>
 	);
 }

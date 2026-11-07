@@ -34,6 +34,7 @@ import { toast } from "sonner";
 import type { Room } from "@/features/rooms/types/types";
 import { SettingsRow } from "@/features/series/components/SeriesOrganizerActionsMenu";
 import { useAuth } from "@/features/auth";
+import { LegalLinks } from "@/features/legal";
 import { copyToClipboard } from "@/shared/lib/clipboard";
 import { InviteSheet } from "./InviteSheet";
 import { useLeaveRoom, useManageQueue } from "@/features/rooms/hooks/staff";
@@ -294,6 +295,10 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 								),
 							)}
 						</section>
+						<LegalLinks
+							className='px-2'
+							onNavigate={() => onOpenChange(false)}
+						/>
 					</div>
 				</DrawerContent>
 			</Drawer>
