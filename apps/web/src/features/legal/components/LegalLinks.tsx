@@ -13,12 +13,20 @@ export function LegalLinks({
 	onNavigate?: () => void;
 }>) {
 	const terms = (
-		<Link to='/terms' className='underline underline-offset-2 hover:text-foreground' onClick={onNavigate}>
+		<Link
+			to='/terms'
+			className='underline underline-offset-2 hover:text-foreground'
+			onClick={onNavigate}
+		>
 			Terms of Service
 		</Link>
 	);
 	const privacy = (
-		<Link to='/privacy' className='underline underline-offset-2 hover:text-foreground' onClick={onNavigate}>
+		<Link
+			to='/privacy'
+			className='underline underline-offset-2 hover:text-foreground'
+			onClick={onNavigate}
+		>
 			Privacy Policy
 		</Link>
 	);
@@ -30,9 +38,9 @@ export function LegalLinks({
 					By continuing, you agree to Crow's {terms} and {privacy}.
 				</>
 			) : (
-				<>
+				<span className={`flex justify-evenly gap-4`}>
 					{terms} · {privacy}
-				</>
+				</span>
 			)}
 		</p>
 	);

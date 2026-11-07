@@ -11,6 +11,7 @@ import type {
 import type { Prediction, PredictionStatus } from "@/features/predictions/types/types";
 import type { Series } from "@/features/series/types/series";
 import type { FormerMember, ManageQueue, Room, RoomMember } from "@/features/rooms/types/types";
+import type { PredictionTalk } from "@/features/talk/types";
 import type { RoomRole } from "@/features/rooms/lib/roles";
 import type { ActivityFilter, RoomActivitiesPage } from "@/features/activities/types/types";
 import type { Json } from '@/shared/lib/supabase.types'
@@ -961,6 +962,29 @@ export async function correctPredictionResult(
     p_outcome: outcome,
     p_winning_option_id: winningOptionId ?? undefined,
     p_no_result_reason: noResultReason ?? undefined,
+  })
+  return assertOk(data, error)
+}
+
+// Room talk: reactions and preset phrases on one prediction.
+export async function getPredictionTalk(predictionId: string): Promise<PredictionTalk> {
+  const { data, error } = await supabase.rpc('get_prediction_talk', { p_prediction_id: predictionId })
+  return assertOk(data, error) as unknown as PredictionTalk
+}
+
+// null takes the caller's reaction back.
+export async function setPredictionReaction(predictionId: string, reaction: string | null) {
+  const { data, error } = await supabase.rpc('set_prediction_reaction', {
+    p_prediction_id: predictionId,
+    p_reaction: reaction ?? undefined,
+  })
+  return assertOk(data, error)
+}
+
+export async function postPredictionPhrase(predictionId: string, phraseId: number) {
+  const { data, error } = await supabase.rpc('post_prediction_phrase', {
+    p_prediction_id: predictionId,
+    p_phrase_id: phraseId,
   })
   return assertOk(data, error)
 }

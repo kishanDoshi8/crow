@@ -71,6 +71,27 @@ begin
       coalesce(bs.winner_count, 0) as winner_count,
       coalesce(bs.total_paid_to_winners, 0) as total_paid_to_winners,
       coalesce(bs.biggest_payout, 0) as biggest_payout,
+      -- Room talk on the card: the top three reactions, the caller's own,
+      -- and how many phrases were posted.
+      (
+        select json_agg(json_build_object('reaction', tr.reaction, 'count', tr.n) order by tr.n desc, tr.reaction)
+        from (
+          select r.reaction, count(*)::int as n
+          from public.prediction_reactions r
+          where r.prediction_id = pred.id
+          group by r.reaction
+          order by count(*) desc, r.reaction
+          limit 3
+        ) tr
+      ) as top_reactions,
+      (
+        select r.reaction from public.prediction_reactions r
+        where r.prediction_id = pred.id and r.player_id = v_caller_id
+      ) as my_reaction,
+      (
+        select count(*)::int from public.prediction_posts pp
+        where pp.prediction_id = pred.id
+      ) as post_count,
       (
         select json_agg(
           json_build_object(

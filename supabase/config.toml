@@ -62,6 +62,7 @@ schema_paths = [
   "./schemas/predictions/tables/bets.sql",
   "./schemas/predictions/tables/prediction_tags.sql",
   "./schemas/predictions/tables/rating_system_config.sql",
+  "./schemas/talk/tables/talk.sql",
   "./schemas/preferences/tables/player_preferences.sql",
   "./schemas/preferences/tables/room_preferences.sql",
   "./schemas/stats/tables/home_seen.sql",

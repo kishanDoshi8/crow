@@ -72,6 +72,10 @@ export type PredictionHistoryEntry = {
   my_bet_amount:        number | null
   my_payout:            number | null
   options:              PredictionHistoryOption[] | null
+  // Room talk: the top three reactions, the viewer's own, and phrase count.
+  top_reactions?:       Array<{ reaction: string; count: number }> | null
+  my_reaction?:         string | null
+  post_count?:          number
 }
 
 // One row of the standings across every series in a room.

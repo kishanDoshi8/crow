@@ -23,7 +23,9 @@ export function useRoomRealtime(roomId: string | null) {
 			results: false,
 			activities: false,
 			members: false,
+			history: false,
 			predictions: new Set<string>(),
+			talk: new Set<string>(),
 		};
 		let timer: ReturnType<typeof setTimeout> | null = null;
 
@@ -47,6 +49,9 @@ export function useRoomRealtime(roomId: string | null) {
 						query.queryKey[2] === "activities",
 				});
 			}
+			if (dirty.history) {
+				queryClient.invalidateQueries({ queryKey: ["prediction-history", roomId] });
+			}
 			for (const predictionId of dirty.predictions) {
 				queryClient.invalidateQueries({
 					queryKey: roomKeys.prediction(roomId, predictionId),
@@ -55,7 +60,12 @@ export function useRoomRealtime(roomId: string | null) {
 			dirty.results = false;
 			dirty.activities = false;
 			dirty.members = false;
+			dirty.history = false;
 			dirty.predictions.clear();
+			for (const predictionId of dirty.talk) {
+				queryClient.invalidateQueries({ queryKey: roomKeys.talk(roomId, predictionId) });
+			}
+			dirty.talk.clear();
 		};
 
 		const mark = (change: (d: typeof dirty) => void) => {
@@ -107,6 +117,38 @@ export function useRoomRealtime(roomId: string | null) {
 				},
 				() => mark((d) => {
 					d.activities = true;
+				}),
+			)
+			// Room talk: a reaction or phrase refreshes that prediction (its
+			// talk lives under its key) and the history cards' counts.
+			.on(
+				"postgres_changes",
+				{
+					event: "*",
+					schema: "public",
+					table: "prediction_reactions",
+					filter: `room_id=eq.${roomId}`,
+				},
+				(payload) => mark((d) => {
+					d.history = true;
+					const predictionId =
+						(payload.new as { prediction_id?: string } | null)?.prediction_id ??
+						(payload.old as { prediction_id?: string } | null)?.prediction_id;
+					if (predictionId) d.talk.add(predictionId);
+				}),
+			)
+			.on(
+				"postgres_changes",
+				{
+					event: "INSERT",
+					schema: "public",
+					table: "prediction_posts",
+					filter: `room_id=eq.${roomId}`,
+				},
+				(payload) => mark((d) => {
+					d.history = true;
+					const predictionId = (payload.new as { prediction_id?: string } | null)?.prediction_id;
+					if (predictionId) d.talk.add(predictionId);
 				}),
 			)
 			.subscribe((status) => {

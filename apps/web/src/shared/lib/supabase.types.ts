@@ -1464,6 +1464,7 @@ export type Database = {
       get_my_account_deletion: { Args: never; Returns: Json }
       get_my_series_wallets: { Args: { p_room_id: string }; Returns: Json }
       get_player: { Args: never; Returns: Json }
+      get_prediction_talk: { Args: { p_prediction_id: string }; Returns: Json }
       get_preferences: { Args: { p_room_id?: string }; Returns: Json }
       get_room_activities: {
         Args: {
@@ -1572,6 +1573,10 @@ export type Database = {
         Args: { p_amount: number; p_option_id: string; p_prediction_id: string }
         Returns: Json
       }
+      post_prediction_phrase: {
+        Args: { p_phrase_id: number; p_prediction_id: string }
+        Returns: Json
+      }
       record_share: {
         Args: { p_kind: string; p_room_id: string }
         Returns: undefined
@@ -1603,6 +1608,10 @@ export type Database = {
       set_last_visited_room: { Args: { p_room_id: string }; Returns: undefined }
       set_member_role: {
         Args: { p_player_id: string; p_role: string; p_room_id: string }
+        Returns: Json
+      }
+      set_prediction_reaction: {
+        Args: { p_prediction_id: string; p_reaction?: string }
         Returns: Json
       }
       suggest_series: {
