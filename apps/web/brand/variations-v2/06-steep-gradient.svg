@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs>
+<linearGradient id="06-steep-gradient-g" x1="0.3" y1="0" x2="0.7" y2="1"><stop offset="0" stop-color="#ff2056"/><stop offset="0.5" stop-color="#ff5a1f"/><stop offset="1" stop-color="#fe9a00"/></linearGradient>
+<clipPath id="06-steep-gradient-c"><rect width="512" height="512" rx="138"/></clipPath></defs>
+<rect width="512" height="512" rx="138" fill="url(#06-steep-gradient-g)"/>
+<g clip-path="url(#06-steep-gradient-c)"><path fill="#020617" d="M485.7 227.4 L324 172.9 L297.7 125.9 L228.1 118.4 L169.8 156 L145.4 216.2 L40 326 L-60 420 L-60 620 L430 620 L394 470 L358 372 L336 306 L337.2 274.4 Z"/><path fill="#ff2056" d="M70 476 Q150 320 332 362 Q170 372 70 476 Z"/><path fill="#fff" d="M243.16 204.88 L314.6 178.56 L307.08 204.88 Q278.88 216.15999999999997 243.16 204.88 Z"/></g></svg>

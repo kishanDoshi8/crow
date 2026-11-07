@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs>
+<linearGradient id="07-long-beak-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff2056"/><stop offset="0.5" stop-color="#ff5a1f"/><stop offset="1" stop-color="#fe9a00"/></linearGradient>
+<clipPath id="07-long-beak-c"><rect width="512" height="512" rx="138"/></clipPath></defs>
+<rect width="512" height="512" rx="138" fill="url(#07-long-beak-g)"/>
+<g clip-path="url(#07-long-beak-c)"><path fill="#020617" d="M506 226 L330 168 L302 118 L228 110 L166 150 L140 214 L40 326 L-60 420 L-60 620 L430 620 L394 470 L358 372 L336 306 L344 276 Z"/><path fill="#ff2056" d="M70 476 Q160 346 332 362 Q180 380 70 476 Z"/><path fill="#fff" d="M244 202 L320 174 L312 202 Q282 214 244 202 Z"/></g></svg>
