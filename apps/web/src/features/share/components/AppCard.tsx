@@ -7,6 +7,7 @@ import {
 } from "react";
 import { app, CARD_SIZE, STORY_PADDING, type CardFormat } from "@/features/share/tokens";
 import { twColor } from "@/shared/lib/utils";
+import { CrowGlyph } from "@/shared/ui";
 
 const columnStyle = (gap: number): CSSProperties => ({
 	display: "flex",
@@ -82,8 +83,8 @@ export function CardCanvas({
 	);
 }
 
-// The Verdict mark (check and gavel), drawn rather than loaded so captures
-// never miss it.
+// The Crow mark, drawn rather than loaded so captures never miss it. The eye is
+// painted in the tile's colour at that spot instead of cut out (see CrowGlyph).
 export function LogoTile({ size = 88 }: Readonly<{ size?: number }>) {
 	return (
 		<div
@@ -93,23 +94,16 @@ export function LogoTile({ size = 88 }: Readonly<{ size?: number }>) {
 				flexShrink: 0,
 				borderRadius: size * 0.27,
 				background: "linear-gradient(135deg, var(--primary), var(--accent))",
+				color: app.brandInk,
 				display: "flex",
 				alignItems: "center",
 				justifyContent: "center",
 			}}
 		>
-			<svg width={size * 0.68} height={size * 0.68} viewBox='0 0 512 512' aria-hidden='true'>
-				<path
-					d='M112 270 L225 383 L404 204'
-					stroke={app.onGradient}
-					strokeWidth='48'
-					strokeLinecap='round'
-					strokeLinejoin='round'
-					fill='none'
-				/>
-				<rect x='137' y='155' width='140' height='44' rx='10' transform='rotate(-45 207 177)' fill={app.onGradient} />
-				<rect x='229' y='197' width='60' height='60' rx='6' transform='rotate(45 259 227)' fill={app.onGradient} />
-			</svg>
+			<CrowGlyph
+				style={{ width: size * 0.8, height: size * 0.8 }}
+				eyeColor='color-mix(in srgb, var(--primary) 55%, var(--accent))'
+			/>
 		</div>
 	);
 }

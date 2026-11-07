@@ -1,6 +1,7 @@
 # Server setup
 
-How the production server (DigitalOcean droplet, Ubuntu, nginx) is organised,
+How the production server for playcrow.app (DigitalOcean droplet, Ubuntu
+24.04, nginx) is organised,
 how a release gets there, and the one-time steps to set it up.
 
 ## The big picture
@@ -16,7 +17,7 @@ GitHub Actions (.github/workflows/release.yml)
   4. point the "current" symlink at it, check /version.json
         │
         ▼
-Droplet: /var/www/predikt/
+Droplet: /var/www/crow/
   releases/
     20261104T153000Z-v0.5.0/   ← one folder per deploy, last 5 kept
     20261101T090000Z-v0.4.2/
@@ -31,11 +32,10 @@ Why it's built this way:
   it. The server needs no Node, no `npm ci`, no git checkout.
 - **Switching a symlink is instant and atomic.** nginx never sees a
   half-copied release. Rolling back is pointing `current` at an older folder.
-- **A dedicated `deploy` user** owns `/var/www/predikt` and nothing else. The
+- **A dedicated `deploy` user** owns `/var/www/crow` and nothing else. The
   key GitHub holds can't run sudo or touch your home folder.
-- **Files live in `/var/www`, not your home folder.** Serving from
-  `/home/kishan/...` means nginx (user `www-data`) must be able to read into
-  your home directory.
+- **Files live in `/var/www`, not a home folder**, so nginx (user
+  `www-data`) never needs to read into anyone's home directory.
 
 ## How nginx configuration is organised
 
@@ -49,13 +49,12 @@ Everything lives under `/etc/nginx/`:
 | `sites-enabled/` | Symlinks to the files in `sites-available/` that should be live. Enabling or disabling a site is adding or removing a symlink, without deleting its config. |
 | `snippets/` | Reusable fragments, pulled in with `include snippets/<name>.conf;`. |
 
-Today everything sits in `sites-available/default`. After the setup below it's
-one file per site: `kishandoshi.me` for this app, `default-deny` as the
-catch-all, and a new file for any future app.
+This server has one file per site: `playcrow.app` for this app,
+`default-deny` as the catch-all, and a new file for any future site.
 
 ### Reading a site file
 
-The repo's copy, [`deploy/nginx/sites-available/kishandoshi.me`](../deploy/nginx/sites-available/kishandoshi.me),
+The repo's copy, [`deploy/nginx/sites-available/playcrow.app`](../deploy/nginx/sites-available/playcrow.app),
 is commented line by line. The concepts behind it:
 
 - **`server { }`**: one virtual host. nginx picks the server block by the port
@@ -66,8 +65,8 @@ is commented line by line. The concepts behind it:
   matches win first, then prefixes marked `^~`, then the first matching regex
   (`~`) in file order, then the longest plain prefix. `location /` matches
   everything, so it's the fallback.
-- **`root` + `try_files`**: `root /var/www/predikt/current` maps
-  `/assets/x.js` to `/var/www/predikt/current/assets/x.js`. `try_files $uri
+- **`root` + `try_files`**: `root /var/www/crow/current` maps
+  `/assets/x.js` to `/var/www/crow/current/assets/x.js`. `try_files $uri
   /index.html` serves the file if it exists, otherwise `index.html`. That's how
   `/rooms/F4C36D`, which isn't a file, reaches the React app.
 - **`add_header` inheritance**: a location inherits the server's `add_header`
@@ -97,46 +96,106 @@ running server keeps the old config.
 Logs for this site:
 
 ```bash
-sudo tail -f /var/log/nginx/kishandoshi.me.error.log
+sudo tail -f /var/log/nginx/playcrow.app.error.log
 ```
 
 ## What's in the repo, and where it goes
 
 | Repo file | Server path | Purpose |
 |---|---|---|
-| `deploy/nginx/sites-available/kishandoshi.me` | `/etc/nginx/sites-available/kishandoshi.me` | The app: HTTPS, caching, compression, invite links |
+| `deploy/nginx/sites-available/playcrow.app` | `/etc/nginx/sites-available/playcrow.app` | The app: HTTPS, caching, compression, invite links |
 | `deploy/nginx/sites-available/default-deny` | `/etc/nginx/sites-available/default-deny` | Ignores requests for unknown hosts (bots scanning the IP) |
 | `deploy/nginx/snippets/security-headers.conf` | `/etc/nginx/snippets/security-headers.conf` | HSTS, nosniff, no framing, referrer policy |
-| `deploy/nginx/conf.d/verdict-invite-map.conf` | `/etc/nginx/conf.d/verdict-invite-map.conf` | Tells link-preview bots from people (`/i/` links) |
+| `deploy/nginx/conf.d/link-preview-bots.conf` | `/etc/nginx/conf.d/link-preview-bots.conf` | Tells link-preview bots from people (`/i/` links) |
 | `deploy/nginx/conf.d/server-tokens.conf` | `/etc/nginx/conf.d/server-tokens.conf` | Hides the nginx version |
 
 The repo is the source of truth: change the file here (in a PR), then copy it
 to the server and reload.
 
-## One-time setup
+## One-time setup (new droplet)
 
-Run these on the droplet as `kishan` unless a step says otherwise. Your site
-keeps running on the old config until step 6.
+For a fresh droplet. The app has no state on the server (accounts and data
+live in Supabase), so a new server is just nginx, a certificate and an empty
+folder that the first deploy fills.
 
-### 1. Check versions and back up
+### 1. Create the droplet
+
+DigitalOcean → Create → Droplets: **Ubuntu 24.04 LTS**, the smallest regular
+size (1 GB is plenty to serve files), the region nearest your players, your
+SSH key, and **IPv6 enabled** (Advanced options).
+
+Log in once as `root` and make your own sudo user, so `root` isn't used day to
+day:
+
+```bash
+adduser kishan && usermod -aG sudo kishan && rsync --archive --chown=kishan:kishan ~/.ssh /home/kishan
+```
+
+From here on, log in as `kishan`. Update the system and turn on the firewall
+(SSH plus web traffic only):
+
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+```bash
+sudo ufw allow OpenSSH && sudo ufw allow 'Nginx Full' && sudo ufw enable
+```
+
+`Nginx Full` exists once nginx is installed (step 3); if `ufw` complains, run
+that line after step 3.
+
+### 2. Point the domain at it (Cloudflare DNS)
+
+In Cloudflare → playcrow.app → DNS, with the proxy **off** (grey cloud, "DNS
+only") so nginx and certbot see visitors directly:
+
+| Type | Name | Content |
+|---|---|---|
+| A | `playcrow.app` | droplet IPv4 |
+| AAAA | `playcrow.app` | droplet IPv6 |
+| A | `www` | droplet IPv4 |
+| AAAA | `www` | droplet IPv6 |
+| CAA | `playcrow.app` | `0 issue "letsencrypt.org"` (only Let's Encrypt may issue certificates) |
+| TXT | `playcrow.app` | `v=spf1 -all` (nobody sends email as @playcrow.app) |
+| TXT | `_dmarc` | `v=DMARC1; p=reject;` |
+
+Drop the two TXT records later if the domain starts sending email (for
+example Supabase auth emails from a custom sender).
+
+`.app` domains are HTTPS-only in every browser, so the site isn't reachable
+in a browser until step 4 gives it a certificate.
+
+### 3. Install nginx and certbot
+
+```bash
+sudo apt install -y nginx certbot python3-certbot-nginx rsync
+```
 
 ```bash
 nginx -v
 ```
 
+Ubuntu 24.04 ships nginx 1.24, which supports everything in the config.
+
+### 4. Get the certificate
+
+Once `dig +short playcrow.app` (from any computer) shows the droplet's IP:
+
 ```bash
-sudo cp -a /etc/nginx /etc/nginx.backup-$(date +%F)
+sudo certbot certonly --nginx -d playcrow.app -d www.playcrow.app
 ```
 
-`default-deny` needs nginx 1.19.4 or newer (Ubuntu 22.04 and later have it).
-On older versions, skip it in step 5.
+`certonly` only fetches the certificate, into
+`/etc/letsencrypt/live/playcrow.app/`, without editing nginx files; the site
+file below already points there. Renewal is automatic.
 
-### 2. Create the deploy user and its SSH key
+### 5. Create the deploy user and its SSH key
 
 On **your computer**, create a key just for GitHub Actions:
 
 ```bash
-ssh-keygen -t ed25519 -f ~/.ssh/predikt_deploy -C "predikt github deploy" -N ""
+ssh-keygen -t ed25519 -f ~/.ssh/crow_deploy -C "crow github deploy" -N ""
 ```
 
 On the **droplet**, create the user (no password: key login only):
@@ -149,140 +208,84 @@ sudo adduser --disabled-password --gecos "" deploy
 sudo install -d -m 700 -o deploy -g deploy /home/deploy/.ssh
 ```
 
-Paste the **public** key (`cat ~/.ssh/predikt_deploy.pub` on your computer)
+Paste the **public** key (`cat ~/.ssh/crow_deploy.pub` on your computer)
 into this command, keeping the word `restrict` in front of it. `restrict` turns
 off port forwarding and terminals for this key; running rsync and commands
 still works.
 
 ```bash
-echo 'restrict ssh-ed25519 AAAA...your-key... predikt github deploy' | sudo tee /home/deploy/.ssh/authorized_keys
+echo 'restrict ssh-ed25519 AAAA...your-key... crow github deploy' | sudo tee /home/deploy/.ssh/authorized_keys
 ```
 
 ```bash
 sudo chown deploy:deploy /home/deploy/.ssh/authorized_keys && sudo chmod 600 /home/deploy/.ssh/authorized_keys
 ```
 
-Test from **your computer**:
+Test from **your computer**; it should print `deploy`:
 
 ```bash
-ssh -i ~/.ssh/predikt_deploy deploy@kishandoshi.me 'whoami'
+ssh -i ~/.ssh/crow_deploy deploy@playcrow.app 'whoami'
 ```
 
-It should print `deploy`.
-
-### 3. Create the web folder, starting with today's build
-
-The current build moves over as the first release, so the site looks exactly
-the same after the switch:
+### 6. Create the web folder
 
 ```bash
-sudo install -d -o deploy -g deploy -m 755 /var/www/predikt /var/www/predikt/releases
+sudo install -d -o deploy -g deploy -m 755 /var/www/crow /var/www/crow/releases
 ```
 
+It stays empty until the first deploy, which creates `current`.
+
+### 7. Copy the nginx files
+
+From the repo on **your computer**:
+
 ```bash
-sudo cp -r /home/kishan/predict/apps/web/dist /var/www/predikt/releases/00000000T000000Z-initial
+scp -r deploy/nginx kishan@playcrow.app:~/nginx-config
 ```
 
-```bash
-sudo chown -R deploy:deploy /var/www/predikt/releases && sudo -u deploy ln -sfn releases/00000000T000000Z-initial /var/www/predikt/current
-```
-
-### 4. Copy the nginx files
-
-Get the repo's latest files onto the server:
+Then on the **droplet**:
 
 ```bash
-cd ~/predict && git fetch origin && git checkout --detach origin/master
+sudo cp ~/nginx-config/conf.d/*.conf /etc/nginx/conf.d/ && sudo cp ~/nginx-config/snippets/security-headers.conf /etc/nginx/snippets/
 ```
 
 ```bash
-sudo cp deploy/nginx/conf.d/*.conf /etc/nginx/conf.d/
+sudo cp ~/nginx-config/sites-available/playcrow.app ~/nginx-config/sites-available/default-deny /etc/nginx/sites-available/
 ```
 
-```bash
-sudo cp deploy/nginx/snippets/security-headers.conf /etc/nginx/snippets/
-```
+### 8. Enable the site, test, reload
 
 ```bash
-sudo cp deploy/nginx/sites-available/kishandoshi.me deploy/nginx/sites-available/default-deny /etc/nginx/sites-available/
-```
-
-The new site file redirects `www.kishandoshi.me` with its own HTTPS block,
-so the certificate must cover `www`. Check:
-
-```bash
-sudo certbot certificates
-```
-
-`Domains:` should list `kishandoshi.me www.kishandoshi.me`, and the
-certificate path should be `/etc/letsencrypt/live/kishandoshi.me/`. If either
-differs, fix the `ssl_certificate` lines in the site file to match.
-
-### 5. Switch nginx over
-
-Enable the new files and disable the old `default` (the file itself stays in
-`sites-available` and in the backup):
-
-```bash
-sudo ln -s /etc/nginx/sites-available/kishandoshi.me /etc/nginx/sites-enabled/
-```
-
-```bash
-sudo ln -s /etc/nginx/sites-available/default-deny /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/playcrow.app /etc/nginx/sites-enabled/ && sudo ln -s /etc/nginx/sites-available/default-deny /etc/nginx/sites-enabled/
 ```
 
 ```bash
 sudo rm /etc/nginx/sites-enabled/default
 ```
 
-### 6. Test, then reload
-
 ```bash
 sudo nginx -t
 ```
 
-If it reports an error, fix it before reloading; the live site is unaffected
-until you do. Once it's successful:
+Only if it says `test is successful`:
 
 ```bash
 sudo systemctl reload nginx
 ```
 
-**To undo** at any point: remove the two new links, re-link `default`
-(`sudo ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/`),
-then test and reload again.
+Until the first deploy, `https://playcrow.app` answers `404`: nginx is up,
+the folder is just empty.
 
-### 7. Check it from your computer
-
-```bash
-curl -sI https://kishandoshi.me/rooms/TEST | grep -i -E "^HTTP|cache-control|strict-transport"
-```
-
-Expect `200`, `cache-control: no-cache` and a `strict-transport-security` line.
-
-```bash
-curl -sI https://www.kishandoshi.me/login | grep -i -E "^HTTP|^location"
-```
-
-Expect `301` to `https://kishandoshi.me/login`.
-
-```bash
-curl -s https://kishandoshi.me/version.json
-```
-
-Expect the version that was live before.
-
-### 8. Point GitHub at the new setup
+### 9. Point GitHub at the droplet
 
 **Repository variables** (Settings → Secrets and variables → Actions →
-Variables tab, *not* the production environment): copy the values from the
-server's env file (`cat ~/predict/apps/web/.env*`). They're baked into the
-public JavaScript, so they're variables, not secrets.
+Variables tab, *not* the production environment). They're baked into the
+public JavaScript, so they're variables, not secrets:
 
-| Variable | Example |
+| Variable | Value |
 |---|---|
 | `VITE_SUPABASE_URL` | `https://kizogptkryjjxzlixtqp.supabase.co` |
-| `VITE_SUPABASE_ANON_KEY` | `sb_publishable_...` |
+| `VITE_SUPABASE_ANON_KEY` | the publishable key (`sb_publishable_...`) |
 | `VITE_WEB_PUSH_PUBLIC_KEY` | your public VAPID key |
 | `VITE_SHORT_INVITE_LINKS` | `true` or `false` |
 
@@ -290,27 +293,19 @@ public JavaScript, so they're variables, not secrets.
 
 | Name | Kind | Value |
 |---|---|---|
+| `DEPLOY_HOST` | secret | `playcrow.app` (or the droplet IP) |
 | `DEPLOY_USER` | secret | `deploy` |
-| `DEPLOY_SSH_KEY` | secret | contents of `~/.ssh/predikt_deploy` (the private key, no `.pub`) |
-| `DEPLOY_HOST` | secret | unchanged |
-| `DEPLOY_KNOWN_HOSTS` | secret | unchanged, or `ssh-keyscan <DEPLOY_HOST value>` |
-| `DEPLOY_PATH` | variable | delete it if it says `predict`; the default is `/var/www/predikt` |
-| `APP_URL` | variable | `https://kishandoshi.me` |
+| `DEPLOY_SSH_KEY` | secret | contents of `~/.ssh/crow_deploy` (the private key, no `.pub`) |
+| `DEPLOY_KNOWN_HOSTS` | secret | output of `ssh-keyscan <the DEPLOY_HOST value>` |
+| `APP_URL` | variable | `https://playcrow.app` |
+| `DEPLOY_PATH` | variable | not needed: the default is `/var/www/crow` |
 
-### 9. Deploy
+### 10. First deploy
 
-Actions → Release → **Run workflow** → enter the tag that failed. It builds on
-GitHub, uploads, switches `current`, and checks `/version.json`.
-
-### 10. Clean up (after a successful deploy)
-
-- The old key GitHub used to log in as `kishan` can come out of
-  `~/.ssh/authorized_keys` on the droplet.
-- `~/predict` on the server is no longer used for deploys. Keep it if you run
-  `supabase` commands from there; otherwise delete it.
-- If you ever opened up your home folder so nginx could read it, close it
-  again with `chmod 750 ~`.
-- Keep the 2 GB swap: it helps a 1 GB droplet in general.
+Push a version tag, or Actions → Release → **Run workflow** with an existing
+tag. It builds on GitHub, uploads, switches `current`, and checks
+`/version.json`. Then follow [crow-launch.md](crow-launch.md) for the
+Supabase and Google settings that go with the new address.
 
 ## Everyday operations
 
@@ -320,19 +315,19 @@ GitHub, uploads, switches `current`, and checks `/version.json`.
 it, about two minutes). Faster, straight on the server:
 
 ```bash
-ls /var/www/predikt/releases
+ls /var/www/crow/releases
 ```
 
 ```bash
-cd /var/www/predikt && sudo -u deploy ln -sfn releases/<folder> current.tmp && sudo -u deploy mv -Tf current.tmp current
+cd /var/www/crow && sudo -u deploy ln -sfn releases/<folder> current.tmp && sudo -u deploy mv -Tf current.tmp current
 ```
 
 The app notices the different version and offers a refresh, even going
 backwards. If a deploy's live check fails, the workflow rolls back by itself.
 
-**Change the nginx config**: edit `deploy/nginx/...` in a PR, merge, then on
-the server copy the file to `/etc/nginx/...`, `sudo nginx -t`, and
-`sudo systemctl reload nginx`.
+**Change the nginx config**: edit `deploy/nginx/...` in a PR, merge, copy the
+file to the server (`scp`) and into `/etc/nginx/...`, then `sudo nginx -t`
+and `sudo systemctl reload nginx`.
 
 **Certificates**: certbot renews them automatically. To check:
 
@@ -345,7 +340,6 @@ sudo certbot renew --dry-run
 - **Content-Security-Policy header**: the strongest protection against
   injected scripts, but it has to list Supabase, Google sign-in and push.
   Worth its own PR, tried with `Content-Security-Policy-Report-Only` first.
-- **Firewall**: `sudo ufw status`. Only SSH and `Nginx Full` (80, 443)
-  should be allowed.
-- **SSH**: once key login works for everyone, set `PasswordAuthentication no`
-  in `/etc/ssh/sshd_config`.
+- **SSH**: once key login works, set `PasswordAuthentication no` in
+  `/etc/ssh/sshd_config` (DigitalOcean droplets created with an SSH key
+  usually have it already).

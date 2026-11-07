@@ -90,8 +90,8 @@ export function InviteSheet({ room, open, onOpenChange }: Readonly<Props>) {
 							onClick={() =>
 								void navigator
 									.share({
-										title: `Join ${room.name} on Verdict`,
-										text: `Join ${room.name} on Verdict.`,
+										title: `Join ${room.name} on Crow`,
+										text: `Join ${room.name} on Crow.`,
 										url: inviteUrl,
 									})
 									.catch(() => {})

@@ -76,11 +76,11 @@ export function ShareWeeklyButton({
 				onOpenChange={setIsOpen}
 				title={`Share week ${recap.week_number}`}
 				description='Last week’s top 5 and who moved the most. Friends who tap the link can join the room.'
-				message={`${leader.username} leads ${series.title} after week ${recap.week_number} on Verdict.`}
+				message={`${leader.username} leads ${series.title} after week ${recap.week_number} on Crow.`}
 				link={shareLink(room.code, "weekly-card", `/rooms/${room.code}/leaderboard`)}
 				kind='weekly-card'
 				roomId={room.id}
-				fileName={`verdict-week-${recap.week_number}-${series.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+				fileName={`crow-week-${recap.week_number}-${series.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
 				renderCard={(format) => <WeeklyStandingsCard data={data} format={format} />}
 			/>
 		</>

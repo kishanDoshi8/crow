@@ -132,7 +132,7 @@ jobs:
       HOST: ${{ secrets.DEPLOY_HOST }}
       SSH_USER: ${{ secrets.DEPLOY_USER }}
       PORT: ${{ vars.DEPLOY_PORT || '22' }}
-      APP_DIR: ${{ vars.DEPLOY_PATH || '/var/www/predikt' }}
+      APP_DIR: ${{ vars.DEPLOY_PATH || '/var/www/crow' }}
     steps:
       - uses: actions/download-artifact@v4
         with:

@@ -12,7 +12,7 @@ values
   ('supabase_url', 'http://localhost:54321'),
   ('notification_function_secret', 'secret'),
   ('service_role_key', 'service-key'),
-  ('app_url', 'https://verdict.test')
+  ('app_url', 'https://crow.test')
 on conflict (key) do update set value = excluded.value;
 
 insert into auth.users (id, aud, role, email)
@@ -46,7 +46,7 @@ select is(
     where event_type = 'prediction_live'
       and prediction_id = current_setting('test.prediction_id')::uuid
   ),
-  'https://verdict.test/rooms/'
+  'https://crow.test/rooms/'
     || (select room_code from public.rooms where id = current_setting('test.room_id')::uuid)
     || '/predictions/' || current_setting('test.prediction_id'),
   'a new prediction push opens the prediction page'
@@ -65,7 +65,7 @@ select is(
     where event_type = 'result_needed'
       and prediction_id = current_setting('test.prediction_id')::uuid
   ),
-  'https://verdict.test/rooms/'
+  'https://crow.test/rooms/'
     || (select room_code from public.rooms where id = current_setting('test.room_id')::uuid)
     || '/predictions/' || current_setting('test.prediction_id'),
   'a result-needed push opens the prediction page'

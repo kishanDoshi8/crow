@@ -36,7 +36,7 @@ function reloadOnceFor(target: string) {
 }
 
 function promptToRefresh() {
-	toast("A new version of Verdict is ready", {
+	toast("A new version of Crow is ready", {
 		id: UPDATE_TOAST_ID,
 		duration: Infinity,
 		position: "top-center",

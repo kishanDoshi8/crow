@@ -27,7 +27,7 @@ storage for the site.
   back into view, and every 10 minutes while open.
   - **Just opened** (first 10 seconds, nothing tapped yet): it reloads into the
     new version silently, at most once per version.
-  - **Already in use:** it shows "A new version of Verdict is ready" with a
+  - **Already in use:** it shows "A new version of Crow is ready" with a
     **Refresh** button.
 - **If a deploy removed a code chunk** the open app still needed, the app
   reloads instead of showing an error.
@@ -36,7 +36,7 @@ storage for the site.
 
 The steps above work on their own, but the headers stop the browser guessing
 in the first place. They're part of the site config in
-[`deploy/nginx/sites-available/kishandoshi.me`](../deploy/nginx/sites-available/kishandoshi.me):
+[`deploy/nginx/sites-available/playcrow.app`](../deploy/nginx/sites-available/playcrow.app):
 
 - `index.html`, `sw.js`, `manifest.json` and `version.json`: `Cache-Control: no-cache`
   (always revalidate; a tiny 304 when unchanged).
@@ -51,7 +51,7 @@ Once the new build is live, opening the app (or one refresh) picks up the new
 page, and from then on it updates itself. If a phone still shows an old
 version after that, clear Chrome's data for the site:
 
-Chrome → Settings → Site settings → All sites → kishandoshi.me →
+Chrome → Settings → Site settings → All sites → playcrow.app →
 **Delete data & reset permissions**, then open the app again.
 
 This also turns off push notifications on that phone; switch them back on from
@@ -59,8 +59,8 @@ the room menu.
 
 ## Rich invite links (`/i/<code>`)
 
-Pasting `https://kishandoshi.me/i/F4C36D` into WhatsApp or iMessage shows
-"Join Friday Crew on Verdict" and "5 friends playing · 2 predictions live ·
+Pasting `https://playcrow.app/i/F4C36D` into WhatsApp or iMessage shows
+"Join Friday Crew on Crow" and "5 friends playing · 2 predictions live ·
 World Cup 2026" under the ticket image. Tapping it opens the room's join page.
 Only the room's name and counts are shown, never member names or questions.
 
@@ -81,22 +81,22 @@ white page with a single link.
    ```bash
    npm run db:migrate
    npx supabase functions deploy invite-preview --no-verify-jwt
-   npx supabase secrets set APP_URL=https://kishandoshi.me
+   npx supabase secrets set APP_URL=https://playcrow.app
    ```
 
 2. **The nginx rules** are already in the site config
-   ([`deploy/nginx/sites-available/kishandoshi.me`](../deploy/nginx/sites-available/kishandoshi.me),
+   ([`deploy/nginx/sites-available/playcrow.app`](../deploy/nginx/sites-available/playcrow.app),
    the `location ^~ /i/` block) together with
-   [`deploy/nginx/conf.d/verdict-invite-map.conf`](../deploy/nginx/conf.d/verdict-invite-map.conf),
+   [`deploy/nginx/conf.d/link-preview-bots.conf`](../deploy/nginx/conf.d/link-preview-bots.conf),
    which tells crawlers apart from people. See [server-setup.md](server-setup.md).
 
 3. **Check it** (use your room code):
 
    ```bash
    # People: an instant redirect to the join page
-   curl -sI https://kishandoshi.me/i/F4C36D | grep -i -E "^HTTP|^location"
+   curl -sI https://playcrow.app/i/F4C36D | grep -i -E "^HTTP|^location"
    # Chat apps: the room's preview
-   curl -s -A "WhatsApp/2.24" https://kishandoshi.me/i/F4C36D | grep og:description
+   curl -s -A "WhatsApp/2.24" https://playcrow.app/i/F4C36D | grep og:description
    ```
 
    The first should show `302` and `Location: .../rooms/F4C36D/join`; the

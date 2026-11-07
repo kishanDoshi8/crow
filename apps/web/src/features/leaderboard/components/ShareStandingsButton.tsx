@@ -76,13 +76,13 @@ export function ShareStandingsButton({
 				description='Friends who tap the link can join the room for the next series.'
 				message={
 					champion
-						? `${champion.username} won ${series.title} on Verdict.`
-						: `${series.title} on Verdict.`
+						? `${champion.username} won ${series.title} on Crow.`
+						: `${series.title} on Crow.`
 				}
 				link={shareLink(room.code, "champion-card", `/rooms/${room.code}/series/${series.id}`)}
 				kind='champion-card'
 				roomId={room.id}
-				fileName={`verdict-${series.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+				fileName={`crow-${series.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
 				renderCard={(format) => <StandingsCard data={data} format={format} />}
 			/>
 		</>

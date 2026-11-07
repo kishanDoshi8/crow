@@ -235,7 +235,7 @@ export function WeeklyStandingsCard({
 			)}
 
 			<CardFooter
-				label='Weekly standings on Verdict'
+				label='Weekly standings on Crow'
 				host={data.host}
 				roomCode={data.roomCode}
 			/>

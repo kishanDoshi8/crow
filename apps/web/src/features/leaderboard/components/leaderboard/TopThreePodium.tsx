@@ -148,7 +148,13 @@ export function TopThreePodium({
 							{entry.secondary}
 						</p>
 
-						<div className={stepClassName(visualRank)} />
+						<div className={stepClassName(visualRank)}>
+							{isFirst && (
+								<span className='text-[10px] font-semibold uppercase tracking-wider text-muted-foreground'>
+									Top crow
+								</span>
+							)}
+						</div>
 					</Reveal>
 				);
 			})}

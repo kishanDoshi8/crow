@@ -100,7 +100,7 @@ export function JoinRoomPage() {
 				{/* The same look as the invite card that brought them here. */}
 				<div className='flex items-center gap-3'>
 					<LogoTile size={48} />
-					<span className='text-lg font-bold'>Verdict</span>
+					<span className='text-lg font-bold tracking-tighter'>crow</span>
 				</div>
 
 				<div className='flex flex-col gap-3'>

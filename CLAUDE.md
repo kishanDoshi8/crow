@@ -1,6 +1,7 @@
-# Predikt
+# Crow
 
-Private prediction game for friend groups. npm workspaces monorepo:
+Private prediction game for friend groups (formerly Verdict, before that
+Predikt), live at playcrow.app. npm workspaces monorepo:
 
 - `apps/web`: React 18 + Vite + TypeScript PWA, Tailwind CSS v4, shadcn/ui
   (Radix / Base UI), TanStack Query, React Router
@@ -35,3 +36,6 @@ Read `apps/web/PRODUCT.md` and `apps/web/DESIGN.md` before UI work.
 - Features live in `apps/web/src/features/<feature>`; import them through their
   public API (`@/features/<feature>`) or `pages/*`, not their internals.
 - Shared UI is in `apps/web/src/shared/ui`; reuse it before writing new components.
+- The logo is `CrowTile` / `CrowGlyph` (`shared/ui/crow-mark.tsx`). Icon files are
+  generated from `apps/web/brand/crow.svg` with `node brand/render-icons.mjs`
+  (from `apps/web`); change the path in both places.

@@ -152,7 +152,7 @@ export function ResultCard({
 				) : null}
 			</div>
 
-			<CardFooter label={`Join ${data.roomName} on Verdict`} host={data.host} roomCode={data.roomCode} />
+			<CardFooter label={`Join ${data.roomName} on Crow`} host={data.host} roomCode={data.roomCode} />
 		</CardCanvas>
 	);
 }

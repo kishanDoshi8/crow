@@ -79,11 +79,11 @@ export function RoomInviteShare({ room, open, onOpenChange }: Readonly<Props>) {
 			onOpenChange={onOpenChange}
 			title={`Invite friends to ${room.name}`}
 			description='Anyone with the link can join after signing in.'
-			message={`Join ${room.name} on Verdict. Room code ${room.code}.`}
+			message={`Join ${room.name} on Crow. Room code ${room.code}.`}
 			link={shareLink(room.code, "invite-card")}
 			kind='invite-card'
 			roomId={room.id}
-			fileName={`verdict-invite-${room.code.toLowerCase()}`}
+			fileName={`crow-invite-${room.code.toLowerCase()}`}
 			renderCard={(format) => <InviteCard data={inviteCard} format={format} />}
 		/>
 	);

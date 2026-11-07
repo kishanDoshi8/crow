@@ -15,7 +15,7 @@ values
   ('supabase_url', 'http://localhost:54321'),
   ('notification_function_secret', 'secret'),
   ('service_role_key', 'service-key'),
-  ('app_url', 'https://verdict.test')
+  ('app_url', 'https://crow.test')
 on conflict (key) do update set value = excluded.value;
 
 insert into auth.users (id, aud, role, email)
@@ -102,7 +102,7 @@ select is(
 );
 select is(
   (select p->>'url' from pg_temp.monday_pushes('cricket') p),
-  'https://verdict.test/rooms/' || (select room_code from public.rooms where id = pg_temp.setting('cricket')) || '/leaderboard',
+  'https://crow.test/rooms/' || (select room_code from public.rooms where id = pg_temp.setting('cricket')) || '/leaderboard',
   'the standings push opens the standings'
 );
 select is(
