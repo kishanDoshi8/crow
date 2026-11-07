@@ -20,6 +20,8 @@ import { PredictionPage } from "@/features/predictions/pages/PredictionPage";
 import { LeaderboardPage } from "@/features/leaderboard/pages/LeaderboardPage";
 
 const UpNextPage = lazy(() => import("@/features/series/pages/UpNextPage"));
+const PrivacyPage = lazy(() => import("@/features/legal/pages/PrivacyPage"));
+const TermsPage = lazy(() => import("@/features/legal/pages/TermsPage"));
 const DeleteAccountPage = lazy(
 	() => import("@/features/account/pages/DeleteAccountPage"),
 );
@@ -93,6 +95,17 @@ const withSuspense = (element: ReactElement) => (
 );
 
 export const router = createBrowserRouter([
+	{
+		// Public, signed in or not: Google's consent screen links here.
+		path: "/privacy",
+		element: withSuspense(<PrivacyPage />),
+		errorElement: <RouteErrorBoundary />,
+	},
+	{
+		path: "/terms",
+		element: withSuspense(<TermsPage />),
+		errorElement: <RouteErrorBoundary />,
+	},
 	{
 		path: "/login",
 		element: withSuspense(<LoginPage />),

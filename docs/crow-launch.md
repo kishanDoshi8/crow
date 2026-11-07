@@ -64,6 +64,11 @@ In Google Cloud Console → APIs & Services (see [google-sign-in.md](google-sign
       `apps/web/public/pwa-512x512.png`, add `playcrow.app` to authorized
       domains. Changing the name or logo can send the app back through
       Google's brand verification, which takes a few days; do it early.
+- [ ] **Branding → App domain**: application home page
+      `https://playcrow.app` (signed out it shows what Crow is, with links to
+      both pages below), privacy policy `https://playcrow.app/privacy`, terms
+      of service `https://playcrow.app/terms`. Support email
+      `hello@playcrow.app`, so set up that mailbox or forwarding first.
 - [ ] **Credentials → OAuth client**: add `https://playcrow.app` to authorized
       JavaScript origins. The redirect URI (Supabase's callback) doesn't change.
 
