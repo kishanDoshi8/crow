@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
+import { MessageCircleIcon } from "lucide-react";
 import { Button, Skeleton } from "@/shared/ui";
 import { usePlayer } from "@/features/home";
 import { PlayerProfileDialog } from "@/features/leaderboard";
 import { roomPlayerName, useRoomBetRealtime, useRoomRole } from "@/features/rooms";
 import { useSeriesWallet } from "@/features/series";
 import type { ResultCardData } from "@/features/share";
+import { PhraseSheet, RoomTalk, usePredictionTalk, useSetReaction } from "@/features/talk";
 import { useRoomContext } from "@/shared/lib/roomContext";
 import { useBets } from "@/features/predictions/hooks/bet";
 import { ResolvePredictionDrawer } from "@/features/predictions/components/ResolvePredictionDrawer";
@@ -53,6 +55,10 @@ function LoadedPrediction({
 	const [isSheetOpen, setIsSheetOpen] = useState(false);
 	const [isRevealOpen, setIsRevealOpen] = useState(false);
 	const [profileId, setProfileId] = useState<string | null>(null);
+	const [isTalkOpen, setIsTalkOpen] = useState(false);
+	const { data: talk } = usePredictionTalk(room.id, prediction.id);
+	const { mutate: react } = useSetReaction(room.id, prediction.id);
+	const phrasesLeft = talk ? Math.max(0, talk.post_limit - talk.my_post_count) : 0;
 
 	const { options, pool, picks } = useMemo(
 		() => tallyOptions(prediction, bets),
@@ -105,6 +111,20 @@ function LoadedPrediction({
 	const isOpen = status === "draft";
 	const showRevealBar = status === "locked" && can.resolve;
 	const showBetBar = isOpen && !!player;
+	// Everyone else gets "Say something" as the bar.
+	const showTalkBar = !showBetBar && !showRevealBar && !!player;
+	const sayButton = (
+		<Button
+			variant='outline'
+			size='icon'
+			className='size-12 shrink-0 rounded-full'
+			aria-label={`Say something, ${phrasesLeft} left`}
+			onClick={() => setIsTalkOpen(true)}
+			disabled={!talk}
+		>
+			<MessageCircleIcon />
+		</Button>
+	);
 
 	return (
 		<div className='flex min-h-[calc(100dvh-3.5rem)] flex-col'>
@@ -176,13 +196,37 @@ function LoadedPrediction({
 						onOpenPlayer={setProfileId}
 					/>
 				) : null}
+
+				<RoomTalk
+					talk={talk}
+					moments={{
+						status,
+						deadline: prediction.deadline,
+						resolvedAt: prediction.resolved_at,
+						winnerLabel,
+					}}
+					viewerId={player?.id ?? null}
+					onReact={(reaction) => react(reaction)}
+				/>
 			</div>
 
-			{showBetBar || showRevealBar ? (
+			{showBetBar || showRevealBar || showTalkBar ? (
 				<div className='sticky bottom-0 z-10 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
 					<div className='mx-auto flex w-full max-w-md items-center gap-3 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]'>
-						{showRevealBar ? (
+						{showTalkBar ? (
+							<button
+								type='button'
+								onClick={() => setIsTalkOpen(true)}
+								disabled={!talk}
+								className='flex h-12 flex-1 items-center gap-2.5 rounded-full border bg-card px-4 text-left text-sm text-foreground/85 transition-colors hover:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60'
+							>
+								<MessageCircleIcon className='size-4.5' aria-hidden />
+								<span className='flex-1'>Say something</span>
+								<span className='text-xs text-muted-foreground tabular-nums'>{phrasesLeft} left</span>
+							</button>
+						) : showRevealBar ? (
 							<>
+								{sayButton}
 								<span className='flex-1 text-xs text-muted-foreground'>
 									Waiting on you for the result
 								</span>
@@ -192,6 +236,7 @@ function LoadedPrediction({
 							</>
 						) : myBet ? (
 							<>
+								{sayButton}
 								<span className='flex-1 leading-tight'>
 									<span className='block text-xs text-muted-foreground'>Your pick</span>
 									<span className='font-semibold'>
@@ -204,6 +249,8 @@ function LoadedPrediction({
 								</Button>
 							</>
 						) : (
+							<>
+							{sayButton}
 							<p className='flex-1 text-xs text-muted-foreground'>
 								Tap an option to make your call ·{" "}
 								<span className='font-semibold text-foreground tabular-nums'>
@@ -211,6 +258,7 @@ function LoadedPrediction({
 								</span>{" "}
 								to play
 							</p>
+							</>
 						)}
 					</div>
 				</div>
@@ -239,6 +287,16 @@ function LoadedPrediction({
 					roomId={room.id}
 					open={isRevealOpen}
 					onOpenChange={setIsRevealOpen}
+				/>
+			) : null}
+
+			{player ? (
+				<PhraseSheet
+					open={isTalkOpen}
+					onOpenChange={setIsTalkOpen}
+					roomId={room.id}
+					predictionId={prediction.id}
+					talk={talk}
 				/>
 			) : null}
 

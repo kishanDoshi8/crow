@@ -13,6 +13,7 @@ import Dot from "@/shared/ui/dot";
 import { Link } from "react-router-dom";
 import { Reveal } from "@/shared/ui";
 import { useRoomContext } from "@/shared/lib/roomContext";
+import { ReactionSummary } from "@/features/talk";
 
 const CARD_SHELL = "border-2 rounded-xl p-3 flex flex-col gap-2";
 
@@ -270,6 +271,13 @@ function PredictionHistoryCard({ entry }: Readonly<CardProps>) {
 					</span>
 				)}
 			</div>
+
+			<ReactionSummary
+				topReactions={entry.top_reactions}
+				myReaction={entry.my_reaction}
+				postCount={entry.post_count}
+				className='px-1'
+			/>
 		</Link>
 	);
 }

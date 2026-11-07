@@ -88,3 +88,6 @@ grant execute on function public.get_room_former_members(uuid) to authenticated;
 grant execute on function public.request_account_deletion(text) to authenticated;
 grant execute on function public.cancel_account_deletion() to authenticated;
 grant execute on function public.get_my_account_deletion() to authenticated;
+grant execute on function public.get_prediction_talk(uuid) to authenticated;
+grant execute on function public.set_prediction_reaction(uuid, text) to authenticated;
+grant execute on function public.post_prediction_phrase(uuid, smallint) to authenticated;
