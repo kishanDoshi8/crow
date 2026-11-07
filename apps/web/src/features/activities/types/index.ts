@@ -5,7 +5,6 @@ export type {
 	ActivityType,
 	AchievementRatingTierReachedActivity,
 	AchievementStreakMilestoneActivity,
-	DuelActivityMetadata,
 	RoomActivitiesPage,
 	RoomActivity,
 	RoomJoinedActivity,

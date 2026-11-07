@@ -9,7 +9,6 @@ import type { Series } from "@/features/series/types/series";
 import { StandingsCard, type StandingsCardData } from "@/features/share/cards/StandingsCard";
 import { shareHost, shareLink, ShareSheet } from "@/features/share";
 import { getSeriesAwardLabel, getSeriesAwardValue } from "@/shared/lib/seriesRewards";
-import { FEATURES } from "@/shared/constants/features";
 
 type Props = {
 	series: Pick<Series, "id" | "title">;
@@ -49,13 +48,11 @@ export function ShareStandingsButton({
 			balance: entry.balance,
 			netProfit: entry.net_profit,
 		})),
-		awards: awards
-			.filter((award) => FEATURES.duels || award.award_type !== "MOST_DUEL_WINS")
-			.map((award) => ({
-				label: sentenceCase(getSeriesAwardLabel(award.award_type)),
-				username: award.username,
-				value: String(getSeriesAwardValue(award.award_type, award.value)),
-			})),
+		awards: awards.map((award) => ({
+			label: sentenceCase(getSeriesAwardLabel(award.award_type)),
+			username: award.username,
+			value: String(getSeriesAwardValue(award.award_type, award.value)),
+		})),
 	};
 
 	return (

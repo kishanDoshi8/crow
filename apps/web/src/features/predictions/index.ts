@@ -12,5 +12,4 @@ export {
 	ResolvePredictionDrawer,
 } from "./components/ResolvePredictionDrawer";
 export { NotificationPermissionBlockedDialog } from "./components/NotificationPermissionBlockedDialog";
-export { Countdown } from "./widgets/CountDown";
 export { PredictionPhaseView } from "./predictions/PredictionPhaseView";

@@ -20,9 +20,7 @@ import { useRoomActions } from "@/shared/lib/roomActions";
 import { useLocalStorage } from "@/shared/hooks/useLocalStorage";
 import { localStorageKeys } from "@/shared/constants/queryKeys";
 import { Collapse, Counter, FadeContent } from "@/shared/ui";
-import { usePredictionDuels } from "@/features/duels";
 import { useSeriesWallet } from "@/features/series";
-import { FEATURES } from "@/shared/constants/features";
 
 const NOTIFICATIONS_OFFERED_KEY = "notifications-offered-after-bet";
 
@@ -44,10 +42,6 @@ export default function DraftControls({
 	const { room } = useRoomContext();
 	const { openNotifications } = useRoomActions();
 	const { mutate: placeBet, isPending: isPlacingBet } = usePlaceBet();
-	const { data: duels } = usePredictionDuels(
-		room.id,
-		FEATURES.duels ? predictionId : undefined,
-	);
 	const { wallet } = useSeriesWallet(room.id, seriesId);
 	const { data: myBet, isPending: isMyBetLoading } = useMyBet(
 		room.id,
@@ -65,7 +59,6 @@ export default function DraftControls({
 		false,
 		localStorageKeys.userPreference.bettingControls.collapsed,
 	);
-	const [canUpdateBet, setCanUpdateBet] = React.useState<boolean>(false);
 
 	// Bets spend points from this prediction's series wallet.
 	const availableBalance = (wallet?.available ?? 0) + (myBet?.amount ?? 0);
@@ -81,21 +74,6 @@ export default function DraftControls({
 		? previewWinnings(bets, player.id, selectedOption, betAmount)
 		: 0;
 
-
-	useEffect(() => {
-		const hasDuelInProgress = duels?.some((duel) => {
-			const hasChallenged =
-				duel.challenger.id === player.id && duel.status !== "cancelled";
-			const hasQueued = duel.queue.some(
-				(queueEntry) =>
-					queueEntry.player.id === player.id &&
-					queueEntry.status !== "cancelled",
-			);
-
-			return hasChallenged || hasQueued;
-		});
-		setCanUpdateBet(!hasDuelInProgress);
-	}, [duels, player.id, predictionId, room.id]);
 
 	// Load the saved bet into the controls when it arrives or changes.
 	useEffect(() => {
@@ -125,11 +103,6 @@ export default function DraftControls({
 
 	const handlePlaceBet = () => {
 		if (!player || !predictionId || !selectedOption) return;
-
-		if (!canUpdateBet && myBet) {
-			cannotBetMessage();
-			return;
-		}
 
 		placeBet(
 			{
@@ -175,17 +148,6 @@ export default function DraftControls({
 		});
 	};
 
-	const cannotBetMessage = () => {
-		setBetAmount(myBet?.amount ?? 0);
-		toast.error(
-			"You cannot update your bet while you have an active duel or are queued for a duel.",
-			{
-				position: "top-center",
-				duration: Infinity,
-			},
-		);
-	};
-
 	const handleResetBetAmount = () => {
 		if (myBet) {
 			setBetAmount(myBet.amount);
@@ -198,11 +160,6 @@ export default function DraftControls({
 
 	const handleCancelBet = () => {
 		if (!player || !predictionId) return;
-
-		if (!canUpdateBet) {
-			cannotBetMessage();
-			return;
-		}
 
 		cancelBet(
 			{

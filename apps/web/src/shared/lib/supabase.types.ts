@@ -97,136 +97,6 @@ export type Database = {
           },
         ]
       }
-      duel_queue: {
-        Row: {
-          bet_id: string
-          created_at: string
-          duel_id: string
-          id: string
-          player_id: string
-          status: string
-        }
-        Insert: {
-          bet_id: string
-          created_at?: string
-          duel_id: string
-          id?: string
-          player_id: string
-          status?: string
-        }
-        Update: {
-          bet_id?: string
-          created_at?: string
-          duel_id?: string
-          id?: string
-          player_id?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "duel_queue_bet_id_fkey"
-            columns: ["bet_id"]
-            isOneToOne: false
-            referencedRelation: "bets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "duel_queue_duel_id_fkey"
-            columns: ["duel_id"]
-            isOneToOne: false
-            referencedRelation: "duels"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "duel_queue_player_id_fkey"
-            columns: ["player_id"]
-            isOneToOne: false
-            referencedRelation: "players"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      duels: {
-        Row: {
-          challenger_bet_id: string
-          challenger_player_id: string
-          created_at: string
-          fee_amount: number
-          id: string
-          matched_at: string | null
-          matched_opponent_bet_id: string | null
-          matched_opponent_player_id: string | null
-          prediction_id: string
-          resolved_at: string | null
-          stake_amount: number
-          status: string
-        }
-        Insert: {
-          challenger_bet_id: string
-          challenger_player_id: string
-          created_at?: string
-          fee_amount: number
-          id?: string
-          matched_at?: string | null
-          matched_opponent_bet_id?: string | null
-          matched_opponent_player_id?: string | null
-          prediction_id: string
-          resolved_at?: string | null
-          stake_amount: number
-          status: string
-        }
-        Update: {
-          challenger_bet_id?: string
-          challenger_player_id?: string
-          created_at?: string
-          fee_amount?: number
-          id?: string
-          matched_at?: string | null
-          matched_opponent_bet_id?: string | null
-          matched_opponent_player_id?: string | null
-          prediction_id?: string
-          resolved_at?: string | null
-          stake_amount?: number
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "duels_challenger_bet_id_fkey"
-            columns: ["challenger_bet_id"]
-            isOneToOne: false
-            referencedRelation: "bets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "duels_challenger_player_id_fkey"
-            columns: ["challenger_player_id"]
-            isOneToOne: false
-            referencedRelation: "players"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "duels_matched_opponent_bet_id_fkey"
-            columns: ["matched_opponent_bet_id"]
-            isOneToOne: false
-            referencedRelation: "bets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "duels_matched_opponent_player_id_fkey"
-            columns: ["matched_opponent_player_id"]
-            isOneToOne: false
-            referencedRelation: "players"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "duels_prediction_id_fkey"
-            columns: ["prediction_id"]
-            isOneToOne: false
-            referencedRelation: "predictions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       player_preferences: {
         Row: {
           created_at: string
@@ -1551,60 +1421,6 @@ export type Database = {
       archive_series: { Args: { p_series_id: string }; Returns: Json }
       cancel_account_deletion: { Args: never; Returns: Json }
       cancel_bet: { Args: { p_prediction_id: string }; Returns: Json }
-      cancel_duel: {
-        Args: { p_duel_id: string; p_player_id: string }
-        Returns: {
-          challenger_bet_id: string
-          challenger_player_id: string
-          created_at: string
-          fee_amount: number
-          id: string
-          matched_at: string | null
-          matched_opponent_bet_id: string | null
-          matched_opponent_player_id: string | null
-          prediction_id: string
-          resolved_at: string | null
-          stake_amount: number
-          status: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "duels"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      cancel_duel_queue: {
-        Args: { p_duel_id: string; p_player_id: string }
-        Returns: {
-          challenger_bet_id: string
-          challenger_player_id: string
-          created_at: string
-          fee_amount: number
-          id: string
-          matched_at: string | null
-          matched_opponent_bet_id: string | null
-          matched_opponent_player_id: string | null
-          prediction_id: string
-          resolved_at: string | null
-          stake_amount: number
-          status: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "duels"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      cancel_duel_queue_view: {
-        Args: { p_duel_id: string; p_player_id: string }
-        Returns: Json
-      }
-      cancel_duel_view: {
-        Args: { p_duel_id: string; p_player_id: string }
-        Returns: Json
-      }
       claim_weekly_points: { Args: { p_auto_claimed?: boolean }; Returns: Json }
       collect_series_rewards: { Args: { series_id: string }; Returns: Json }
       complete_series: { Args: { p_series_id: string }; Returns: Json }
@@ -1615,43 +1431,6 @@ export type Database = {
           p_prediction_id: string
           p_room_id: string
           p_winning_option_id?: string
-        }
-        Returns: Json
-      }
-      create_duel: {
-        Args: {
-          p_bet_id: string
-          p_challenger_player_id: string
-          p_prediction_id: string
-          p_stake_amount: number
-        }
-        Returns: {
-          challenger_bet_id: string
-          challenger_player_id: string
-          created_at: string
-          fee_amount: number
-          id: string
-          matched_at: string | null
-          matched_opponent_bet_id: string | null
-          matched_opponent_player_id: string | null
-          prediction_id: string
-          resolved_at: string | null
-          stake_amount: number
-          status: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "duels"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      create_duel_view: {
-        Args: {
-          p_bet_id: string
-          p_challenger_player_id: string
-          p_prediction_id: string
-          p_stake_amount: number
         }
         Returns: Json
       }
@@ -1685,14 +1464,6 @@ export type Database = {
       get_my_account_deletion: { Args: never; Returns: Json }
       get_my_series_wallets: { Args: { p_room_id: string }; Returns: Json }
       get_player: { Args: never; Returns: Json }
-      get_prediction_duel_summary: {
-        Args: { p_prediction_id: string }
-        Returns: Json
-      }
-      get_prediction_duels_view: {
-        Args: { p_prediction_id: string }
-        Returns: Json
-      }
       get_preferences: { Args: { p_room_id?: string }; Returns: Json }
       get_room_activities: {
         Args: {
@@ -1781,33 +1552,6 @@ export type Database = {
         Args: { p_room_id: string; p_series_id: string }
         Returns: Json
       }
-      join_duel_queue: {
-        Args: { p_bet_id: string; p_duel_id: string; p_player_id: string }
-        Returns: {
-          challenger_bet_id: string
-          challenger_player_id: string
-          created_at: string
-          fee_amount: number
-          id: string
-          matched_at: string | null
-          matched_opponent_bet_id: string | null
-          matched_opponent_player_id: string | null
-          prediction_id: string
-          resolved_at: string | null
-          stake_amount: number
-          status: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "duels"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      join_duel_queue_view: {
-        Args: { p_bet_id: string; p_duel_id: string; p_player_id: string }
-        Returns: Json
-      }
       join_room: {
         Args: { p_ref?: string; p_room_code: string }
         Returns: Json
@@ -1846,10 +1590,6 @@ export type Database = {
         Returns: Json
       }
       reset_room_preferences: { Args: { p_room_id: string }; Returns: Json }
-      resolve_duels_for_prediction: {
-        Args: { p_prediction_id: string }
-        Returns: Json
-      }
       resolve_prediction_v2: {
         Args: {
           p_no_result_reason?: string
@@ -1979,7 +1719,6 @@ export type Database = {
       series_award_type:
         | "LONGEST_STREAK"
         | "BIGGEST_PROFIT"
-        | "MOST_DUEL_WINS"
         | "MOST_POINTS_RISKED"
         | "EVER_PRESENT"
         | "SHARPSHOOTER"
@@ -2119,7 +1858,6 @@ export const Constants = {
       series_award_type: [
         "LONGEST_STREAK",
         "BIGGEST_PROFIT",
-        "MOST_DUEL_WINS",
         "MOST_POINTS_RISKED",
         "EVER_PRESENT",
         "SHARPSHOOTER",

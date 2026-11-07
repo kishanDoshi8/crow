@@ -8,6 +8,8 @@ create table if not exists public.predictions (
   status text not null default 'draft' check (status in ('draft', 'locked', 'revealed', 'cancelled', 'no_result')),
   deadline timestamptz not null,
   winning_option_id uuid,
+  -- Why it ended with no result (or was cancelled), shown with the outcome.
+  no_result_reason varchar(50),
   affects_rating boolean not null default true,
   created_at timestamptz not null default now(),
   resolved_at timestamptz,

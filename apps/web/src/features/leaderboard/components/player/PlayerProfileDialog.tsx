@@ -31,7 +31,6 @@ import {
 } from "@/shared/lib/trophyPrestige";
 import { EASE_OUT } from "@/shared/lib/motion";
 import { cn } from "@/shared/lib/utils";
-import { FEATURES } from "@/shared/constants/features";
 import { AnimatePresence, m } from "framer-motion";
 import {
 	CalendarCheckIcon,
@@ -156,10 +155,7 @@ export function PlayerProfileDialog({
 		() =>
 			buildTrophies(
 				seriesRecognition?.championships ?? [],
-				// Duel awards stay hidden while duels are switched off, as in the Hall of Fame.
-				(seriesRecognition?.awards ?? []).filter(
-					(award) => FEATURES.duels || award.award_type !== "MOST_DUEL_WINS",
-				),
+				seriesRecognition?.awards ?? [],
 			),
 		[seriesRecognition],
 	);

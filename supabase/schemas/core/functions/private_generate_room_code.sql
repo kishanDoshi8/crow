@@ -1,6 +1,7 @@
 create or replace function private.generate_room_code()
 returns text
 language plpgsql
+set search_path = public, private
 as $$
 declare
   v_code   text;

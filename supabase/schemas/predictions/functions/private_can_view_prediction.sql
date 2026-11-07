@@ -1,4 +1,4 @@
--- Used by RLS policies on options, tags, bets and duels.
+-- Used by RLS policies on options, tags and bets.
 create or replace function private.can_view_prediction(p_prediction_id uuid)
 returns boolean
 language sql

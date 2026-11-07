@@ -1,7 +1,6 @@
 export const SERIES_AWARD_META = {
 	LONGEST_STREAK: { label: "Longest Win Streak" },
 	BIGGEST_PROFIT: { label: "Biggest Profit" },
-	MOST_DUEL_WINS: { label: "Duelist" },
 	MOST_POINTS_RISKED: { label: "High Roller" },
 	EVER_PRESENT: { label: "Ever-Present" },
 	SHARPSHOOTER: { label: "Sharpshooter" },
@@ -15,7 +14,6 @@ export type SeriesAwardType = keyof typeof SERIES_AWARD_META;
 const SERIES_AWARD_VALUES = (awardValue: number) => ({
 	LONGEST_STREAK: `${awardValue} wins`,
 	BIGGEST_PROFIT: `+${awardValue.toLocaleString()} pts`,
-	MOST_DUEL_WINS: `${awardValue} wins`,
 	MOST_POINTS_RISKED: `${awardValue.toLocaleString()} risked`,
 	EVER_PRESENT: `${awardValue.toLocaleString()} games`,
 	SHARPSHOOTER: `${awardValue}% called`,

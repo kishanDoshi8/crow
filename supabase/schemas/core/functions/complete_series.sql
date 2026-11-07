@@ -211,64 +211,6 @@ begin
 
   insert into public.series_awards (series_id, player_id, award_type, value, description, tier)
   with series_predictions as (
-    select p.id, p.winning_option_id
-    from public.predictions p
-    where p.series_id = p_series_id
-      and p.status = 'revealed'
-      and p.winning_option_id is not null
-  ),
-  player_participation as (
-    select
-      b.player_id,
-      count(distinct b.prediction_id)::int as prediction_count
-    from public.bets b
-    join public.predictions p on p.id = b.prediction_id
-    where p.series_id = p_series_id
-      and p.status in ('revealed', 'no_result')
-    group by b.player_id
-  ),
-  eligible_players as (
-    select pp.player_id
-    from player_participation pp
-    where pp.prediction_count >= v_required_bets
-  ),
-  duel_wins as (
-    select
-      winner.player_id,
-      count(*)::numeric as award_value
-    from public.duels d
-    join series_predictions sp on sp.id = d.prediction_id
-    join public.bets challenger_bet on challenger_bet.id = d.challenger_bet_id
-    join public.bets opponent_bet on opponent_bet.id = d.matched_opponent_bet_id
-    join lateral (
-      select case
-        when challenger_bet.option_id = sp.winning_option_id then d.challenger_player_id
-        else d.matched_opponent_player_id
-      end as player_id
-    ) winner on true
-    join eligible_players ep on ep.player_id = winner.player_id
-    where d.status = 'resolved'
-    group by winner.player_id
-  ),
-  top_value as (
-    select max(dw.award_value) as value
-    from duel_wins dw
-  )
-  select
-    p_series_id,
-    dw.player_id,
-    'MOST_DUEL_WINS'::public.series_award_type,
-    dw.award_value,
-    'Won the most duels during this Series.',
-    private.series_award_tier('MOST_DUEL_WINS', dw.award_value, v_completed_predictions, v_series.starting_stack)
-  from duel_wins dw
-  cross join top_value tv
-  where tv.value is not null
-    and tv.value > 0
-    and dw.award_value = tv.value;
-
-  insert into public.series_awards (series_id, player_id, award_type, value, description, tier)
-  with series_predictions as (
     select p.id, p.status
     from public.predictions p
     where p.series_id = p_series_id

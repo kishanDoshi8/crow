@@ -1,5 +1,4 @@
 import type { PredictionActivityMetadata, RoomActivity } from "@/features/activities/types/types";
-import { FEATURES } from "@/shared/constants/features";
 
 export function formatPoints(value: number | null | undefined) {
 	if (typeof value !== "number" || Number.isNaN(value)) {
@@ -30,13 +29,6 @@ export function resolveActivityHref(activity: RoomActivity, roomCode: string) {
 
 	if (action.type === "prediction") {
 		return `/rooms/${roomCode}/predictions/${action.predictionId}`;
-	}
-
-	if (action.type === "duel") {
-		// While duels are paused, open the prediction the duel was on.
-		return FEATURES.duels
-			? `/rooms/${roomCode}/predictions/${action.predictionId}/duels/${action.duelId}`
-			: `/rooms/${roomCode}/predictions/${action.predictionId}`;
 	}
 
 	return null;

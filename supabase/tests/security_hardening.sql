@@ -186,11 +186,10 @@ select is(
     order by 1
   ),
   array[
-    'activate_series', 'allow_room_member_back', 'archive_series', 'cancel_account_deletion', 'cancel_bet', 'cancel_duel_queue_view',
-    'cancel_duel_view', 'collect_series_rewards', 'complete_series', 'correct_prediction_result', 'create_prediction', 'create_room',
-    'create_series', 'delete_my_push_subscription', 'dismiss_weekly_recap', 'get_my_account_deletion', 'get_my_series_wallets',
-    'get_my_unseen_results', 'get_my_weekly_recap', 'get_player', 'get_prediction_duel_summary', 'get_prediction_duels_view',
-    'get_preferences', 'get_room_activities', 'get_room_by_code', 'get_room_former_members', 'get_room_has_unseen_activities',
+    'activate_series', 'allow_room_member_back', 'archive_series', 'cancel_account_deletion', 'cancel_bet', 'collect_series_rewards',
+    'complete_series', 'correct_prediction_result', 'create_prediction', 'create_room', 'create_series', 'delete_my_push_subscription',
+    'dismiss_weekly_recap', 'get_my_account_deletion', 'get_my_series_wallets', 'get_my_unseen_results', 'get_my_weekly_recap',
+    'get_player', 'get_preferences', 'get_room_activities', 'get_room_by_code', 'get_room_former_members', 'get_room_has_unseen_activities',
     'get_room_manage_queue', 'get_room_member_recent_predictions', 'get_room_member_stats', 'get_room_member_style',
     'get_room_overall_standings', 'get_room_prediction_history', 'get_room_series', 'get_room_series_selector', 'get_room_stat_cards',
     'get_room_tags', 'get_series_awards', 'get_series_leaderboard', 'get_series_placements', 'get_series_suggestions',
@@ -220,11 +219,7 @@ select throws_ok(
   '42501', null,
   'a player cannot run the streak update'
 );
-select throws_ok(
-  format($$ select public.resolve_duels_for_prediction(%L) $$, pg_temp.setting('prediction_id')),
-  '42501', null,
-  'a player cannot settle duels directly'
-);
+select hasnt_table('public', 'duels', 'the duels feature is gone');
 select throws_ok(
   $$ select private.snapshot_series_standings() $$,
   '42501', null,

@@ -13,7 +13,6 @@ import {
 	Rocket,
 	Sparkles,
 	Trophy as TrophyIcon,
-	Swords,
 	TrendingUp,
 	Zap,
 } from "lucide-react";
@@ -73,11 +72,6 @@ const awardVisualMap: Record<SeriesAwardType, RecognitionVisual> = {
 		Icon: CalendarCheck,
 		textClassName: "text-activity",
 		ringClassName: "border-activity/30 bg-activity/10",
-	},
-	MOST_DUEL_WINS: {
-		Icon: Swords,
-		textClassName: "text-primary",
-		ringClassName: "border-primary/30 bg-primary/10",
 	},
 	MOST_POINTS_RISKED: {
 		Icon: Coins,

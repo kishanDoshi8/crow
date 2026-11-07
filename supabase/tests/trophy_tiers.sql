@@ -25,7 +25,10 @@ select is(private.series_award_tier('BIGGEST_PROFIT', 1000, 20, 1000), 'gold', '
 select is(private.series_award_tier('BIGGEST_PROFIT', 499, 20, 1000), 'bronze', 'under half the stack is bronze');
 select is(private.series_award_tier('MOST_POINTS_RISKED', 2000, 20, 1000), 'silver', 'risking twice the stack is silver');
 select is(private.series_award_tier('EVER_PRESENT', 10, 10, 1000), 'silver', 'ten games ever-present is silver');
-select is(private.series_award_tier('MOST_DUEL_WINS', 5, 20, 1000), 'gold', 'duel wins over a quarter of games is gold');
+select ok(
+  not ('MOST_DUEL_WINS' = any(enum_range(null::public.series_award_type)::text[])),
+  'the duel trophy is gone'
+);
 
 -- ------------------------------------------------------------
 -- 3. Completing a series records its size and tiers

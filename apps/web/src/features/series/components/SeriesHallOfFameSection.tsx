@@ -152,9 +152,6 @@ export function SeriesHallOfFameSection({
 		seriesAwardsContent = (
 			<div className='rounded-2xl border border-border/60 bg-card p-2'>
 				{seriesAwards.map((award) => {
-					if (award.award_type === "MOST_DUEL_WINS") {
-						return null; // Skip rendering this award type
-					}
 					const awardVisual = getAwardVisual(award.award_type);
 					const awardLabel = getSeriesAwardLabel(award.award_type);
 					const awardValue = award.value

@@ -10,7 +10,6 @@ import { AppShell } from "@/app/router/AppShell";
 import RoomLayout from "@/app/layouts/RoomLayout";
 import RoomTabsLayout from "@/app/layouts/RoomTabsLayout";
 import { RequireRoomMember } from "@/features/rooms";
-import { FEATURES } from "@/shared/constants/features";
 // The pages people move between inside a room load with the app, so switching
 // tabs never waits on a code download. Rarely used pages stay lazy.
 import RoomDashboard from "@/features/rooms/pages/RoomDashboard";
@@ -60,25 +59,6 @@ const EditPrediction = lazy(roomPageLoaders.editPrediction);
 const ManagePage = lazy(roomPageLoaders.manage);
 const MembersPage = lazy(roomPageLoaders.members);
 const RoomSettingsPage = lazy(roomPageLoaders.settings);
-const PredictionDuelsPage = lazy(() =>
-	import("@/features/duels/pages/PredictionDuelsPage").then((module) => ({
-		default: module.PredictionDuelsPage,
-	})),
-);
-const PredictionDuelCreatePage = lazy(() =>
-	import("@/features/duels/pages/PredictionDuelCreatePage").then(
-		(module) => ({
-			default: module.PredictionDuelCreatePage,
-		}),
-	),
-);
-const PredictionDuelDetailPage = lazy(() =>
-	import("@/features/duels/pages/PredictionDuelDetailPage").then(
-		(module) => ({
-			default: module.PredictionDuelDetailPage,
-		}),
-	),
-);
 const NotFoundPage = lazy(() =>
 	import("@/app/router/NotFoundPage").then((module) => ({
 		default: module.NotFoundPage,
@@ -289,44 +269,6 @@ export const router = createBrowserRouter([
 													},
 												},
 											},
-											// Duels are paused; their routes fall through to 404.
-											...(FEATURES.duels
-												? [
-													{
-														path: "predictions/:predictionId/duels",
-														element: withSuspense(
-															<PredictionDuelsPage />,
-														),
-														handle: {
-															header: {
-																leftAction: "back",
-															},
-														},
-													},
-													{
-														path: "predictions/:predictionId/duels/create",
-														element: withSuspense(
-															<PredictionDuelCreatePage />,
-														),
-														handle: {
-															header: {
-																leftAction: "back",
-															},
-														},
-													},
-													{
-														path: "predictions/:predictionId/duels/:duelId",
-														element: withSuspense(
-															<PredictionDuelDetailPage />,
-														),
-														handle: {
-															header: {
-																leftAction: "back",
-															},
-														},
-													},
-												]
-												: []),
 										],
 									},
 								],

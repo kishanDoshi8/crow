@@ -26,6 +26,7 @@
 		"db:reset": "supabase db reset",
 		"db:types": "supabase gen types typescript --linked > apps/web/src/shared/lib/supabase.types.ts",
 		"db:verify": "supabase db diff --from migrations --to local",
+		"db:drift": "supabase/scripts/check-schema-drift.sh postgres",
 		"db:backup": "supabase db dump --linked > supabase/schemas/live_backup_$(date +%F_%H%M%S).sql",
 		"db:new": "supabase migration new"
 	},
