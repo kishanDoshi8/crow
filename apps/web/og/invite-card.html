@@ -18,7 +18,8 @@
   }
   .copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 28px; }
   .brand { display: flex; align-items: center; gap: 20px; font-size: 36px; font-weight: 700; }
-  .tile { width: 72px; height: 72px; border-radius: 20px; background: linear-gradient(135deg, #ff2056, #fe9a00); display: flex; align-items: center; justify-content: center; }
+  .tile { width: 72px; height: 72px; border-radius: 20px; background: linear-gradient(135deg, #ff2056, #fe9a00); overflow: hidden; }
+  .tile svg { display: block; }
   h1 { margin: 0; font-size: 64px; font-weight: 700; line-height: 1.08; letter-spacing: -2px; }
   .rule { font-size: 26px; color: #a1a1aa; line-height: 1.5; }
   .card { width: 400px; flex-shrink: 0; border-radius: 32px; border: 2px solid rgba(255, 32, 86, 0.35); background: linear-gradient(160deg, rgba(255, 32, 86, 0.14), #18181b 55%); padding: 36px; display: flex; flex-direction: column; gap: 22px; box-sizing: border-box; }
@@ -35,8 +36,8 @@
   <div class="copy">
     <div class="brand">
       <div class="tile">
-        <!-- The Crow mark (brand/crow.svg): ink crow, eye painted in the tile colour. -->
-        <svg width="58" height="58" viewBox="0 0 512 512" aria-hidden="true"><path fill="#020617" d="M492 190 L344 154 L296 130 L228 140 L186 182 L170 248 L162 312 L122 366 L182 354 L158 414 L216 392 L210 446 L274 406 L316 350 L340 294 L358 262 L482 294 L366 234 Z"/><circle cx="290" cy="188" r="15" fill="#ff5a3a"/></svg>
+        <!-- The Crow mark (brand/crow.svg): ink crow on the tile, rose wing, white eye. -->
+        <svg width="72" height="72" viewBox="0 0 512 512" aria-hidden="true"><path fill-rule="evenodd" fill="#020617" d="M-40 344 L140 192 L95 198 Q160 140 220 122 Q300 128 356 172 L362 180 Q440 190 488 240 Q420 236 372 252 Q334 268 332 300 C330 330 352 360 354 410 Q356 470 322 540 L-40 540 Z M60 322 C122 284 206 292 236 350 C256 392 246 436 224 474 C232 424 228 380 206 354 C172 316 112 308 60 322 Z M262 180 L318 203 C312 220 296 226 284 222 C268 216 262 198 262 180 Z"/><path fill="#ff2056" d="M60 322 C122 284 206 292 236 350 C256 392 246 436 224 474 C232 424 228 380 206 354 C172 316 112 308 60 322 Z"/><path fill="#fff" d="M262 180 L318 203 C312 220 296 226 284 222 C268 216 262 198 262 180 Z"/><circle cx="300" cy="200" r="8" fill="#020617"/></svg>
       </div>
       <span style="letter-spacing: -0.05em">crow</span>
     </div>

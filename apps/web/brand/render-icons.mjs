@@ -3,7 +3,8 @@
 // From apps/web: node brand/render-icons.mjs (needs Playwright).
 //
 // Colours are literal here because these are image files, not themed UI. They
-// match the app tokens: --primary (rose), --accent (amber), --brand-ink (crow).
+// match the app tokens: --primary (rose), --accent (amber), --brand-ink (crow),
+// --brand-eye (the eye).
 import { chromium } from "playwright";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -12,34 +13,42 @@ import { fileURLToPath } from "node:url";
 const ROSE = "#ff2056";
 const AMBER = "#fe9a00";
 const INK = "#020617";
+const EYE = "#ffffff";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const pub = path.join(here, "..", "public");
 const source = readFileSync(path.join(here, "crow.svg"), "utf8");
-const d = source.match(/ d="([^"]+)"/)[1];
-const eye = source.match(/<circle cx="(\d+)" cy="(\d+)" r="(\d+)"/).slice(1).map(Number);
+const shape = (id) => source.match(new RegExp(`id="${id}"[^>]* d="([^"]+)"`))[1];
+const body = shape("crow");
+const wing = shape("wing");
+const eye = shape("eye");
+const pupil = source.match(/id="pupil" cx="(\d+)" cy="(\d+)" r="(\d+)"/).slice(1).map(Number);
 
-// The crow, scaled by `scale` around the centre of a 512 canvas.
-const crow = (color, scale) => {
-	const offset = (512 * (1 - scale)) / 2;
-	return `<g transform="translate(${offset} ${offset}) scale(${scale})">
-  <mask id="eye"><rect width="512" height="512" fill="#fff"/><circle cx="${eye[0]}" cy="${eye[1]}" r="${eye[2]}" fill="#000"/></mask>
-  <path mask="url(#eye)" fill="${color}" d="${d}"/></g>`;
+// The crow, scaled by `scale` around (px, py). The body is cut to `clip`.
+// With `withEye` false the wing and eye stay plain holes (one-colour badge).
+const crow = ({ color, scale = 1, px = 0, py = 512, withEye = true }) => {
+	const t = `translate(${px * (1 - scale)} ${py * (1 - scale)}) scale(${scale})`;
+	return `<g transform="${t}"><path fill-rule="evenodd" fill="${color}" d="${body}"/>${
+		withEye ? `<path fill="${ROSE}" d="${wing}"/><path fill="${EYE}" d="${eye}"/><circle cx="${pupil[0]}" cy="${pupil[1]}" r="${pupil[2]}" fill="${color}"/>` : ""
+	}</g>`;
 };
-const gradient = `<defs><linearGradient id="sun" x1="0" y1="0" x2="1" y2="1">
-  <stop offset="0" stop-color="${ROSE}"/><stop offset="1" stop-color="${AMBER}"/></linearGradient></defs>`;
+const defs = (rx) => `<defs><linearGradient id="sun" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="${ROSE}"/><stop offset="1" stop-color="${AMBER}"/></linearGradient>
+  <clipPath id="tile"><rect width="512" height="512" rx="${rx}"/></clipPath></defs>`;
+const onTile = (rx, bird) =>
+	`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">${defs(rx)}
+<rect width="512" height="512" rx="${rx}" fill="url(#sun)"/><g clip-path="url(#tile)">${bird}</g></svg>`;
 
-// Rounded tile (favicon, install icons), full-bleed square (maskable: the
-// platform cuts its own shape, so the crow stays inside the central safe circle),
-// and the badge (white crow on transparent; Android tints it).
-const tile = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">${gradient}
-<rect width="512" height="512" rx="138" fill="url(#sun)"/>${crow(INK, 0.8)}</svg>`;
-const maskable = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">${gradient}
-<rect width="512" height="512" fill="url(#sun)"/>${crow(INK, 0.62)}</svg>`;
+// Rounded tile (favicon, install icons): the bust runs off the left and bottom.
+const tile = onTile(138, crow({ color: INK }));
 // iOS rounds the corners itself and turns transparency black: full square.
-const apple = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">${gradient}
-<rect width="512" height="512" fill="url(#sun)"/>${crow(INK, 0.74)}</svg>`;
-const badge = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">${crow("#ffffff", 0.96)}</svg>`;
+const apple = onTile(0, crow({ color: INK }));
+// Maskable: the platform cuts its own shape (as small as the central circle), so
+// the bird shrinks toward the bottom-left, keeping the bleed while the eye and
+// beak stay inside the safe zone.
+const maskable = onTile(0, crow({ color: INK, scale: 0.82, px: 100 }));
+// Badge: white crow on transparent; Android tints it. Wing and eye stay holes.
+const badge = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">${crow({ color: "#ffffff", withEye: false })}</svg>`;
 
 writeFileSync(path.join(here, "..", "favicon.svg"), tile + "\n");
 

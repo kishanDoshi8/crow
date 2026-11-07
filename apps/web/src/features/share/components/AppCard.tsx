@@ -83,8 +83,7 @@ export function CardCanvas({
 	);
 }
 
-// The Crow mark, drawn rather than loaded so captures never miss it. The eye is
-// painted in the tile's colour at that spot instead of cut out (see CrowGlyph).
+// The Crow mark, drawn rather than loaded so captures never miss it.
 export function LogoTile({ size = 88 }: Readonly<{ size?: number }>) {
 	return (
 		<div
@@ -95,15 +94,10 @@ export function LogoTile({ size = 88 }: Readonly<{ size?: number }>) {
 				borderRadius: size * 0.27,
 				background: "linear-gradient(135deg, var(--primary), var(--accent))",
 				color: app.brandInk,
-				display: "flex",
-				alignItems: "center",
-				justifyContent: "center",
+				overflow: "hidden",
 			}}
 		>
-			<CrowGlyph
-				style={{ width: size * 0.8, height: size * 0.8 }}
-				eyeColor='color-mix(in srgb, var(--primary) 55%, var(--accent))'
-			/>
+			<CrowGlyph style={{ display: "block", width: size, height: size }} />
 		</div>
 	);
 }

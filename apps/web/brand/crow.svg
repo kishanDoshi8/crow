@@ -1,10 +1,14 @@
-<!-- The Crow mark: a crow mid-caw, on a 512 grid. Source for every icon file
-     (node brand/render-icons.mjs) and for CrowGlyph in src/shared/ui/crow-mark.tsx;
-     change the path in both places. -->
+<!-- The Crow mark: an oversized crow bust, cropped by the tile, with a squinting
+     eye and a crescent cut into the wing. Drawn on a 512 grid as a full tile:
+     the body runs off the left and bottom edges, so clip it to the tile shape.
+     The body path (#crow) is even-odd: the wing and the eye are holes in it, so
+     the tile shows through them; #wing then paints the crescent rose and #eye
+     paints the eye white with its pupil. The one-colour badge keeps both as holes.
+     Source for every icon file (node brand/render-icons.mjs) and for CrowGlyph
+     in src/shared/ui/crow-mark.tsx; change the shapes in both places. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <mask id="eye">
-    <rect width="512" height="512" fill="#fff"/>
-    <circle cx="290" cy="188" r="15" fill="#000"/>
-  </mask>
-  <path mask="url(#eye)" fill="currentColor" d="M492 190 L344 154 L296 130 L228 140 L186 182 L170 248 L162 312 L122 366 L182 354 L158 414 L216 392 L210 446 L274 406 L316 350 L340 294 L358 262 L482 294 L366 234 Z"/>
+  <path id="crow" fill-rule="evenodd" fill="currentColor" d="M-40 344 L140 192 L95 198 Q160 140 220 122 Q300 128 356 172 L362 180 Q440 190 488 240 Q420 236 372 252 Q334 268 332 300 C330 330 352 360 354 410 Q356 470 322 540 L-40 540 Z M60 322 C122 284 206 292 236 350 C256 392 246 436 224 474 C232 424 228 380 206 354 C172 316 112 308 60 322 Z M262 180 L318 203 C312 220 296 226 284 222 C268 216 262 198 262 180 Z"/>
+  <path id="wing" fill="#ff2056" d="M60 322 C122 284 206 292 236 350 C256 392 246 436 224 474 C232 424 228 380 206 354 C172 316 112 308 60 322 Z"/>
+  <path id="eye" fill="#fff" d="M262 180 L318 203 C312 220 296 226 284 222 C268 216 262 198 262 180 Z"/>
+  <circle id="pupil" cx="300" cy="200" r="8" fill="currentColor"/>
 </svg>
