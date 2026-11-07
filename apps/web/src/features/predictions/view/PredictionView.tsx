@@ -3,15 +3,27 @@ import { MessageCircleIcon } from "lucide-react";
 import { Button, Skeleton } from "@/shared/ui";
 import { usePlayer } from "@/features/home";
 import { PlayerProfileDialog } from "@/features/leaderboard";
-import { roomPlayerName, useRoomBetRealtime, useRoomRole } from "@/features/rooms";
+import {
+	roomPlayerName,
+	useRoomBetRealtime,
+	useRoomRole,
+} from "@/features/rooms";
 import { useSeriesWallet } from "@/features/series";
 import type { ResultCardData } from "@/features/share";
-import { PhraseSheet, RoomTalk, usePredictionTalk, useSetReaction } from "@/features/talk";
+import {
+	PhraseSheet,
+	RoomTalk,
+	usePredictionTalk,
+	useSetReaction,
+} from "@/features/talk";
 import { useRoomContext } from "@/shared/lib/roomContext";
 import { useBets } from "@/features/predictions/hooks/bet";
 import { ResolvePredictionDrawer } from "@/features/predictions/components/ResolvePredictionDrawer";
 import type { Prediction } from "@/features/predictions/types/types";
-import { formatPoints, tallyOptions } from "@/features/predictions/lib/predictionView";
+import {
+	formatPoints,
+	tallyOptions,
+} from "@/features/predictions/lib/predictionView";
 import { PredictionHeading } from "./PredictionHeading";
 import { PredictionStatusLine } from "./PredictionStatusLine";
 import { OptionsBoard } from "./OptionsBoard";
@@ -29,12 +41,18 @@ type Props = {
 // One page for a prediction in every state, top to bottom: the question, one
 // status line, your call, the options, who picked what, and one action at
 // the bottom. Discussion will slot in under the picks.
-export function PredictionView({ prediction, isLoading, onDeadline }: Readonly<Props>) {
+export function PredictionView({
+	prediction,
+	isLoading,
+	onDeadline,
+}: Readonly<Props>) {
 	if (!prediction) {
 		return isLoading ? (
 			<PredictionViewSkeleton />
 		) : (
-			<p className='p-6 text-center text-muted-foreground'>This prediction isn't here any more.</p>
+			<p className='p-6 text-center text-muted-foreground'>
+				This prediction isn't here any more.
+			</p>
 		);
 	}
 	return <LoadedPrediction prediction={prediction} onDeadline={onDeadline} />;
@@ -47,7 +65,10 @@ function LoadedPrediction({
 	const { room } = useRoomContext();
 	const { can } = useRoomRole(room);
 	const { data: player } = usePlayer();
-	const { data: bets = [], isPending: isBetsLoading } = useBets(room.id, prediction.id);
+	const { data: bets = [], isPending: isBetsLoading } = useBets(
+		room.id,
+		prediction.id,
+	);
 	const { wallet } = useSeriesWallet(room.id, prediction.seriesId ?? null);
 	useRoomBetRealtime(room.id, prediction.id);
 
@@ -58,14 +79,17 @@ function LoadedPrediction({
 	const [isTalkOpen, setIsTalkOpen] = useState(false);
 	const { data: talk } = usePredictionTalk(room.id, prediction.id);
 	const { mutate: react } = useSetReaction(room.id, prediction.id);
-	const phrasesLeft = talk ? Math.max(0, talk.post_limit - talk.my_post_count) : 0;
+	const phrasesLeft = talk
+		? Math.max(0, talk.post_limit - talk.my_post_count)
+		: 0;
 
 	const { options, pool, picks } = useMemo(
 		() => tallyOptions(prediction, bets),
 		[prediction, bets],
 	);
 	const labelOf = (optionId: string | null | undefined) =>
-		options.find((tally) => tally.option.id === optionId)?.option.label ?? "";
+		options.find((tally) => tally.option.id === optionId)?.option.label ??
+		"";
 	const myBet = bets.find((bet) => bet.player_id === player?.id) ?? null;
 	const nameOf = (playerId: string) => {
 		if (player?.id === playerId) return player.username;
@@ -89,13 +113,16 @@ function LoadedPrediction({
 					predictionNumber: prediction.seriesPredictionNumber ?? null,
 					question: prediction.title,
 					winner: winnerLabel ?? "",
-					calledIt: bets.filter((bet) => bet.option_id === prediction.winning_option_id).length,
+					calledIt: bets.filter(
+						(bet) => bet.option_id === prediction.winning_option_id,
+					).length,
 					participants: bets.length,
 					playerName: player?.username ?? "",
 					options: options.map((tally) => ({
 						label: tally.option.label,
 						pool: tally.points,
-						isWinner: tally.option.id === prediction.winning_option_id,
+						isWinner:
+							tally.option.id === prediction.winning_option_id,
 						isMine: tally.option.id === myBet?.option_id,
 					})),
 					call: myBet
@@ -145,8 +172,16 @@ function LoadedPrediction({
 				<PredictionStatusLine
 					prediction={prediction}
 					winnerLabel={winnerLabel}
-					resolvedByName={prediction.resolved_by ? nameOf(prediction.resolved_by) : null}
-					correctedByName={prediction.corrected_by ? nameOf(prediction.corrected_by) : null}
+					resolvedByName={
+						prediction.resolved_by
+							? nameOf(prediction.resolved_by)
+							: null
+					}
+					correctedByName={
+						prediction.corrected_by
+							? nameOf(prediction.corrected_by)
+							: null
+					}
 					onDeadline={onDeadline}
 				/>
 
@@ -179,7 +214,9 @@ function LoadedPrediction({
 							options={options}
 							winningOptionId={prediction.winning_option_id}
 							myOptionId={myBet?.option_id ?? null}
-							selectedOptionId={isSheetOpen ? sheetOptionId : null}
+							selectedOptionId={
+								isSheetOpen ? sheetOptionId : null
+							}
 							onPick={showBetBar ? openSheet : undefined}
 						/>
 					)}
@@ -220,9 +257,14 @@ function LoadedPrediction({
 								disabled={!talk}
 								className='flex h-12 flex-1 items-center gap-2.5 rounded-full border bg-card px-4 text-left text-sm text-foreground/85 transition-colors hover:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60'
 							>
-								<MessageCircleIcon className='size-4.5' aria-hidden />
+								<MessageCircleIcon
+									className='size-4.5'
+									aria-hidden
+								/>
 								<span className='flex-1'>Say something</span>
-								<span className='text-xs text-muted-foreground tabular-nums'>{phrasesLeft} left</span>
+								<span className='text-xs text-muted-foreground tabular-nums'>
+									{phrasesLeft} left
+								</span>
 							</button>
 						) : showRevealBar ? (
 							<>
@@ -230,7 +272,11 @@ function LoadedPrediction({
 								<span className='flex-1 text-xs text-muted-foreground'>
 									Waiting on you for the result
 								</span>
-								<Button variant='linear' size='lg' onClick={() => setIsRevealOpen(true)}>
+								<Button
+									variant='linear'
+									size='lg'
+									onClick={() => setIsRevealOpen(true)}
+								>
 									Reveal result
 								</Button>
 							</>
@@ -238,26 +284,41 @@ function LoadedPrediction({
 							<>
 								{sayButton}
 								<span className='flex-1 leading-tight'>
-									<span className='block text-xs text-muted-foreground'>Your pick</span>
-									<span className='font-semibold'>
-										{labelOf(myBet.option_id)} ·{" "}
-										<span className='tabular-nums'>{formatPoints(myBet.amount)} pts</span>
+									<span className='block text-xs text-muted-foreground'>
+										Your pick
+									</span>
+									<span className='font-semibold truncate'>
+										{labelOf(myBet.option_id)}
+									</span>
+									<span className='block text-muted-foreground tabular-nums'>
+										{formatPoints(myBet.amount)} pts
 									</span>
 								</span>
-								<Button variant='outline' size='lg' onClick={() => openSheet(myBet.option_id)}>
+								<Button
+									variant='outline'
+									size='lg'
+									onClick={() => openSheet(myBet.option_id)}
+								>
 									Change
 								</Button>
 							</>
 						) : (
 							<>
-							{sayButton}
-							<p className='flex-1 text-xs text-muted-foreground'>
-								Tap an option to make your call ·{" "}
-								<span className='font-semibold text-foreground tabular-nums'>
-									{formatPoints(wallet?.available ?? 0)} pts
-								</span>{" "}
-								to play
-							</p>
+								{sayButton}
+								<div className={`text-xs`}>
+									<p className='flex-1 text-muted-foreground'>
+										Tap an option to make your call
+									</p>
+									<p>
+										<span className='font-semibold text-foreground tabular-nums'>
+											{formatPoints(
+												wallet?.available ?? 0,
+											)}{" "}
+											pts
+										</span>{" "}
+										to play
+									</p>
+								</div>
 							</>
 						)}
 					</div>
@@ -322,7 +383,10 @@ function OptionsSkeleton({ count }: Readonly<{ count: number }>) {
 
 function PredictionViewSkeleton() {
 	return (
-		<div className='mx-auto flex w-full max-w-md flex-col gap-5 px-4 pt-4' aria-busy='true'>
+		<div
+			className='mx-auto flex w-full max-w-md flex-col gap-5 px-4 pt-4'
+			aria-busy='true'
+		>
 			<div className='space-y-2'>
 				<Skeleton className='h-3 w-32' />
 				<Skeleton className='h-6 w-full' />
