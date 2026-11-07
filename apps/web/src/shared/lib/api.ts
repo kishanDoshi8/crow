@@ -1018,17 +1018,6 @@ export async function cancelBet(predictionId: string) {
   return assertOk(data, error)
 }
 
-export async function getMyBet(predictionId: string, playerId: string) {
-  const { data, error } = await supabase
-    .from('bets')
-    .select('*')
-    .eq('prediction_id', predictionId)
-    .eq('player_id', playerId)
-    .maybeSingle()
-
-  if (error) throw error
-  return data
-}
 // #endregion Bets
 
 // #region Leaderboard

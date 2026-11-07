@@ -1,7 +1,6 @@
 import {
 	cancelBet,
 	getBetsForPrediction,
-	getMyBet,
 	placeBet,
 	type SeriesWallet,
 } from "@/shared/lib/api";
@@ -29,14 +28,6 @@ function adjustCachedWalletEscrow(
                 : wallet
         )
     );
-}
-
-export const useMyBet = (roomId: string, predictionId: string, playerId: string) => {
-    return useQuery({
-        queryKey: roomKeys.myBet(roomId, predictionId, playerId),
-        queryFn: () => getMyBet(predictionId, playerId),
-        enabled: !!predictionId && !!playerId,
-    });
 }
 
 export const useBets = (roomId: string, predictionId?: string) => {

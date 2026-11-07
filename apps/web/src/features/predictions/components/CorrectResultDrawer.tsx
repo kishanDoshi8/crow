@@ -25,10 +25,8 @@ import {
 	RadioGroupItem,
 	Spinner,
 } from "@/shared/ui";
-import { useRoomRole } from "@/features/rooms";
 import { useCorrectPrediction } from "@/features/predictions/hooks/prediction";
 import type { Prediction } from "@/features/predictions/types/types";
-import { useRoomContext } from "@/shared/lib/roomContext";
 import { InfoIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -47,7 +45,7 @@ type CorrectablePrediction = Pick<
 >;
 
 // Organizers can fix a revealed or no-result prediction while its series runs.
-function canCorrectResult(
+export function canCorrectResult(
 	prediction: CorrectablePrediction,
 	canOrganize: boolean,
 ) {
@@ -58,39 +56,6 @@ function canCorrectResult(
 	);
 }
 
-// "Wrong result? Correct it": opens the drawer for organizers, shows nothing
-// to anyone else.
-export function CorrectResultLink({
-	prediction,
-}: Readonly<{ prediction: CorrectablePrediction }>) {
-	const { room } = useRoomContext();
-	const { can } = useRoomRole(room);
-	const [open, setOpen] = useState(false);
-
-	if (!canCorrectResult(prediction, can.organize)) {
-		return null;
-	}
-
-	return (
-		<>
-			<Button
-				variant='link'
-				size='sm'
-				className='h-auto p-0 text-xs text-muted-foreground'
-				onClick={() => setOpen(true)}
-			>
-				Wrong result? Correct it
-			</Button>
-			<CorrectResultDrawer
-				prediction={prediction}
-				roomId={room.id}
-				open={open}
-				onOpenChange={setOpen}
-			/>
-		</>
-	);
-}
-
 type CorrectResultDrawerProps = {
 	prediction: CorrectablePrediction;
 	roomId: string;
@@ -98,7 +63,7 @@ type CorrectResultDrawerProps = {
 	onOpenChange: (open: boolean) => void;
 };
 
-function CorrectResultDrawer({
+export function CorrectResultDrawer({
 	prediction,
 	roomId,
 	open,

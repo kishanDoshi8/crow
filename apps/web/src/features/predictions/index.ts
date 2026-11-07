@@ -12,4 +12,3 @@ export {
 	ResolvePredictionDrawer,
 } from "./components/ResolvePredictionDrawer";
 export { NotificationPermissionBlockedDialog } from "./components/NotificationPermissionBlockedDialog";
-export { PredictionPhaseView } from "./predictions/PredictionPhaseView";
