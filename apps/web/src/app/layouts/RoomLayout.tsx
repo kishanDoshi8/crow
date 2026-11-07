@@ -1,6 +1,7 @@
 import {
-	generatePath,
+	Navigate,
 	Outlet,
+	generatePath,
 	useMatches,
 	useNavigate,
 	useParams,
@@ -25,6 +26,8 @@ import { usePlayer, useSetLastVisitedRoom } from "@/features/home";
 import { usePreferences, useMarkHowToPlaySeen } from "@/features/preferences";
 import { Loading } from "@/shared/ui";
 import { useAppNavigation } from "@/shared/lib/navigation";
+import { RebrandWelcomeDialog } from "@/features/onboarding";
+import { prefetchRoomPages } from "@/app/router/roomPages";
 
 const HowToPlayModal = lazy(
 	() => import("@/features/onboarding/components/HowToPlayModal"),
@@ -83,6 +86,11 @@ export default function RoomLayout() {
 		setLastVisitedRoom(room.id);
 	}, [room?.id, player?.last_visited_room_id, setLastVisitedRoom]);
 
+	// Once the room is up, fetch the code for its other pages in idle time.
+	useEffect(() => {
+		if (room?.id) prefetchRoomPages();
+	}, [room?.id]);
+
 	const handleHowToPlayClose = () => {
 		setShowHowToPlay(false);
 		markSeen();
@@ -97,8 +105,7 @@ export default function RoomLayout() {
 	}
 
 	if (!room || isError || room.code !== roomCode) {
-		navigate("/404", { replace: true });
-		return null;
+		return <Navigate to='/404' replace />;
 	}
 
 	const handleHeaderLeftAction = () => {
@@ -158,6 +165,8 @@ export default function RoomLayout() {
 				open={showSeriesPicker}
 				onOpenChange={setShowSeriesPicker}
 			/>
+
+			{showHowToPlay ? null : <RebrandWelcomeDialog />}
 
 			{showHowToPlay ? (
 				<Suspense fallback={null}>

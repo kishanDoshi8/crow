@@ -10,6 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { removePushSubscription } from "@/shared/lib/pushNotifications";
 import { supabase } from "@/shared/lib/supabase";
 import { setErrorReportingUser } from "@/shared/lib/errorReporting";
+import { claimQueryCache, startQueryPersistence } from "@/shared/lib/queryPersistence";
 
 interface AuthContextValue {
   user: User | null;
@@ -55,7 +56,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    void supabase.auth.getSession().then(async ({ data: { session } }) => {
+      // Bring back this person's saved data before any page renders, so the
+      // app opens on their rooms instantly (and never on someone else's).
+      await startQueryPersistence(queryClient, session?.user?.id ?? null);
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
@@ -64,12 +68,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      claimQueryCache(queryClient, session?.user?.id ?? null);
       setSession(session);
       setUser(session?.user ?? null);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [queryClient]);
 
   // Error reports carry the auth id (never the email) of who hit them.
   useEffect(() => {

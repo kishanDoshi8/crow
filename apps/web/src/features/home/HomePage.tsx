@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { usePlayer } from "@/features/home/hooks/player";
 import { usePlayerRooms } from "@/features/rooms/hooks/room";
 import { Loading } from "@/shared/ui";
+import { RebrandWelcomeDialog } from "@/features/onboarding";
 
 export function HomePage() {
 	const navigate = useNavigate();
@@ -115,6 +116,9 @@ export function HomePage() {
 	}
 
 	return (
+		<>
+		{/* Only here once we know Home stays put (no jump to the last room). */}
+		<RebrandWelcomeDialog />
 		<Home
 			roomCode={roomCode}
 			setRoomCode={setRoomCode}
@@ -127,6 +131,7 @@ export function HomePage() {
 			isPlayerRoomsLoading={isPlayerRoomsLoading}
 			playerRoomsError={playerRoomsError}
 		/>
+		</>
 	);
 }
 

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { cn } from "@/shared/lib/utils";
 
 export const LayoutTextFlip = ({
@@ -29,19 +29,19 @@ export const LayoutTextFlip = ({
 
 	return (
 		<>
-			<motion.span
+			<m.span
 				layoutId='subtext'
 				className='text-2xl font-bold tracking-tight drop-shadow-lg md:text-4xl'
 			>
 				{text}
-			</motion.span>
+			</m.span>
 
-			<motion.span
+			<m.span
 				layout
 				className='relative w-fit overflow-hidden rounded-md border border-transparent bg-white px-4 py-2 font-sans text-2xl font-bold tracking-tight text-black shadow-sm ring shadow-black/10 ring-black/10 drop-shadow-lg md:text-4xl dark:bg-neutral-900 dark:text-white dark:shadow-sm dark:ring-1 dark:shadow-white/10 dark:ring-white/10'
 			>
 				<AnimatePresence mode='popLayout'>
-					<motion.span
+					<m.span
 						key={currentIndex}
 						initial={{ y: -40, filter: "blur(10px)" }}
 						animate={{
@@ -55,9 +55,9 @@ export const LayoutTextFlip = ({
 						className={cn("inline-block whitespace-nowrap")}
 					>
 						{words[currentIndex]}
-					</motion.span>
+					</m.span>
 				</AnimatePresence>
-			</motion.span>
+			</m.span>
 		</>
 	);
 };

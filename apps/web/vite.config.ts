@@ -45,7 +45,22 @@ function buildInfo() {
   // Bakes the build ID into the app and publishes it as /version.json, so an
   // open app can tell when a newer build has been deployed. Only `version` is
   // compared; the other fields are for people checking what's live.
-  function appVersion(info: ReturnType<typeof buildInfo> | { version: string }): Plugin {
+  // Third-party code in a few long-lived chunks: it rarely changes between
+// releases, so after a deploy returning players only download the app's own
+// code. Animation code is left to Rollup: grouping it would pull the lazily
+// loaded animation features back into the first download.
+const VENDOR_CHUNKS: Array<[chunk: string, packages: RegExp]> = [
+  ['react', /node_modules\/(react|react-dom|scheduler|react-router|react-router-dom|@remix-run)\//],
+  ['supabase', /node_modules\/@supabase\//],
+  ['query', /node_modules\/@tanstack\//],
+  ['ui', /node_modules\/(@radix-ui|@base-ui-components|@base-ui|@floating-ui|vaul|sonner|embla-carousel[^/]*|react-remove-scroll[^/]*|lucide-react|tailwind-merge|clsx|class-variance-authority)\//],
+]
+
+function vendorChunk(id: string) {
+  return VENDOR_CHUNKS.find(([, packages]) => packages.test(id))?.[0]
+}
+
+function appVersion(info: ReturnType<typeof buildInfo> | { version: string }): Plugin {
     return {
       name: 'app-version',
       config() {
@@ -67,6 +82,9 @@ function buildInfo() {
     build: {
       // "hidden": maps are made for the upload but browsers aren't pointed at them.
       sourcemap: uploadSourceMaps ? 'hidden' : false,
+      rollupOptions: {
+        output: { manualChunks: vendorChunk },
+      },
     },
     plugins: [
       react(),

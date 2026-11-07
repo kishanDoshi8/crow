@@ -4,23 +4,66 @@ import { supabase } from "@/shared/lib/supabase";
 import { playerQueryKey, roomKeys } from "@/shared/constants/queryKeys";
 import { invalidateRoomResults } from "@/shared/lib/roomCache";
 
+// Changes arrive in bursts: revealing one result updates the prediction,
+// every bettor's wallet and room stats, and the feed, all at once. Each kind
+// of refresh is noted and run once per burst, a moment after the first event.
+const BURST_MS = 250;
+
+// Keeps a room's data live while it's open. Results refresh wallets,
+// standings and history; member changes refresh the member list; the feed
+// refreshes itself. After the socket reconnects (phones pause it in the
+// background) everything catches up, since events sent meanwhile are lost.
 export function useRoomRealtime(roomId: string | null) {
 	const queryClient = useQueryClient();
 
 	useEffect(() => {
 		if (!roomId) return;
 
-		let hasSubscribed = false;
-		const catchUp = () => {
-			invalidateRoomResults(queryClient, roomId);
-			queryClient.invalidateQueries({
-				predicate: (query) =>
-					query.queryKey[0] === roomKeys.all[0] &&
-					query.queryKey[1] === roomId &&
-					query.queryKey[2] === "activities",
-			});
+		const dirty = {
+			results: false,
+			activities: false,
+			members: false,
+			predictions: new Set<string>(),
+		};
+		let timer: ReturnType<typeof setTimeout> | null = null;
+
+		const flush = () => {
+			timer = null;
+			if (dirty.results) invalidateRoomResults(queryClient, roomId);
+			if (dirty.members) {
+				// Members and roles come with the by-code room query.
+				queryClient.invalidateQueries({
+					predicate: (query) =>
+						query.queryKey[0] === roomKeys.all[0] &&
+						query.queryKey[1] === "code" &&
+						(query.state.data as { id?: string } | undefined)?.id === roomId,
+				});
+			}
+			if (dirty.activities) {
+				queryClient.invalidateQueries({
+					predicate: (query) =>
+						query.queryKey[0] === roomKeys.all[0] &&
+						query.queryKey[1] === roomId &&
+						query.queryKey[2] === "activities",
+				});
+			}
+			for (const predictionId of dirty.predictions) {
+				queryClient.invalidateQueries({
+					queryKey: roomKeys.prediction(roomId, predictionId),
+				});
+			}
+			dirty.results = false;
+			dirty.activities = false;
+			dirty.members = false;
+			dirty.predictions.clear();
 		};
 
+		const mark = (change: (d: typeof dirty) => void) => {
+			change(dirty);
+			timer ??= setTimeout(flush, BURST_MS);
+		};
+
+		let hasSubscribed = false;
 		const channel = supabase
 			.channel(`room:${roomId}`)
 			.on(
@@ -31,18 +74,12 @@ export function useRoomRealtime(roomId: string | null) {
 					table: "room_members",
 					filter: `room_id=eq.${roomId}`,
 				},
-				() => {
-					queryClient.invalidateQueries({
-						queryKey: roomKeys.detail(roomId),
-					});
-					// The room page reads members (and their roles) from the
-					// by-code query, so refresh it too.
-					queryClient.invalidateQueries({
-						predicate: (query) =>
-							query.queryKey[0] === roomKeys.all[0] &&
-							query.queryKey[1] === "code",
-					});
-				},
+				// Joins, leaves and roles, and the winnings and streaks that
+				// standings show.
+				() => mark((d) => {
+					d.members = true;
+					d.results = true;
+				}),
 			)
 			.on(
 				"postgres_changes",
@@ -52,17 +89,13 @@ export function useRoomRealtime(roomId: string | null) {
 					table: "predictions",
 					filter: `room_id=eq.${roomId}`,
 				},
-				(payload) => {
-					invalidateRoomResults(queryClient, roomId);
+				(payload) => mark((d) => {
+					d.results = true;
 					const predictionId =
 						(payload.new as { id?: string } | null)?.id ??
 						(payload.old as { id?: string } | null)?.id;
-					if (predictionId) {
-						queryClient.invalidateQueries({
-							queryKey: roomKeys.prediction(roomId, predictionId),
-						});
-					}
-				},
+					if (predictionId) d.predictions.add(predictionId);
+				}),
 			)
 			.on(
 				"postgres_changes",
@@ -72,61 +105,25 @@ export function useRoomRealtime(roomId: string | null) {
 					table: "room_activities",
 					filter: `room_id=eq.${roomId}`,
 				},
-				() => {
-					queryClient.invalidateQueries({
-						predicate: (query) =>
-							query.queryKey[0] === roomKeys.all[0] &&
-							query.queryKey[1] === roomId &&
-							query.queryKey[2] === "activities",
-					});
-				},
-			)
-			.on(
-				"postgres_changes",
-				{
-					event: "*",
-					schema: "public",
-					table: "room_stats",
-					filter: `room_id=eq.${roomId}`,
-				},
-				() => {
-					queryClient.invalidateQueries({
-						queryKey: roomKeys.stats(roomId),
-					});
-				},
-			)
-			.on(
-				"postgres_changes",
-				{
-					event: "*",
-					schema: "public",
-					table: "player_room_stats",
-					filter: `room_id=eq.${roomId}`,
-				},
-				() => {
-					queryClient.invalidateQueries({
-						queryKey: roomKeys.stats(roomId),
-					});
-				},
+				() => mark((d) => {
+					d.activities = true;
+				}),
 			)
 			.subscribe((status) => {
-				console.log("Realtime status:", status);
-				// Events sent while the socket was down are lost, so catch up
-				// after a reconnect.
-				if (status === "SUBSCRIBED") {
-					if (hasSubscribed) catchUp();
-					hasSubscribed = true;
+				if (status !== "SUBSCRIBED") return;
+				// The first subscribe needs no catch-up; a reconnect does.
+				if (hasSubscribed) {
+					mark((d) => {
+						d.results = true;
+						d.activities = true;
+						d.members = true;
+					});
 				}
+				hasSubscribed = true;
 			});
 
-		// Phones pause the socket in the background; refresh on return.
-		const handleVisibilityChange = () => {
-			if (document.visibilityState === "visible") catchUp();
-		};
-		document.addEventListener("visibilitychange", handleVisibilityChange);
-
 		return () => {
-			document.removeEventListener("visibilitychange", handleVisibilityChange);
+			if (timer) clearTimeout(timer);
 			supabase.removeChannel(channel);
 		};
 	}, [roomId, queryClient]);
@@ -157,9 +154,7 @@ export function useRoomBetRealtime(
 					});
 				},
 			)
-			.subscribe((status) => {
-				console.log("Realtime bet status:", status);
-			});
+			.subscribe();
 
 		return () => {
 			supabase.removeChannel(channel);
@@ -219,9 +214,7 @@ export function usePredictionDuelRealtime(
 					});
 				},
 			)
-			.subscribe((status: string) => {
-				console.log("Realtime duel status:", status);
-			});
+			.subscribe();
 
 		return () => {
 			client.removeChannel(channel);

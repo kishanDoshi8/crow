@@ -57,6 +57,9 @@ alter table public.predictions
   drop constraint if exists fk_predictions_winning_option,
   add constraint fk_predictions_winning_option foreign key (winning_option_id) references public.prediction_options(id);
 create index if not exists idx_predictions_room_status on public.predictions(room_id, status);
+-- The every-minute lock job and the reminder jobs look across all rooms for
+-- open or locked predictions by deadline.
+create index if not exists idx_predictions_open_deadline on public.predictions(deadline) where status in ('draft', 'locked');
 create index if not exists idx_predictions_room_status_deadline on public.predictions(room_id, status, deadline asc);
 create index if not exists idx_predictions_room_resolved on public.predictions (room_id, status, resolved_at desc) where status in ('revealed', 'cancelled', 'no_result');
 create unique index if not exists idx_predictions_series_number_unique on public.predictions (series_id, series_prediction_number) where series_id is not null and series_prediction_number is not null;
