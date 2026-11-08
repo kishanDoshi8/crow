@@ -35,6 +35,7 @@ import {
 	type OptionTally,
 } from "@/features/predictions/lib/predictionView";
 import { cn } from "@/shared/lib/utils";
+import { ShareOpenPredictionsButton } from "@/features/predictions/components/ShareOpenPredictionsButton";
 
 const PREDICTION_CARD_SHELL =
 	"mb-4 flex flex-col rounded-xl border bg-card p-4 text-card-foreground";
@@ -443,6 +444,23 @@ function InPlayPredictions({
 	const refetchPredictions =
 		predictionsOverride === undefined ? refetch : () => {};
 
+	// Organizers get a share button for nudging the group chat while
+	// something is open, beside "New prediction".
+	const hasOpenPrediction = predictions.some((p) => p.status === "draft");
+	const headerAction =
+		isOrganizer && hasOpenPrediction ? (
+			<div className='flex items-center gap-2'>
+				<ShareOpenPredictionsButton
+					roomName={room.name}
+					roomCode={room.code}
+					predictions={predictions}
+				/>
+				{newPredictionAction}
+			</div>
+		) : (
+			newPredictionAction
+		);
+
 	const [api, setApi] = React.useState<CarouselApi>();
 	const [current, setCurrent] = React.useState(0);
 
@@ -547,11 +565,7 @@ function InPlayPredictions({
 				predictions.length > 0 && (
 					<SectionHeader
 						predictions={predictions}
-						action={
-							predictionsOverride === undefined
-								? newPredictionAction
-								: undefined
-						}
+						action={predictionsOverride === undefined ? headerAction : undefined}
 					/>
 				)}
 
