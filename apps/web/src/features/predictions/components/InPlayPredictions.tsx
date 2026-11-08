@@ -1,20 +1,9 @@
 import { RoomNextSteps, useRoomRole } from "@/features/rooms";
-import { Countdown } from "@/features/predictions/widgets/CountDown";
 import type { Prediction } from "@/features/predictions/types/types";
 import { useActivePredictions } from "@/features/predictions/hooks/prediction";
 import { useBets } from "@/features/predictions/hooks/bet";
 import { useRoomContext } from "@/shared/lib/roomContext";
-import {
-	Badge,
-	Button,
-	CountUp,
-	FadeContent,
-	Field,
-	FieldLabel,
-	Progress,
-	Reveal,
-	Skeleton,
-} from "@/shared/ui";
+import { Button, Reveal, Skeleton } from "@/shared/ui";
 import type {
 	CarouselApi} from "@/shared/ui/carousel";
 import {
@@ -26,12 +15,9 @@ import {
 	CheckIcon,
 	ChevronLeftIcon,
 	ChevronRightIcon,
-	Clock,
-	CrownIcon,
 	DotIcon,
 	PlusIcon,
 	TrophyIcon,
-	UsersIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import React from "react";
@@ -40,16 +26,23 @@ import { useCurrentSeries } from "@/features/series";
 import { useRoomActions } from "@/shared/lib/roomActions";
 import { PredictionTags } from "@/features/predictions/components/PredictionTags";
 import type { Bet } from "@/features/predictions/types/bet";
-import { describeDeadline } from "@/shared/lib/deadline";
+import { ReactionSummary, usePredictionTalk } from "@/features/talk";
+import { PredictionStatusLine } from "@/features/predictions/view/PredictionStatusLine";
+import {
+	formatPoints,
+	optionTone,
+	tallyOptions,
+	type OptionTally,
+} from "@/features/predictions/lib/predictionView";
+import { cn } from "@/shared/lib/utils";
 
 const PREDICTION_CARD_SHELL =
-	"text-card-foreground flex flex-col gap-6 rounded-xl border shadow-sm relative overflow-hidden border-border bg-linear-to-br from-card to-primary/5 p-5 mb-4";
-
-// Threshold (as a percentage) above which an option is labelled "🔥 hot pick"
-const HOT_PICK_THRESHOLD_PERCENT = 60;
+	"mb-4 flex flex-col rounded-xl border bg-card p-4 text-card-foreground";
 
 // ── Per-card component ─────────────────────────────────────────────────────
-// Fetches its own bets so each card in the carousel is self-contained.
+// Fetches its own bets and room talk so each card in the carousel is
+// self-contained. Reads top to bottom: where it stands, the question, the
+// options, your stake, then what the room made of it.
 function PredictionCard({
 	prediction,
 	roomId,
@@ -63,209 +56,131 @@ function PredictionCard({
 }>) {
 	const { data: bets = [] } = useBets(roomId, prediction.id);
 	const { data: player } = usePlayer();
+	const { data: talk } = usePredictionTalk(roomId, prediction.id);
 
-	const betAmountPerOption: Record<string, number> = {};
-	for (const bet of bets) {
-		betAmountPerOption[bet.option_id] =
-			(betAmountPerOption[bet.option_id] ?? 0) + bet.amount;
-	}
-	const totalBetAmount = bets.reduce((sum, bet) => sum + bet.amount, 0);
+	const { options, pool, picks } = tallyOptions(prediction, bets);
 	const myBet = bets.find((b) => b.player_id === player?.id);
+	const winnerLabel =
+		prediction.prediction_options.find((o) => o.id === prediction.winning_option_id)?.label ?? null;
+	const topReactions = talk
+		? [...talk.reactions].sort((a, b) => b.count - a.count).slice(0, 3)
+		: null;
 
-	const isActive =
-		prediction.status === "draft" || prediction.status === "locked";
-
-	let borderClass = "border-border";
-	if (prediction.status === "locked") {
-		borderClass = "border-primary/50";
-	} else if (isActive) {
-		borderClass = "border-accent";
-	}
-
-	const getOptionLabel = (optionId: string) => {
-		const option = prediction.prediction_options.find(
-			(opt) => opt.id === optionId,
-		);
-		return option ? option.label : "in";
-	};
+	const getOptionLabel = (optionId: string) =>
+		prediction.prediction_options.find((opt) => opt.id === optionId)?.label ?? "in";
 
 	return (
-		<Reveal className={`${PREDICTION_CARD_SHELL} ${borderClass}`}>
-			<Link to={`/rooms/${roomCode}/predictions/${prediction.id}`}>
-				{/* Status badge per card */}
-				<div className={`flex items-center gap-2 mb-3`}>
-					{prediction.status === "draft" && (
-						<>
-							<Badge
-								variant='secondary'
-								className={`text-muted-foreground font-bold text-xs flex items-center gap-1 mr-auto`}
-							>
-								<Clock />
-								COMING UP
-							</Badge>
-							{prediction.deadline && (
-								<FadeContent>
-									<Countdown
-										targetTime={new Date(
-											prediction.deadline,
-										).getTime()}
-										onExpire={refetchPredictions}
-									/>
-								</FadeContent>
-							)}
-						</>
-					)}
-					{prediction.status === "locked" && (
-						<div className='flex items-center gap-2 mr-auto'>
-							<Badge
-								className={`bg-primary/20 text-primary text-xs flex items-center gap-1`}
-							>
-								<span
-									className={`h-2 w-2 rounded-full bg-primary animate-pulse`}
-								/>{" "}
-								LIVE
-							</Badge>
-						</div>
-					)}
-					{prediction.status === "revealed" && (
-						<div className={`flex items-center gap-2`}>
-							<Badge
-								variant='outline'
-								className={`text-win text-xs flex items-center gap-1`}
-							>
-								<CheckIcon className={`w-3 h-3`} />
-								Resolved
-							</Badge>
-						</div>
-					)}
-					{prediction.status === "cancelled" && (
-						<Badge
-							variant='outline'
-							className={`text-muted-foreground text-xs flex items-center gap-1`}
-						>
-							<DotIcon className={`text-muted-foreground`} />
-							Cancelled
-						</Badge>
-					)}
-					{prediction.status === "no_result" && (
-						<Badge
-							variant='outline'
-							className={`text-muted-foreground text-xs flex items-center gap-1`}
-						>
-							<DotIcon className={`text-muted-foreground`} />
-							No Result
-						</Badge>
-					)}
-				</div>
-
-				<FadeContent>
-					<h6
-						className={`text-xs text-muted-foreground font-semibold tracking-wider`}
-					>
-						{prediction.series_title
-							? `#${prediction.series_prediction_number} • ${prediction.series_title}`
-							: ""}
-					</h6>
-				</FadeContent>
-
-				<FadeContent className='mb-4'>
-					<h4 className={`text-xl md:text-2xl font-semibold`}>
-						{prediction.title}
-					</h4>
-					<PredictionTags tags={prediction.tags} className='mt-1.5' />
-				</FadeContent>
-
-				<FadeContent className={`flex flex-col gap-3 mt-2`}>
-					{prediction.prediction_options.map((option) => (
-						<Field className='w-full' key={option.id}>
-							<FieldLabel
-								htmlFor={`progress-${option.id}`}
-								className='-mb-2'
-							>
-								<span className={`flex items-center`}>
-									{option.label}
-									{prediction.winning_option_id ===
-										option.id && (
-										<Badge
-											variant='outline'
-											className=' text-sm flex items-center gap-1 text-win ml-2'
-										>
-											<CrownIcon
-												className={`w-4! h-4!`}
-											/>
-										</Badge>
-									)}
-									{/* hot pick label when one option captures HOT_PICK_THRESHOLD_PERCENT% or more of bets */}
-									{totalBetAmount > 0 &&
-									(betAmountPerOption[option.id] /
-										totalBetAmount) *
-										100 >=
-										HOT_PICK_THRESHOLD_PERCENT ? (
-										<Badge
-											variant='outline'
-											className='ml-1 text-xs'
-										>
-											🔥 hot pick
-										</Badge>
-									) : null}
-								</span>
-								<span className={`ml-auto`}>
-									{(
-										betAmountPerOption[option.id] ?? 0
-									).toLocaleString()}{" "}
-									pts
-								</span>
-							</FieldLabel>
-							<Progress
-								value={
-									totalBetAmount
-										? (betAmountPerOption[option.id] /
-												totalBetAmount) *
-											100
-										: 0
-								}
-								id={`progress-${option.id}`}
-							/>
-						</Field>
-					))}
-				</FadeContent>
-
-				<div className={`flex items-center justify-between mt-4`}>
-					{/* show total pooled */}
-					<FadeContent className={`flex items-center gap-2`}>
-						<TrophyIcon
-							className={`text-muted-foreground w-3 h-3`}
-						/>
-						<p className={`text-sm text-muted-foreground`}>
-							Pooled:{" "}
-							<CountUp
-								className={`text-foreground font-semibold`}
-								to={totalBetAmount}
-								separator=','
-							/>{" "}
-							pts
-						</p>
-					</FadeContent>
-					{/* total participants */}
-					<FadeContent className={`flex items-center gap-2`}>
-						<UsersIcon
-							className={`text-muted-foreground w-3 h-3`}
-						/>
-						<span
-							className={`text-foreground text-sm font-semibold`}
-						>
-							{bets.length.toLocaleString()}
-						</span>
-					</FadeContent>
-				</div>
-
-				<PredictionCardFooter
+		<Reveal className={cn(PREDICTION_CARD_SHELL, prediction.status === "draft" && "border-primary/40")}>
+			<Link
+				to={`/rooms/${roomCode}/predictions/${prediction.id}`}
+				className='flex flex-col gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+			>
+				<PredictionStatusLine
+					variant='inline'
 					prediction={prediction}
-					myBet={myBet}
-					optionLabel={getOptionLabel}
+					winnerLabel={winnerLabel}
+					resolvedByName={null}
+					correctedByName={null}
+					onDeadline={refetchPredictions}
 				/>
+
+				<div>
+					{prediction.series_title ? (
+						<p className='truncate text-xs text-muted-foreground'>
+							#{prediction.series_prediction_number} · {prediction.series_title}
+						</p>
+					) : null}
+					<h3 className='text-lg font-semibold leading-snug'>{prediction.title}</h3>
+					<PredictionTags tags={prediction.tags} className='mt-1.5' />
+				</div>
+
+				<CardOptions
+					status={prediction.status}
+					options={options}
+					winningOptionId={prediction.winning_option_id ?? null}
+					myOptionId={myBet?.option_id ?? null}
+				/>
+
+				<p className='text-xs text-muted-foreground tabular-nums'>
+					<span className='font-semibold text-foreground'>{formatPoints(pool)}</span> pts pooled ·{" "}
+					{picks} {picks === 1 ? "pick" : "picks"}
+				</p>
+
+				<div className='flex flex-col gap-2.5 border-t pt-3'>
+					<PredictionCardFooter
+						prediction={prediction}
+						myBet={myBet}
+						optionLabel={getOptionLabel}
+					/>
+					<ReactionSummary
+						topReactions={topReactions}
+						myReaction={talk?.my_reaction}
+						postCount={talk?.posts.length}
+					/>
+				</div>
 			</Link>
 		</Reveal>
+	);
+}
+
+type CardOptionsProps = {
+	status: Prediction["status"];
+	options: OptionTally[];
+	winningOptionId: string | null;
+	myOptionId: string | null;
+};
+
+// One compact row per option: its colour, label, your pick, and its share of
+// the points. Once revealed the winner turns green and the rest go grey.
+function CardOptions({ status, options, winningOptionId, myOptionId }: Readonly<CardOptionsProps>) {
+	const settled = status === "revealed";
+	const voided = status === "no_result" || status === "cancelled";
+
+	return (
+		<ul className='flex flex-col gap-2.5' aria-label='Options'>
+			{options.map(({ option, index, percent }) => {
+				const isWinner = settled && option.id === winningOptionId;
+				const tone = optionTone(index);
+				const muted = (settled && !isWinner) || voided;
+				return (
+					<li key={option.id} className={cn("flex flex-col gap-1", settled && !isWinner && "opacity-70")}>
+						<span className='flex items-center gap-2 text-sm'>
+							{isWinner ? (
+								<CheckIcon className='size-3.5 shrink-0 text-win' strokeWidth={3} aria-label='Winner' />
+							) : (
+								<span
+									className={cn("size-2 shrink-0 rounded-full", muted ? "bg-muted-foreground/60" : tone.dot)}
+									aria-hidden
+								/>
+							)}
+							<span className='min-w-0 truncate font-medium'>{option.label}</span>
+							{option.id === myOptionId ? (
+								<span className='shrink-0 rounded-full bg-primary/15 px-1.5 py-px text-[10px] font-semibold text-primary'>
+									You
+								</span>
+							) : null}
+							<span
+								className={cn(
+									"ml-auto shrink-0 font-semibold tabular-nums",
+									isWinner && "text-win",
+								)}
+							>
+								{percent}%
+							</span>
+						</span>
+						<span className='block h-1 overflow-hidden rounded-full bg-secondary' aria-hidden>
+							<span
+								className={cn(
+									"block h-full rounded-full transition-[width] duration-500",
+									isWinner ? "bg-win" : muted ? "bg-muted-foreground/60" : tone.bar,
+								)}
+								style={{ width: `${percent}%` }}
+							/>
+						</span>
+					</li>
+				);
+			})}
+		</ul>
 	);
 }
 
@@ -275,8 +190,8 @@ type FooterProps = {
 	optionLabel: (optionId: string) => string | undefined;
 };
 
-// One plain line under the card saying where you stand: your stake once
-// you've bet, and how it turned out once it's settled.
+// One plain line saying where you stand: your stake once you've bet, and how
+// it turned out once it's settled.
 function PredictionCardFooter({ prediction, myBet, optionLabel }: Readonly<FooterProps>) {
 	const pts = (n: number) => `${Math.abs(n).toLocaleString()} pts`;
 	let text: string;
@@ -284,81 +199,74 @@ function PredictionCardFooter({ prediction, myBet, optionLabel }: Readonly<Foote
 	let showArrow = false;
 
 	if (prediction.status === "draft") {
-		const locks = describeDeadline(new Date(prediction.deadline)).when;
 		showArrow = true;
-		tone = "text-foreground";
+		tone = myBet ? "text-foreground" : "text-primary font-semibold";
 		text = myBet
 			? `${pts(myBet.amount)} on ${optionLabel(myBet.option_id)} · tap to change`
-			: `Pick a side · locks ${locks}`;
+			: "Pick a side";
 	} else if (prediction.status === "locked") {
 		text = myBet
 			? `${pts(myBet.amount)} on ${optionLabel(myBet.option_id)} · result pending`
 			: "Bets are closed · you sat this one out";
 	} else if (prediction.status === "revealed") {
-		const winner = prediction.winning_option_id
-			? optionLabel(prediction.winning_option_id)
-			: undefined;
 		if (!myBet) {
-			text = winner ? `${winner} won · you sat this one out` : "Settled";
+			text = "You sat this one out";
 		} else {
 			const net = (myBet.payout ?? 0) - myBet.amount;
 			if (myBet.option_id === prediction.winning_option_id) {
-				tone = "text-win";
-				text = `${winner} won · +${pts(net)}`;
+				tone = "text-win font-semibold";
+				text = `You called it · +${pts(net)}`;
 			} else {
 				tone = "text-loss";
-				text = `${winner} won · you lost ${pts(myBet.amount)}`;
+				text = `You missed it · −${pts(myBet.amount)}`;
 			}
 		}
-	} else if (prediction.status === "no_result") {
-		text = myBet ? `No result · ${pts(myBet.amount)} refunded` : "No result";
 	} else {
-		text = myBet ? `Cancelled · ${pts(myBet.amount)} refunded` : "Cancelled";
+		text = myBet ? `${pts(myBet.amount)} refunded` : "Nothing staked";
 	}
 
 	return (
-		<span
-			className={`mt-6 flex items-center justify-end text-right text-sm ${tone}`}
-		>
-			{text}
-			{showArrow ? <ChevronRightIcon className='ml-1 inline-block' /> : null}
+		<span className={cn("flex items-center justify-between gap-2 text-sm", tone)}>
+			<span className='min-w-0 truncate'>{text}</span>
+			{showArrow ? <ChevronRightIcon className='size-4 shrink-0' aria-hidden /> : null}
 		</span>
 	);
 }
 
-// The card's shape while predictions load: status row, series line, title,
-// two options with bars, the pool/players row and the call to action.
+// The card's shape while predictions load: status, series line, title, two
+// options, the pool line and the footer.
 function PredictionCardSkeleton() {
 	return (
 		<div aria-hidden='true' className={PREDICTION_CARD_SHELL}>
-			<div>
-				<div className='mb-3 flex items-center justify-between'>
-					<Skeleton className='h-5.5 w-24 rounded-full' />
-					<Skeleton className='h-8 w-24 rounded-lg' />
+			<div className='flex flex-col gap-3'>
+				<div className='flex h-5 items-center justify-between'>
+					<Skeleton className='h-3.5 w-40' />
+					<Skeleton className='h-3.5 w-12' />
 				</div>
-				<div className='flex h-4 items-center'>
-					<Skeleton className='h-3 w-32' />
+				<div>
+					<div className='flex h-4 items-center'>
+						<Skeleton className='h-3 w-32' />
+					</div>
+					<div className='flex h-7 items-center'>
+						<Skeleton className='h-5 w-3/4' />
+					</div>
 				</div>
-				<div className='mb-4 flex h-7 items-center md:h-8'>
-					<Skeleton className='h-5 w-3/4' />
-				</div>
-				<div className='mt-2 flex flex-col gap-4'>
+				<div className='flex flex-col gap-2.5'>
 					{[0, 1].map((option) => (
-						<div key={option} className='flex flex-col gap-3'>
+						<div key={option} className='flex flex-col gap-1'>
 							<div className='flex h-5 items-center justify-between'>
 								<Skeleton className='h-3.5 w-24' />
-								<Skeleton className='h-3.5 w-12' />
+								<Skeleton className='h-3.5 w-8' />
 							</div>
-							<Skeleton className='h-2 w-full rounded-full' />
+							<Skeleton className='h-1 w-full rounded-full' />
 						</div>
 					))}
 				</div>
-				<div className='mt-4 flex h-5 items-center justify-between'>
-					<Skeleton className='h-3.5 w-28' />
-					<Skeleton className='h-3.5 w-8' />
+				<div className='flex h-4 items-center'>
+					<Skeleton className='h-3 w-36' />
 				</div>
-				<div className='mt-6 flex h-6 items-center justify-end'>
-					<Skeleton className='h-3.5 w-36' />
+				<div className='flex h-8 items-center border-t pt-3'>
+					<Skeleton className='h-3.5 w-44' />
 				</div>
 			</div>
 		</div>

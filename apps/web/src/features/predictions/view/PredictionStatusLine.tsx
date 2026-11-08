@@ -3,6 +3,7 @@ import { CheckIcon, LockIcon, MinusCircleIcon, XCircleIcon } from "lucide-react"
 import type { Prediction } from "@/features/predictions/types/types";
 import { describeDeadline } from "@/shared/lib/deadline";
 import { formatAgo, formatWhen } from "@/features/predictions/lib/predictionView";
+import { cn } from "@/shared/lib/utils";
 
 type Props = {
 	prediction: Prediction;
@@ -11,7 +12,12 @@ type Props = {
 	correctedByName: string | null;
 	// Called once when an open prediction's deadline passes.
 	onDeadline?: () => void;
+	// "box": its own bordered line (prediction screen). "inline": no frame,
+	// for sitting inside a card.
+	variant?: Variant;
 };
+
+type Variant = "box" | "inline";
 
 // The one line that says where a prediction stands: open with its countdown,
 // locked, its result, or no result / cancelled with the reason.
@@ -21,18 +27,19 @@ export function PredictionStatusLine({
 	resolvedByName,
 	correctedByName,
 	onDeadline,
+	variant = "box",
 }: Readonly<Props>) {
 	const deadline = new Date(prediction.deadline);
 
 	if (prediction.status === "draft") {
 		return (
-			<OpenStatus deadline={deadline} onDeadline={onDeadline} />
+			<OpenStatus deadline={deadline} onDeadline={onDeadline} variant={variant} />
 		);
 	}
 
 	if (prediction.status === "locked") {
 		return (
-			<StatusShell icon={<LockIcon className='size-3.5 text-accent' aria-hidden />}>
+			<StatusShell variant={variant} icon={<LockIcon className='size-3.5 text-accent' aria-hidden />}>
 				<span className='flex-1'>Locked · awaiting result</span>
 				<span className='shrink-0 text-xs text-muted-foreground' title='When betting closed'>
 					{formatAgo(prediction.deadline)}
@@ -46,7 +53,7 @@ export function PredictionStatusLine({
 
 	if (prediction.status === "revealed") {
 		return (
-			<StatusShell icon={<CheckIcon className='size-3.5 text-win' strokeWidth={3} aria-hidden />}>
+			<StatusShell variant={variant} icon={<CheckIcon className='size-3.5 text-win' strokeWidth={3} aria-hidden />}>
 				<span className='flex-1'>
 					<span className='font-semibold'>{winnerLabel ?? "Result"} won</span>
 					{resolvedByName ? ` · revealed by ${resolvedByName}` : ""}
@@ -64,7 +71,7 @@ export function PredictionStatusLine({
 		: when;
 
 	return (
-		<StatusShell icon={<Icon className='mt-0.5 size-3.5 text-muted-foreground' aria-hidden />} alignTop>
+		<StatusShell variant={variant} icon={<Icon className='mt-0.5 size-3.5 text-muted-foreground' aria-hidden />} alignTop>
 			<span className='flex-1'>
 				<span className='font-semibold'>{cancelled ? "Cancelled" : "No result"}</span>
 				{prediction.no_result_reason ? ` · ${prediction.no_result_reason}` : ""}
@@ -78,12 +85,17 @@ export function PredictionStatusLine({
 function StatusShell({
 	icon,
 	alignTop = false,
+	variant,
 	children,
-}: Readonly<{ icon: ReactNode; alignTop?: boolean; children: ReactNode }>) {
+}: Readonly<{ icon: ReactNode; alignTop?: boolean; variant: Variant; children: ReactNode }>) {
 	return (
 		<div
 			role='status'
-			className={`flex ${alignTop ? "items-start" : "items-center"} gap-2 rounded-lg border bg-card px-3 py-2.5 text-[13px]`}
+			className={cn(
+				"flex gap-2 text-[13px]",
+				alignTop ? "items-start" : "items-center",
+				variant === "box" && "rounded-lg border bg-card px-3 py-2.5",
+			)}
 		>
 			{icon}
 			{children}
@@ -94,7 +106,8 @@ function StatusShell({
 function OpenStatus({
 	deadline,
 	onDeadline,
-}: Readonly<{ deadline: Date; onDeadline?: () => void }>) {
+	variant,
+}: Readonly<{ deadline: Date; onDeadline?: () => void; variant: Variant }>) {
 	const now = useNow(deadline);
 	const left = deadline.getTime() - now;
 	const fired = useRef(false);
@@ -107,7 +120,7 @@ function OpenStatus({
 	}, [left, onDeadline]);
 
 	return (
-		<StatusShell icon={<span className='size-2 shrink-0 rounded-full bg-live' aria-hidden />}>
+		<StatusShell variant={variant} icon={<span className='size-2 shrink-0 rounded-full bg-live' aria-hidden />}>
 			<span className='flex-1'>
 				{left > 0 ? `Open · closes ${describeDeadline(deadline).when}` : "Closing…"}
 			</span>
