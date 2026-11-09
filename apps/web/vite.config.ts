@@ -44,7 +44,8 @@ function buildInfo() {
 
   // Bakes the build ID into the app and publishes it as /version.json, so an
   // open app can tell when a newer build has been deployed. Only `version` is
-  // compared; the other fields are for people checking what's live.
+  // compared; `assets` is for the service worker, the rest for people
+  // checking what's live.
   // Third-party code in a few long-lived chunks: it rarely changes between
 // releases, so after a deploy returning players only download the app's own
 // code. Animation code is left to Rollup: grouping it would pull the lazily
@@ -66,11 +67,16 @@ function appVersion(info: ReturnType<typeof buildInfo> | { version: string }): P
       config() {
         return { define: { __APP_VERSION__: JSON.stringify(info.version) } }
       },
-      generateBundle() {
+      generateBundle(_options, bundle) {
+        // Every file of this build, for the service worker to keep a copy of
+        // so the app opens offline (public/sw.js). Source maps are never served.
+        const assets = Object.keys(bundle)
+          .filter((file) => !file.endsWith('.map'))
+          .map((file) => `/${file}`)
         this.emitFile({
           type: 'asset',
           fileName: 'version.json',
-          source: JSON.stringify(info),
+          source: JSON.stringify({ ...info, assets }),
         })
       },
     }

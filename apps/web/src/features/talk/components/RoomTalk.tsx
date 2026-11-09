@@ -19,6 +19,8 @@ type Props = {
 	moments: PredictionMoments;
 	viewerId: string | null;
 	onReact: (reaction: ReactionKey | null) => void;
+	// Offline: reactions show but can't be changed.
+	readOnly?: boolean;
 };
 
 type Entry =
@@ -29,7 +31,7 @@ type Entry =
 // (one each, tap again to take it back); below, what people said, newest
 // first, with the prediction's own moments (betting closing, the result)
 // between them so it reads as one story.
-export function RoomTalk({ talk, moments, viewerId, onReact }: Readonly<Props>) {
+export function RoomTalk({ talk, moments, viewerId, onReact, readOnly = false }: Readonly<Props>) {
 	const [expanded, setExpanded] = useState(false);
 	const counts = new Map(talk?.reactions.map((r) => [r.reaction, r.count]) ?? []);
 	const totalReactions = talk?.reactions.reduce((sum, r) => sum + r.count, 0) ?? 0;
@@ -86,7 +88,7 @@ export function RoomTalk({ talk, moments, viewerId, onReact }: Readonly<Props>) 
 							type='button'
 							aria-pressed={mine}
 							aria-label={`${label}${count ? `, ${count}` : ""}${mine ? ", yours" : ""}`}
-							disabled={!talk}
+							disabled={!talk || readOnly}
 							onClick={() => onReact(mine ? null : key)}
 							className={cn(
 								"flex h-10 flex-1 items-center justify-center gap-1 rounded-full border bg-card text-[13px] tabular-nums transition-colors hover:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50",

@@ -5,9 +5,7 @@ import {
 	RankChange,
 	splitStandings,
 	useSeriesLeaderboard,
-	useSeriesWeeklyRecap,
 	ShareStandingsButton,
-	ShareWeeklyButton,
 } from "@/features/leaderboard";
 import { useActivePredictions } from "@/features/predictions";
 import {
@@ -15,7 +13,7 @@ import {
 	useCurrentSeries,
 	useSeriesWallet,
 } from "@/features/series";
-import { TrendingUpIcon, TrophyIcon } from "lucide-react";
+import { TrophyIcon } from "lucide-react";
 import { describeDeadline } from "@/shared/lib/deadline";
 import { cn, formatSignedPoints } from "@/shared/lib/utils";
 import { Reveal, Skeleton } from "@/shared/ui";
@@ -42,11 +40,6 @@ export function SeriesHeroCard() {
 	const { data: standings = [] } = useSeriesLeaderboard(
 		room.id,
 		currentSeriesId,
-	);
-	const { data: weeklyRecap } = useSeriesWeeklyRecap(
-		room.id,
-		currentSeriesId,
-		currentSeries?.status === "active",
 	);
 	const { data: predictions = [] } = useActivePredictions(
 		room.id,
@@ -144,20 +137,6 @@ export function SeriesHeroCard() {
 				{wallet.escrow.toLocaleString()} in play ·{" "}
 				{wallet.available.toLocaleString()} to spend
 			</p>
-
-			{currentSeries.status === "active" && weeklyRecap ? (
-				<div className='mt-3 flex items-center gap-3 rounded-xl border bg-muted/40 px-3 py-2'>
-					<TrendingUpIcon className='size-4 shrink-0 text-accent' />
-					<p className='min-w-0 flex-1 truncate text-sm'>
-						Week {weeklyRecap.week_number} standings are in
-					</p>
-					<ShareWeeklyButton
-						series={currentSeries}
-						className='h-8 px-3 text-xs'
-						label='Share'
-					/>
-				</div>
-			) : null}
 
 			{currentSeries.status === "completed" && champion ? (
 				<div className='mt-3 flex items-center gap-3 rounded-xl border bg-muted/40 px-3 py-2'>
