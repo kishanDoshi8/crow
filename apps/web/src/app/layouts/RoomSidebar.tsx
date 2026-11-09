@@ -6,6 +6,7 @@ import {
 	EllipsisVerticalIcon,
 	InboxIcon,
 	LayersIcon,
+	LayoutGridIcon,
 	PlusIcon,
 	UserPlusIcon,
 } from "lucide-react";
@@ -24,19 +25,23 @@ import { useRoomActions } from "@/shared/lib/roomActions";
 import { cn } from "@/shared/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 
-const ITEM =
-	"flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-// The rail: the same items as squares, icon only.
-const RAIL_ITEM =
-	"flex size-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-const ACTIVE = "bg-primary/15 text-primary hover:bg-primary/20 hover:text-primary";
-
 // Desktop sidebar widths, shared with the room layout's content offset.
+// Collapsed, the rail's inside (4rem less 2 × 0.625rem padding) is exactly
+// one 44px item wide, so every item becomes a square.
 export const SIDEBAR_WIDTH = { open: "16rem", rail: "4rem" } as const;
+
+// Every row is one height (h-11) in both states, with its icon 13px in from
+// the left: centred in the 44px square when collapsed, and in the same spot
+// when open. Collapsing only narrows the sidebar and fades the labels, so
+// nothing moves.
+const ITEM =
+	"relative flex h-11 w-full shrink-0 items-center gap-3 rounded-lg px-3.25 text-left text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const ACTIVE = "bg-primary/15 text-primary hover:bg-primary/20 hover:text-primary";
+const ICON = "size-4.5 shrink-0";
 
 type Props = {
 	room: Room;
-	// Collapsed: a thin rail of icons, labels on hover.
+	// Collapsed: a 4rem rail, icons only, labels on hover.
 	collapsed: boolean;
 };
 
@@ -56,105 +61,84 @@ export function RoomSidebar({ room, collapsed }: Readonly<Props>) {
 	const toResolve = queue?.to_resolve.length ?? 0;
 	const memberCount = room.members.length;
 	const seriesLabel = currentSeries?.title ?? (can.organize ? "Start a series" : "No series yet");
-	const item = (isActive: boolean) => cn(collapsed ? RAIL_ITEM : ITEM, isActive && ACTIVE);
+	// Labels fade as the sidebar narrows, and stay out of the tab order.
+	const label = cn(
+		"min-w-0 flex-1 truncate whitespace-nowrap transition-opacity duration-200 motion-reduce:transition-none",
+		collapsed && "pointer-events-none opacity-0",
+	);
 
 	return (
 		<aside
 			aria-label='Room'
 			className={cn(
-				"fixed inset-y-0 left-0 z-30 hidden flex-col gap-1 border-r bg-sidebar py-4 lg:flex",
-				collapsed ? "w-16 items-center px-2" : "w-64 px-3",
+				"fixed inset-y-0 left-0 z-30 hidden flex-col gap-1 overflow-hidden bg-sidebar px-2.5 py-4 transition-[width] duration-200 ease-out motion-reduce:transition-none lg:flex",
+				collapsed ? "w-16" : "w-64",
 			)}
 		>
+			{/* The edge, drawn over the sidebar rather than as a border, so the
+			    rail's inside stays exactly one square item wide. */}
+			<span className='pointer-events-none absolute inset-y-0 right-0 w-px bg-border' aria-hidden='true' />
 			{player ? (
 				<RoomSwitcherPopover playerId={player.id}>
-					{collapsed ? (
-						<button
-							type='button'
-							title={`${room.name} · switch room`}
-							aria-label={`${room.name}. Switch room`}
-							className='rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-						>
-							<span
-								className='block size-10 rounded-lg bg-linear-to-br from-primary to-accent'
-								aria-hidden='true'
-							/>
-						</button>
-					) : (
-						<button
-							type='button'
-							className='flex items-center gap-2.5 rounded-xl border bg-card p-2 text-left transition-colors hover:bg-secondary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-							aria-label={`${room.name}. Switch room`}
-						>
-							<span
-								className='size-9 shrink-0 rounded-lg bg-linear-to-br from-primary to-accent'
-								aria-hidden='true'
-							/>
-							<span className='min-w-0 flex-1 leading-tight'>
-								<span className='block truncate font-bold'>{room.name}</span>
-								<span className='block text-xs text-muted-foreground'>
-									{memberCount} {memberCount === 1 ? "member" : "members"}
-								</span>
+					<button
+						type='button'
+						title={collapsed ? `${room.name} · switch room` : undefined}
+						aria-label={`${room.name}. Switch room`}
+						className='flex h-11 w-full shrink-0 items-center gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+					>
+						{/* The phone header's room button. */}
+						<span className='flex size-11 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-primary to-accent text-primary-foreground'>
+							<LayoutGridIcon className='size-5' aria-hidden='true' />
+						</span>
+						<span className={cn(label, "leading-tight")}>
+							<span className='block truncate font-bold'>{room.name}</span>
+							<span className='block text-xs text-muted-foreground'>
+								{memberCount} {memberCount === 1 ? "member" : "members"}
 							</span>
-							<ChevronsUpDownIcon className='size-4 shrink-0 text-muted-foreground' />
-						</button>
-					)}
+						</span>
+						<ChevronsUpDownIcon className={cn("size-4 shrink-0 text-muted-foreground", label, "flex-none")} />
+					</button>
 				</RoomSwitcherPopover>
 			) : null}
 
-			<div className={cn("mt-2 flex flex-col gap-1", collapsed ? "items-center" : "items-start")}>
-				<SeriesPickerPopover roomId={room.id} roomCode={room.code} isOrganizer={can.organize}>
-					{collapsed ? (
-						<button
-							type='button'
-							title={`Series: ${seriesLabel}`}
-							aria-label={`Series: ${currentSeries?.title ?? "none"}. Change series`}
-							className={cn(RAIL_ITEM, "relative")}
-						>
-							<LayersIcon className='size-4.5' aria-hidden='true' />
-							{currentSeries?.status === "active" ? (
-								<span
-									aria-hidden='true'
-									className='absolute top-2.5 right-2.5 size-1.5 rounded-full bg-live'
-								/>
-							) : null}
-						</button>
-					) : (
-						<button
-							type='button'
-							className='flex w-full min-w-0 items-center gap-1.5 rounded-full border border-border/70 bg-muted/50 py-1 pr-2 pl-3 text-xs font-medium text-foreground/85 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50'
-							aria-label={`Series: ${currentSeries?.title ?? "none"}. Change series`}
-						>
-							{currentSeries?.status === "active" ? (
-								<span aria-hidden='true' className='size-1.5 shrink-0 rounded-full bg-live' />
-							) : null}
-							<span className='truncate'>{seriesLabel}</span>
-							<ChevronDownIcon className='ml-auto size-3.5 shrink-0' />
-						</button>
-					)}
-				</SeriesPickerPopover>
-			</div>
+			<SeriesPickerPopover roomId={room.id} roomCode={room.code} isOrganizer={can.organize}>
+				<button
+					type='button'
+					title={collapsed ? `Series: ${seriesLabel}` : undefined}
+					aria-label={`Series: ${currentSeries?.title ?? "none"}. Change series`}
+					className={cn(ITEM, "mt-2")}
+				>
+					<span className='relative flex'>
+						<LayersIcon className={ICON} aria-hidden='true' />
+						{currentSeries?.status === "active" ? (
+							<span
+								aria-hidden='true'
+								className='absolute -top-0.5 -right-0.5 size-2 rounded-full border-2 border-sidebar bg-live'
+							/>
+						) : null}
+					</span>
+					<span className={cn(label, "text-foreground/85")}>{seriesLabel}</span>
+					<ChevronDownIcon className={cn("size-3.5 shrink-0", label, "flex-none")} />
+				</button>
+			</SeriesPickerPopover>
 
-			<nav
-				aria-label='Room navigation'
-				className={cn("mt-3 flex flex-col gap-1 border-t pt-3", collapsed && "items-center")}
-			>
-				{ROOM_TABS.map(({ label, segment, icon: Icon }) => {
+			<nav aria-label='Room navigation' className='mt-2 flex flex-col gap-1 border-t pt-3'>
+				{ROOM_TABS.map(({ label: name, segment, icon: Icon }) => {
 					const to = segment ? `${base}/${segment}` : base;
 					return (
-						<RailTip key={label} label={label} collapsed={collapsed}>
+						<RailTip key={name} label={name} collapsed={collapsed}>
 							<NavLink
 								to={to}
 								end={segment.length === 0}
-								aria-label={collapsed ? label : undefined}
+								aria-label={collapsed ? name : undefined}
 								onClick={(event) => {
 									event.preventDefault();
 									switchTab(to);
 								}}
-								className={({ isActive }) => item(isActive)}
+								className={({ isActive }) => cn(ITEM, isActive && ACTIVE)}
 							>
-								<Icon className='size-4.5' aria-hidden='true' />
-								{collapsed ? null : label}
+								<Icon className={ICON} aria-hidden='true' />
+								<span className={label}>{name}</span>
 							</NavLink>
 						</RailTip>
 					);
@@ -162,30 +146,32 @@ export function RoomSidebar({ room, collapsed }: Readonly<Props>) {
 			</nav>
 
 			{can.resolve ? (
-				<div className={cn("mt-3 flex flex-col gap-1 border-t pt-3", collapsed && "items-center")}>
-					{collapsed ? null : (
-						<p className='px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground'>
-							Staff
-						</p>
-					)}
+				<div className='mt-2 flex flex-col gap-1 border-t pt-3'>
+					{/* Keeps its height when collapsed, so the items below stay put. */}
+					<p
+						className={cn(
+							label,
+							"flex-none px-3.25 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground",
+						)}
+					>
+						Staff
+					</p>
 					<RailTip label={toResolve > 0 ? `Needs you · ${toResolve}` : "Needs you"} collapsed={collapsed}>
 						<NavLink
 							to={`${base}/manage`}
 							aria-label={collapsed ? `Needs you${toResolve > 0 ? `, ${toResolve}` : ""}` : undefined}
-							className={({ isActive }) => item(isActive)}
+							className={({ isActive }) => cn(ITEM, isActive && ACTIVE)}
 						>
-							{/* In the rail, the count is the icon. */}
+							{/* Collapsed, the count stands in for the icon. */}
 							{collapsed && toResolve > 0 ? (
-								<NeedsYouBadge count={toResolve} />
+								<span className='-mx-px flex w-5 shrink-0 justify-center'>
+									<NeedsYouBadge count={toResolve} />
+								</span>
 							) : (
-								<InboxIcon className='size-4.5' aria-hidden='true' />
+								<InboxIcon className={ICON} aria-hidden='true' />
 							)}
-							{collapsed ? null : (
-								<>
-									<span className='flex-1'>Needs you</span>
-									{toResolve > 0 ? <NeedsYouBadge count={toResolve} /> : null}
-								</>
-							)}
+							<span className={label}>Needs you</span>
+							{!collapsed && toResolve > 0 ? <NeedsYouBadge count={toResolve} /> : null}
 						</NavLink>
 					</RailTip>
 					{can.organize && currentSeries?.status === "active" ? (
@@ -195,12 +181,12 @@ export function RoomSidebar({ room, collapsed }: Readonly<Props>) {
 								state={{ seriesId: currentSeries.id }}
 								aria-label={collapsed ? "New prediction" : undefined}
 								className={cn(
-									"mt-1 flex items-center justify-center gap-2 rounded-lg bg-linear-to-r from-primary to-accent text-sm font-semibold text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-									collapsed ? "size-11" : "h-10",
+									ITEM,
+									"mt-1 bg-linear-to-r from-primary to-accent font-semibold text-primary-foreground hover:bg-transparent hover:text-primary-foreground hover:brightness-110",
 								)}
 							>
-								<PlusIcon className='size-4' aria-hidden='true' />
-								{collapsed ? null : "New prediction"}
+								<PlusIcon className={ICON} aria-hidden='true' />
+								<span className={label}>New prediction</span>
 							</Link>
 						</RailTip>
 					) : null}
@@ -214,37 +200,34 @@ export function RoomSidebar({ room, collapsed }: Readonly<Props>) {
 					type='button'
 					onClick={openInvite}
 					aria-label={collapsed ? "Invite friends" : undefined}
-					className={cn(collapsed ? RAIL_ITEM : ITEM, !collapsed && "w-full text-left")}
+					className={ITEM}
 				>
-					<UserPlusIcon className='size-4.5' aria-hidden='true' />
-					{collapsed ? null : "Invite friends"}
+					<UserPlusIcon className={ICON} aria-hidden='true' />
+					<span className={label}>Invite friends</span>
 				</button>
 			</RailTip>
 
-			<RailTip label='Room menu & account' collapsed={collapsed}>
-				<button
-					type='button'
-					onClick={() => setIsMenuOpen(true)}
-					className={cn(
-						"mt-1 flex items-center gap-2.5 rounded-lg border-t pt-3 pb-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-						collapsed ? "justify-center px-0" : "px-2",
-					)}
-					aria-label='Room menu'
-				>
-					<span className='flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold'>
-						{player ? player.username.slice(0, 2).toUpperCase() : ""}
-					</span>
-					{collapsed ? null : (
-						<>
-							<span className='min-w-0 flex-1 leading-tight'>
-								<span className='block truncate text-sm font-semibold'>{player?.username}</span>
-								<span className='block text-xs text-muted-foreground'>Room menu &amp; account</span>
+			<div className='mt-1 border-t pt-2'>
+				<RailTip label='Room menu & account' collapsed={collapsed}>
+					<button
+						type='button'
+						onClick={() => setIsMenuOpen(true)}
+						aria-label='Room menu'
+						className={cn(ITEM, "px-1.5 text-foreground")}
+					>
+						<span className='flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold'>
+							{player ? player.username.slice(0, 2).toUpperCase() : ""}
+						</span>
+						<span className={cn(label, "leading-tight")}>
+							<span className='block truncate text-sm font-semibold'>{player?.username}</span>
+							<span className='block text-xs font-normal text-muted-foreground'>
+								Room menu &amp; account
 							</span>
-							<EllipsisVerticalIcon className='size-4 shrink-0 text-muted-foreground' />
-						</>
-					)}
-				</button>
-			</RailTip>
+						</span>
+						<EllipsisVerticalIcon className={cn("size-4 shrink-0 text-muted-foreground", label, "flex-none")} />
+					</button>
+				</RailTip>
+			</div>
 
 			<RoomMenuDrawer room={room} open={isMenuOpen} onOpenChange={setIsMenuOpen} />
 		</aside>
@@ -253,13 +236,15 @@ export function RoomSidebar({ room, collapsed }: Readonly<Props>) {
 
 function NeedsYouBadge({ count }: Readonly<{ count: number }>) {
 	return (
-		<span className='flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground tabular-nums'>
+		<span className='flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground tabular-nums'>
 			{count}
 		</span>
 	);
 }
 
-// The rail shows icons only, so each gets its label on hover and focus.
+// The rail shows icons only, so each gets its label on hover and focus. The
+// trigger is a wrapper rather than the item itself: merging the trigger's
+// props into a NavLink would break its className function.
 function RailTip({
 	label,
 	collapsed,
@@ -268,7 +253,9 @@ function RailTip({
 	if (!collapsed) return children;
 	return (
 		<Tooltip>
-			<TooltipTrigger asChild>{children}</TooltipTrigger>
+			<TooltipTrigger asChild>
+				<span className='block'>{children}</span>
+			</TooltipTrigger>
 			<TooltipContent side='right'>{label}</TooltipContent>
 		</Tooltip>
 	);

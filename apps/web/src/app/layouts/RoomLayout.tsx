@@ -150,7 +150,12 @@ export default function RoomLayout() {
 		{/* Desktop: the sidebar takes the header's and bottom nav's place, and the
 		    pages sit to its right. Phones and tablets never see it. */}
 		<RoomSidebar room={room} collapsed={!sidebarOpen} />
-		<div className={cn('min-h-dvh flex flex-col', sidebarOpen ? 'lg:pl-64' : 'lg:pl-16')}>
+		<div
+			className={cn(
+				'min-h-dvh flex flex-col lg:transition-[padding] lg:duration-200 lg:ease-out motion-reduce:transition-none',
+				sidebarOpen ? 'lg:pl-64' : 'lg:pl-16',
+			)}
+		>
 			<RoomTopBar
 				room={room}
 				title={headerConfig?.title}
