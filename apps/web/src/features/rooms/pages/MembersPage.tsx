@@ -41,7 +41,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 const DRAWER_CLASS =
-	"data-[vaul-drawer-direction=bottom]:right-auto data-[vaul-drawer-direction=bottom]:left-1/2 data-[vaul-drawer-direction=bottom]:w-full data-[vaul-drawer-direction=bottom]:max-w-md data-[vaul-drawer-direction=bottom]:-translate-x-1/2";
+	"mx-auto max-w-md";
 
 // Everyone in the room and their role. The owner taps a member to change it.
 export default function MembersPage() {

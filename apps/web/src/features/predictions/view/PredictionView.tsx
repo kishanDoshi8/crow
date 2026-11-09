@@ -380,7 +380,7 @@ function LoadedPrediction({
 					{isDesktop ? actionBar : null}
 				</div>
 				{isDesktop && roomTalk ? (
-					<aside aria-label='Room talk' className='sticky top-6 rounded-2xl border bg-card p-4'>
+					<aside aria-label='Room talk' className='sticky top-20 rounded-2xl border bg-card p-4'>
 						{roomTalk}
 					</aside>
 				) : null}

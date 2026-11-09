@@ -61,7 +61,7 @@ function UserStats({
 		(!!currentSeriesId && isSeriesLeaderboardLoading);
 
 	return (
-		<div className={`w-full max-w-md mx-auto`}>
+		<div className={`w-full max-w-md mx-auto lg:max-w-none`}>
 			<h2 className={`text-lg font-semibold`}>{title}</h2>
 			<p className={`text-xs text-muted-foreground mb-4`}>{subtitle}</p>
 			<LeaderboardContent

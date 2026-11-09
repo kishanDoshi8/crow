@@ -551,7 +551,7 @@ function InPlayPredictions({
 	}
 
 	return (
-		<div className={layout === "grid" ? "w-full" : "max-w-lg mx-auto"}>
+		<div className={layout === "grid" ? "w-full" : "max-w-lg mx-auto lg:max-w-none"}>
 			{showSectionHeader && isPredictionLoading && (
 				<div
 					aria-hidden='true'

@@ -1,7 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Link, NavLink } from "react-router-dom";
 import {
-	BellIcon,
 	ChevronDownIcon,
 	ChevronsUpDownIcon,
 	EllipsisVerticalIcon,
@@ -17,12 +16,7 @@ import {
 	useRoomRole,
 	type Room,
 } from "@/features/rooms";
-import {
-	SeriesPickerPopover,
-	WalletPopover,
-	useCurrentSeries,
-	useSeriesWallet,
-} from "@/features/series";
+import { SeriesPickerPopover, useCurrentSeries } from "@/features/series";
 import { usePlayer } from "@/features/home";
 import { useAppNavigation } from "@/shared/lib/navigation";
 import { useRoomActions } from "@/shared/lib/roomActions";
@@ -32,14 +26,14 @@ const ITEM =
 	"flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const ACTIVE = "bg-primary/15 text-primary hover:bg-primary/20 hover:text-primary";
 
-// Desktop (lg and up): everything the phone keeps in the header, the bottom
-// nav and the room menu, down the left side. Rooms and series switch from
-// dropdowns at the top.
+// Desktop (lg and up): the room, its series and its pages down the left
+// side, in place of the phone's bottom nav and room menu. Rooms and series
+// switch from dropdowns at the top. Points and Activity are in the top bar.
+// It can be hidden from the top bar's toggle.
 export function RoomSidebar({ room }: Readonly<{ room: Room }>) {
 	const { data: player } = usePlayer();
 	const { can } = useRoomRole(room);
-	const { currentSeries, currentSeriesId } = useCurrentSeries(room.id);
-	const { wallet } = useSeriesWallet(room.id, currentSeriesId);
+	const { currentSeries } = useCurrentSeries(room.id);
 	const { data: queue } = useManageQueue(room.id, can.resolve);
 	const { openInvite } = useRoomActions();
 	const { switchTab } = useAppNavigation();
@@ -91,7 +85,6 @@ export function RoomSidebar({ room }: Readonly<{ room: Room }>) {
 						<ChevronDownIcon className='ml-auto size-3.5 shrink-0' />
 					</button>
 				</SeriesPickerPopover>
-				{wallet ? <WalletPopover wallet={wallet} /> : null}
 			</div>
 
 			<nav aria-label='Room navigation' className='mt-3 flex flex-col gap-1 border-t pt-3'>
@@ -144,22 +137,6 @@ export function RoomSidebar({ room }: Readonly<{ room: Room }>) {
 
 			<div className='flex-1' />
 
-			<NavLink
-				to={`${base}/activities`}
-				className={({ isActive }) => cn(ITEM, isActive && ACTIVE)}
-				aria-label={room.has_unseen_activities ? "Activity, new updates" : "Activity"}
-			>
-				<span className='relative flex'>
-					<BellIcon className='size-4.5' aria-hidden='true' />
-					{room.has_unseen_activities ? (
-						<span
-							className='absolute -top-0.5 -right-0.5 size-2 rounded-full bg-destructive'
-							aria-hidden='true'
-						/>
-					) : null}
-				</span>
-				Activity
-			</NavLink>
 			<SidebarButton onClick={openInvite} icon={<UserPlusIcon className='size-4.5' aria-hidden='true' />}>
 				Invite friends
 			</SidebarButton>

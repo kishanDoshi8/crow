@@ -22,7 +22,7 @@ export function UpNextCard({ roomId, roomCode }: Readonly<Props>) {
 	const pageLink = `/rooms/${roomCode}/series/next`;
 
 	return (
-		<section className='rounded-2xl max-w-md mx-auto border bg-card p-4'>
+		<section className='rounded-2xl max-w-md mx-auto border bg-card p-4 lg:max-w-none'>
 			<div className='flex items-center justify-between gap-3'>
 				<div className='min-w-0'>
 					<h3 className='flex items-center gap-2 font-semibold'>

@@ -230,14 +230,15 @@ export function CloseWithoutResultDialog({
 					<DialogTitle>{copy.title}</DialogTitle>
 					<DialogDescription>
 						{copy.body} This can't be undone.
-						<Alert className={`mt-4`}>
-							<InfoIcon />
-							<AlertDescription>
-								All bets are returned and no one wins or loses
-								points.
-							</AlertDescription>
-						</Alert>
 					</DialogDescription>
+					{/* Outside the description: it renders a <p>, which can't hold the alert. */}
+					<Alert className={`mt-2`}>
+						<InfoIcon />
+						<AlertDescription>
+							All bets are returned and no one wins or loses
+							points.
+						</AlertDescription>
+					</Alert>
 				</DialogHeader>
 				<Input
 					placeholder='Reason (optional)'

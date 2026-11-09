@@ -227,12 +227,12 @@ Crow is played on phones, so it is designed **mobile first**: the unprefixed Tai
 
 ### Desktop
 
-- **Sidebar, not a top bar** (the Slack / Discord pattern). A fixed 16rem sidebar (`bg-sidebar`, right border) holds what the phone spreads across the header, bottom tab bar and room menu: the room switcher (a dropdown, not the phone's drawer), the series picker (dropdown) and points, the four tabs, Staff (Needs you with its count, New prediction), then Activity, Invite friends and the room menu at the bottom. `RoomSidebar` in `src/app/layouts`.
-- **No header on tab pages.** Inner pages keep a slim header with Back and their title; a page without a title shows "Back".
+- **Sidebar for navigation** (the Slack / Discord pattern). A fixed 16rem sidebar (`bg-sidebar`, right border) holds what the phone spreads across the bottom tab bar and room menu: the room switcher (a dropdown, not the phone's drawer), the series picker (dropdown), the four tabs, Staff (Needs you with its count, New prediction), then Invite friends and the room menu at the bottom. It can be hidden; the choice is remembered on the device. `RoomSidebar` in `src/app/layouts`.
+- **A slim top bar on every page**, in place of the phone's header: the sidebar toggle, Back on inner pages, the page title (with the room's name when the sidebar is hidden), and on the right the points and Activity, as on the phone. The offline notice sits under it. `RoomTopBar` in `src/app/layouts`.
 - **Content widths.** Lists and feeds (Standings, History, Needs you, Members, Activity, Series) widen to `lg:max-w-2xl`. Forms stay `max-w-md`. Two-column pages are capped at `max-w-260` (65rem):
   - **Home:** where you stand and What's Hot on the left, the side cards (your week, needs you, results, invite, stats, up next) in a 20rem column on the right. What's Hot shows its cards two across (one card fills the column) instead of the swipe carousel.
   - **Prediction:** the prediction on the left, Room talk in a 22rem column on the right. The phone's bottom action bar becomes a control pinned to the bottom of the left column.
-- **Sheets stay sheets.** Bottom sheets (bet, phrases, menus) keep working as centred sheets; dialogs are unchanged.
+- **Sheets stay sheets.** Bottom sheets (bet, phrases, menus) and dialogs keep their phone behaviour, but centre on the area beside the sidebar, not the whole window: the room layout sets `--sidebar-offset` and `shared/ui` drawer and dialog read it. Give a sheet a width with `mx-auto max-w-md`, never by centring it on the window yourself (`left-1/2`).
 - **Structure vs style.** Use responsive classes for style. Where desktop needs a different structure (Home, the prediction page), branch on `useIsDesktop()` (`src/shared/lib/useMediaQuery.ts`) so the phone keeps rendering exactly the tree it had.
 
 ### Named Rules
