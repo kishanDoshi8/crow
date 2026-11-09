@@ -37,45 +37,53 @@ export function RoomTopBar({
 	return (
 		<header className='sticky top-0 z-20 hidden border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:block'>
 			<div className='flex h-14 items-center gap-2 px-4'>
+				{/* The toggle stays by the sidebar; the rest lines up with the
+				    page content, so on a wide screen the title and points don't
+				    drift to opposite edges. */}
 				<Button
 					variant='ghost'
 					size='icon'
+					className='shrink-0'
 					onClick={onToggleSidebar}
-					aria-label={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
-					aria-pressed={sidebarOpen}
+					aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+					aria-expanded={sidebarOpen}
 				>
 					<PanelLeftIcon />
 				</Button>
-				{showBack ? (
-					<Button variant='ghost' size='sm' onClick={onBack} className='gap-1 pl-1.5'>
-						<ChevronLeftIcon />
-						Back
+				<div className='mx-auto flex w-full max-w-260 min-w-0 items-center gap-2 px-4'>
+					{showBack ? (
+						<Button variant='ghost' size='sm' onClick={onBack} className='gap-1 pl-1.5'>
+							<ChevronLeftIcon />
+							Back
+						</Button>
+					) : null}
+					<h1 className='min-w-0 truncate text-base font-semibold'>
+						{/* With the sidebar collapsed, say which room this is. */}
+						{sidebarOpen || heading === room.name ? null : (
+							<span className='font-normal text-muted-foreground'>{room.name} · </span>
+						)}
+						{heading}
+					</h1>
+					<div className='flex-1' />
+					{wallet ? <WalletPopover wallet={wallet} /> : null}
+					<Button variant='ghost' size='icon' className='relative' asChild>
+						<Link
+							to={`${base}/activities`}
+							aria-label={room.has_unseen_activities ? "Activity, new updates" : "Activity"}
+						>
+							<BellIcon />
+							<span
+								className={cn(
+									"absolute top-1.5 right-1.5 size-2.5 rounded-full border-2 border-background bg-destructive",
+									!room.has_unseen_activities && "hidden",
+								)}
+								aria-hidden='true'
+							/>
+						</Link>
 					</Button>
-				) : null}
-				<h1 className='min-w-0 truncate text-base font-semibold'>
-					{/* With the sidebar hidden, say which room this is. */}
-					{sidebarOpen || heading === room.name ? null : (
-						<span className='font-normal text-muted-foreground'>{room.name} · </span>
-					)}
-					{heading}
-				</h1>
-				<div className='flex-1' />
-				{wallet ? <WalletPopover wallet={wallet} /> : null}
-				<Button variant='ghost' size='icon' className='relative' asChild>
-					<Link
-						to={`${base}/activities`}
-						aria-label={room.has_unseen_activities ? "Activity, new updates" : "Activity"}
-					>
-						<BellIcon />
-						<span
-							className={cn(
-								"absolute top-1.5 right-1.5 size-2.5 rounded-full border-2 border-background bg-destructive",
-								!room.has_unseen_activities && "hidden",
-							)}
-							aria-hidden='true'
-						/>
-					</Link>
-				</Button>
+				</div>
+				{/* Balances the toggle, so the content row stays centred. */}
+				<span className='size-9 shrink-0' aria-hidden='true' />
 			</div>
 			<OfflineBar />
 		</header>

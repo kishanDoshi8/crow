@@ -28,7 +28,7 @@ import { Loading } from "@/shared/ui";
 import { useAppNavigation } from "@/shared/lib/navigation";
 import { RebrandWelcomeDialog } from "@/features/onboarding";
 import { prefetchRoomPages } from "@/app/router/roomPages";
-import { RoomSidebar } from "@/app/layouts/RoomSidebar";
+import { RoomSidebar, SIDEBAR_WIDTH } from "@/app/layouts/RoomSidebar";
 import { RoomTopBar } from "@/app/layouts/RoomTopBar";
 import { cn } from "@/shared/lib/utils";
 
@@ -100,7 +100,10 @@ export default function RoomLayout() {
 	useEffect(() => {
 		writeSidebarOpen(sidebarOpen);
 		const root = document.documentElement;
-		root.style.setProperty("--sidebar-offset", sidebarOpen ? "16rem" : "0px");
+		root.style.setProperty(
+			"--sidebar-offset",
+			sidebarOpen ? SIDEBAR_WIDTH.open : SIDEBAR_WIDTH.rail,
+		);
 		return () => {
 			root.style.removeProperty("--sidebar-offset");
 		};
@@ -146,8 +149,8 @@ export default function RoomLayout() {
 		<RoomActionsContext.Provider value={roomActions}>
 		{/* Desktop: the sidebar takes the header's and bottom nav's place, and the
 		    pages sit to its right. Phones and tablets never see it. */}
-		{sidebarOpen ? <RoomSidebar room={room} /> : null}
-		<div className={cn('min-h-dvh flex flex-col', sidebarOpen && 'lg:pl-64')}>
+		<RoomSidebar room={room} collapsed={!sidebarOpen} />
+		<div className={cn('min-h-dvh flex flex-col', sidebarOpen ? 'lg:pl-64' : 'lg:pl-16')}>
 			<RoomTopBar
 				room={room}
 				title={headerConfig?.title}
