@@ -1,4 +1,5 @@
 import { Button } from "@/shared/ui/button";
+import { OfflineBar } from "@/shared/ui";
 import { useRoomRole } from "@/features/rooms";
 import type { Room} from "@/features/rooms";
 import { RoomMenuDrawer } from "@/features/rooms";
@@ -172,6 +173,8 @@ function RoomHeader({
 				open={isMenuOpen}
 				onOpenChange={setIsMenuOpen}
 			/>
+			{/* Under the header, full width, so it stays in view while scrolling. */}
+			<OfflineBar className='-mx-3 -mb-3 mt-3' />
 		</header>
 	);
 }

@@ -17,6 +17,7 @@ import {
 	useSetReaction,
 } from "@/features/talk";
 import { useRoomContext } from "@/shared/lib/roomContext";
+import { useOnline } from "@/shared/lib/offline";
 import { useBets } from "@/features/predictions/hooks/bet";
 import { ResolvePredictionDrawer } from "@/features/predictions/components/ResolvePredictionDrawer";
 import type { Prediction } from "@/features/predictions/types/types";
@@ -135,6 +136,8 @@ function LoadedPrediction({
 				}
 			: null;
 
+	// Offline the screen is read-only: what's saved, no picks or posts.
+	const online = useOnline();
 	const isOpen = status === "draft";
 	const showRevealBar = status === "locked" && can.resolve;
 	const showBetBar = isOpen && !!player;
@@ -147,7 +150,7 @@ function LoadedPrediction({
 			className='size-12 shrink-0 rounded-full'
 			aria-label={`Say something, ${phrasesLeft} left`}
 			onClick={() => setIsTalkOpen(true)}
-			disabled={!talk}
+			disabled={!talk || !online}
 		>
 			<MessageCircleIcon />
 		</Button>
@@ -217,7 +220,7 @@ function LoadedPrediction({
 							selectedOptionId={
 								isSheetOpen ? sheetOptionId : null
 							}
-							onPick={showBetBar ? openSheet : undefined}
+							onPick={showBetBar && online ? openSheet : undefined}
 						/>
 					)}
 				</section>
@@ -244,6 +247,7 @@ function LoadedPrediction({
 					}}
 					viewerId={player?.id ?? null}
 					onReact={(reaction) => react(reaction)}
+					readOnly={!online}
 				/>
 			</div>
 
@@ -254,7 +258,7 @@ function LoadedPrediction({
 							<button
 								type='button'
 								onClick={() => setIsTalkOpen(true)}
-								disabled={!talk}
+								disabled={!talk || !online}
 								className='flex h-12 flex-1 items-center gap-2.5 rounded-full border bg-card px-4 text-left text-sm text-foreground/85 transition-colors hover:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60'
 							>
 								<MessageCircleIcon
@@ -277,6 +281,7 @@ function LoadedPrediction({
 									size='lg'
 									className='shrink-0'
 									onClick={() => setIsRevealOpen(true)}
+									disabled={!online}
 								>
 									Reveal result
 								</Button>
@@ -305,6 +310,7 @@ function LoadedPrediction({
 									size='lg'
 									className='shrink-0'
 									onClick={() => openSheet(myBet.option_id)}
+									disabled={!online}
 								>
 									Change
 								</Button>
@@ -314,7 +320,9 @@ function LoadedPrediction({
 								{sayButton}
 								<div className='min-w-0 flex-1 text-xs'>
 									<p className='flex-1 text-muted-foreground'>
-										Tap an option to make your call
+										{online
+											? "Tap an option to make your call"
+											: "You're offline · picks are paused"}
 									</p>
 									<p>
 										<span className='font-semibold text-foreground tabular-nums'>

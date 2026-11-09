@@ -57,13 +57,14 @@ function withSentry(run: (sdk: Sentry) => void) {
 }
 
 // Errors the app raises on purpose and shows to the player, like "Betting
-// deadline has passed" (Postgres codes P0001-P0099), and requests the
-// browser cancelled. They aren't bugs, so they aren't reported.
+// deadline has passed" (Postgres codes P0001-P0099), requests the browser
+// cancelled, and actions tried while offline. They aren't bugs, so they
+// aren't reported.
 function isExpected(error: unknown) {
 	if (typeof error !== "object" || error === null) return false;
 	const { code, name } = error as { code?: unknown; name?: unknown };
 	if (typeof code === "string" && /^P0\d{3}$/.test(code)) return true;
-	return name === "AbortError";
+	return name === "AbortError" || name === "OfflineError";
 }
 
 export function reportError(error: unknown, context?: Record<string, unknown>) {

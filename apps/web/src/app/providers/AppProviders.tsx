@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { reportError } from "@/shared/lib/errorReporting";
 import { CACHE_MAX_AGE } from "@/shared/lib/queryPersistence";
+import { isOnline, OfflineError } from "@/shared/lib/offline";
 import { LazyMotion, MotionConfig } from "framer-motion";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/features/auth";
@@ -18,6 +19,10 @@ import type { ReactNode } from "react";
 // mutations invalidate what changes, so switching pages or apps doesn't
 // refetch everything. Unused data is kept for a day so the saved cache
 // (queryPersistence) has it to bring back.
+//
+// Offline the app is read-only: reads pause and show the saved data, and
+// any action fails straight away with "You're offline" rather than waiting
+// to go out later (a bet sent on reconnect could land after the deadline).
 const queryClient = new QueryClient({
 	defaultOptions: {
 		queries: {
@@ -30,6 +35,9 @@ const queryClient = new QueryClient({
 			reportError(error, { queryKey: query.queryKey }),
 	}),
 	mutationCache: new MutationCache({
+		onMutate: () => {
+			if (!isOnline()) throw new OfflineError();
+		},
 		onError: (error, _variables, _context, mutation) =>
 			reportError(error, { mutationKey: mutation.options.mutationKey }),
 	}),

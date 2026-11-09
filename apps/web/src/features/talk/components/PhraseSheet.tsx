@@ -9,6 +9,7 @@ import {
 	Spinner,
 } from "@/shared/ui";
 import { cn } from "@/shared/lib/utils";
+import { useOnline } from "@/shared/lib/offline";
 import { usePostPhrase } from "../hooks";
 import type { PredictionTalk, TalkPhrase } from "../types";
 
@@ -30,6 +31,7 @@ const GROUP_TITLE = {
 // to post. Phrases for people who called it (or missed it) come first.
 export function PhraseSheet({ open, onOpenChange, roomId, predictionId, talk }: Readonly<Props>) {
 	const { mutate: post, isPending, variables } = usePostPhrase(roomId, predictionId);
+	const online = useOnline();
 	const left = talk ? Math.max(0, talk.post_limit - talk.my_post_count) : 0;
 	const groups = groupPhrases(talk?.phrases ?? []);
 
@@ -51,7 +53,11 @@ export function PhraseSheet({ open, onOpenChange, roomId, predictionId, talk }: 
 				<DrawerHeader className='text-left group-data-[vaul-drawer-direction=bottom]/drawer-content:text-left'>
 					<DrawerTitle>Say something</DrawerTitle>
 					<DrawerDescription>
-						{left > 0 ? "Tap one to post it to Room talk." : "You've used your 3 phrases on this prediction."}
+						{!online
+							? "You're offline. Phrases can be posted once you're back."
+							: left > 0
+								? "Tap one to post it to Room talk."
+								: "You've used your 3 phrases on this prediction."}
 					</DrawerDescription>
 				</DrawerHeader>
 				<div className='flex flex-col gap-4 px-4 pb-2'>
@@ -68,7 +74,7 @@ export function PhraseSheet({ open, onOpenChange, roomId, predictionId, talk }: 
 											key={phrase.id}
 											type='button'
 											onClick={() => handlePost(phrase)}
-											disabled={phrase.posted || left === 0 || isPending}
+											disabled={phrase.posted || left === 0 || isPending || !online}
 											className={cn(
 												"flex min-h-12 items-center gap-2 rounded-xl border bg-background px-3.5 text-left text-[15px] font-semibold transition-colors hover:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed",
 												(phrase.posted || left === 0) && "opacity-45",

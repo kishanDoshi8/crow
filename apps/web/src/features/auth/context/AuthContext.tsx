@@ -5,10 +5,11 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { type Session, type User } from "@supabase/supabase-js";
+import { isAuthRetryableFetchError, type Session, type User } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 import { removePushSubscription } from "@/shared/lib/pushNotifications";
-import { supabase } from "@/shared/lib/supabase";
+import { readSavedSession, supabase } from "@/shared/lib/supabase";
+import { isOnline } from "@/shared/lib/offline";
 import { setErrorReportingUser } from "@/shared/lib/errorReporting";
 import { claimQueryCache, startQueryPersistence } from "@/shared/lib/queryPersistence";
 
@@ -56,18 +57,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    void supabase.auth.getSession().then(async ({ data: { session } }) => {
-      // Bring back this person's saved data before any page renders, so the
-      // app opens on their rooms instantly (and never on someone else's).
+    // Bring back this person's saved data before any page renders, so the
+    // app opens on their rooms instantly (and never on someone else's).
+    const start = async (session: Session | null) => {
       await startQueryPersistence(queryClient, session?.user?.id ?? null);
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
+    };
+
+    // Opened offline: an expired access token can't be refreshed, and the
+    // auth client keeps retrying for a while before giving up. The person is
+    // still signed in, so open on the saved session straight away; it's
+    // refreshed once the connection is back.
+    const savedOffline = isOnline() ? null : readSavedSession();
+    if (savedOffline) void start(savedOffline);
+
+    void supabase.auth.getSession().then(({ data, error }) => {
+      if (savedOffline) {
+        if (data.session) {
+          setSession(data.session);
+          setUser(data.session.user);
+        }
+        return;
+      }
+      // A refresh that failed for lack of network isn't a sign-out either.
+      void start(
+        data.session ??
+          (error && isAuthRetryableFetchError(error) ? readSavedSession() : null),
+      );
     });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      // Only a real sign-out ends the session here. The initial "no session"
+      // that comes when the app opens offline must not sign the person out
+      // or clear their saved data.
+      if (!session && event !== "SIGNED_OUT") return;
       claimQueryCache(queryClient, session?.user?.id ?? null);
       setSession(session);
       setUser(session?.user ?? null);

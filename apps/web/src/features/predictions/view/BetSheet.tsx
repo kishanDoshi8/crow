@@ -17,6 +17,7 @@ import { useCancelBet, usePlaceBet } from "@/features/predictions/hooks/bet";
 import { previewWinnings } from "@/features/predictions/lib/payoutPreview";
 import { formatPoints } from "@/features/predictions/lib/predictionView";
 import { useRoomActions } from "@/shared/lib/roomActions";
+import { useOnline } from "@/shared/lib/offline";
 
 const NOTIFICATIONS_OFFERED_KEY = "notifications-offered-after-bet";
 const QUICK_ADDS = [5, 20, 50, 100] as const;
@@ -72,6 +73,7 @@ export function BetSheet({
 	const hasChanges = !myBet || isSwitching || amount !== myBet.amount;
 	const gain = optionId ? previewWinnings(bets, playerId, optionId, amount) : 0;
 	const busy = isPlacing || isCancelling;
+	const online = useOnline();
 
 	const close = () => onOpenChange(false);
 
@@ -215,7 +217,7 @@ export function BetSheet({
 							size='lg'
 							className='text-destructive'
 							onClick={handleCancelBet}
-							disabled={busy}
+							disabled={busy || !online}
 						>
 							{isCancelling && <Spinner />}
 							Cancel bet
@@ -230,7 +232,7 @@ export function BetSheet({
 						size='lg'
 						className='flex-1'
 						onClick={handlePlace}
-						disabled={busy || !hasChanges || !optionId || balance < 1}
+						disabled={busy || !online || !hasChanges || !optionId || balance < 1}
 					>
 						{isPlacing && <Spinner />}
 						{primaryLabel}
