@@ -8,7 +8,7 @@
 // always come from the same build.
 const APP_CACHE = "crow-app-v1";
 const PAGE = "/index.html";
-const PUBLIC_FILES = ["/manifest.json", "/pwa-192x192.png", "/apple-touch-icon.png"];
+const PUBLIC_FILES = ["/manifest.json", "/favicon.ico", "/pwa-192x192.png", "/apple-touch-icon.png"];
 
 self.addEventListener("install", () => {
 	globalThis.self.skipWaiting();

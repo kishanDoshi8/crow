@@ -1,4 +1,5 @@
-// Makes every icon file from brand/crow.svg: the favicon, the home-screen and
+// Makes every icon file from brand/crow.svg: the favicons (SVG, and .ico for
+// browsers and crawlers that ask for /favicon.ico), the home-screen and
 // install icons, the Android maskable icon and the one-colour notification badge.
 // From apps/web: node brand/render-icons.mjs (needs Playwright).
 //
@@ -54,14 +55,40 @@ writeFileSync(path.join(here, "..", "favicon.svg"), tile + "\n");
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
-const png = async (svg, size, file) => {
+const render = async (svg, size) => {
 	await page.setViewportSize({ width: size, height: size });
 	await page.setContent(
 		`<style>html,body{margin:0;background:transparent}svg{display:block;width:${size}px;height:${size}px}</style>${svg}`,
 	);
-	await page.screenshot({ path: path.join(pub, file), omitBackground: true });
+	return page.screenshot({ omitBackground: true });
+};
+const png = async (svg, size, file) => {
+	writeFileSync(path.join(pub, file), await render(svg, size));
 	console.log("wrote public/" + file);
 };
+// An .ico holding PNG images: a 6-byte header, a 16-byte entry per image,
+// then the images themselves.
+const ico = async (svg, sizes, file) => {
+	const images = [];
+	for (const size of sizes) images.push(await render(svg, size));
+	const header = Buffer.alloc(6 + 16 * sizes.length);
+	header.writeUInt16LE(1, 2); // type: icon
+	header.writeUInt16LE(sizes.length, 4);
+	let offset = header.length;
+	sizes.forEach((size, i) => {
+		const entry = 6 + 16 * i;
+		header.writeUInt8(size, entry); // width (0 would mean 256)
+		header.writeUInt8(size, entry + 1); // height
+		header.writeUInt16LE(1, entry + 4); // colour planes
+		header.writeUInt16LE(32, entry + 6); // bits per pixel
+		header.writeUInt32LE(images[i].length, entry + 8);
+		header.writeUInt32LE(offset, entry + 12);
+		offset += images[i].length;
+	});
+	writeFileSync(path.join(pub, file), Buffer.concat([header, ...images]));
+	console.log("wrote public/" + file);
+};
+await ico(tile, [16, 32, 48], "favicon.ico");
 await png(tile, 192, "pwa-192x192.png");
 await png(tile, 512, "pwa-512x512.png");
 await png(apple, 180, "apple-touch-icon.png");
