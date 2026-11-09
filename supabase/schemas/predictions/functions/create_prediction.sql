@@ -1,9 +1,14 @@
+-- Organizers create a prediction: live now, or scheduled to go live at
+-- p_opens_at. A scheduled one stays hidden from members, gets its series
+-- number and its activity post when it goes live, and must stay open for at
+-- least 5 minutes after that.
 create or replace function public.create_prediction(
   p_room_id  uuid,
   p_title    text,
   p_options  text[],
   p_deadline timestamptz,
-  p_series_id uuid default null
+  p_series_id uuid default null,
+  p_opens_at timestamptz default null
 )
 returns json
 language plpgsql
@@ -19,8 +24,7 @@ declare
   v_option_ids      uuid[] := '{}';
   v_label           text;
   v_i               int;
-  v_active_count    int;
-  v_predictions_limit int;
+  v_scheduled       boolean := p_opens_at is not null and p_opens_at > now();
   v_series          public.series%rowtype;
   v_series_prediction_number int;
 begin
@@ -41,27 +45,12 @@ begin
     raise exception 'Only organizers can create predictions' using errcode = 'P0012';
   end if;
 
-  -- Fetch room to get the predictions_limit
   select * into v_room
   from public.rooms
   where id = p_room_id and status = 'active';
 
   if not found then
     raise exception 'Room not found or closed' using errcode = 'P0002';
-  end if;
-
-  v_predictions_limit := v_room.predictions_limit;
-
-  -- Count currently active (draft or locked) predictions for this room
-  select count(*) into v_active_count
-  from public.predictions
-  where room_id = p_room_id
-    and status in ('draft', 'locked');
-
-  if v_active_count >= v_predictions_limit then
-    raise exception 'Active predictions limit reached (% / %). Resolve or cancel one first.',
-      v_active_count, v_predictions_limit
-    using errcode = 'P0005';
   end if;
 
   -- Validate options count
@@ -75,6 +64,10 @@ begin
 
   if p_deadline <= now() then
     raise exception 'Deadline must be in the future' using errcode = 'P0001';
+  end if;
+
+  if v_scheduled and p_deadline < p_opens_at + interval '5 minutes' then
+    raise exception 'Leave at least 5 minutes between going live and the deadline' using errcode = 'P0001';
   end if;
 
   -- Points live in series wallets, so every prediction needs a series.
@@ -96,19 +89,23 @@ begin
     raise exception 'Predictions can only be assigned to active series' using errcode = 'P0001';
   end if;
 
-  select coalesce(max(series_prediction_number), 0) + 1
-    into v_series_prediction_number
-  from public.predictions
-  where series_id = p_series_id;
+  if not v_scheduled then
+    select coalesce(max(series_prediction_number), 0) + 1
+      into v_series_prediction_number
+    from public.predictions
+    where series_id = p_series_id;
+  end if;
 
-  -- Create the prediction
+  -- Create the prediction (a live one fires the "new prediction" push).
   insert into public.predictions (
     room_id,
     series_id,
     series_prediction_number,
     created_by,
     title,
-    deadline
+    status,
+    deadline,
+    opens_at
   )
   values (
     p_room_id,
@@ -116,7 +113,9 @@ begin
     v_series_prediction_number,
     v_player_id,
     trim(p_title),
-    p_deadline
+    case when v_scheduled then 'scheduled' else 'draft' end,
+    p_deadline,
+    case when v_scheduled then p_opens_at else now() end
   )
   returning * into v_prediction;
 
@@ -135,24 +134,28 @@ begin
     v_i := v_i + 1;
   end loop;
 
-  perform private.create_room_activity(
-    p_room_id := p_room_id,
-    p_activity_type := 'prediction_created',
-    p_activity_tier := 2,
-    p_metadata := private.build_prediction_activity_metadata(v_prediction.id),
-    p_click_action := jsonb_build_object(
-      'type', 'prediction',
-      'predictionId', v_prediction.id
-    ),
-    p_created_by_player_id := v_player_id,
-    p_dedupe_key := 'prediction_created:' || v_prediction.id::text
-  );
+  -- Members hear about a scheduled one when it goes live.
+  if not v_scheduled then
+    perform private.create_room_activity(
+      p_room_id := p_room_id,
+      p_activity_type := 'prediction_created',
+      p_activity_tier := 2,
+      p_metadata := private.build_prediction_activity_metadata(v_prediction.id),
+      p_click_action := jsonb_build_object(
+        'type', 'prediction',
+        'predictionId', v_prediction.id
+      ),
+      p_created_by_player_id := v_player_id,
+      p_dedupe_key := 'prediction_created:' || v_prediction.id::text
+    );
+  end if;
 
   return json_build_object(
     'prediction_id', v_prediction.id,
     'title',         v_prediction.title,
     'status',        v_prediction.status,
     'deadline',      v_prediction.deadline,
+    'opens_at',      v_prediction.opens_at,
     'option_ids',    v_option_ids,
     'room_id',       p_room_id,
     'series_id', v_prediction.series_id,

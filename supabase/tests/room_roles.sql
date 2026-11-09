@@ -277,7 +277,7 @@ select throws_ok(
   'an organizer cannot archive a series'
 );
 select throws_ok(
-  format($$ select public.update_room(%L, 'Renamed', null, 5, 3) $$, pg_temp.setting('room_id')),
+  format($$ select public.update_room(%L, 'Renamed', null, 3) $$, pg_temp.setting('room_id')),
   'P0012', null,
   'an organizer cannot change room settings'
 );
@@ -286,19 +286,19 @@ reset role;
 select pg_temp.login('00000000-0000-0000-0000-00000000a11c');
 set local role authenticated;
 select throws_ok(
-  format($$ select public.update_room(%L, 'Cricket Fever', null, 30, 3) $$, pg_temp.setting('room_id')),
+  format($$ select public.update_room(%L, 'Cricket Fever', null, 49) $$, pg_temp.setting('room_id')),
   'P0001', null,
-  'the open predictions limit is capped at 20'
+  'the result reminder is capped at 48 hours'
 );
 select lives_ok(
-  format($$ select public.update_room(%L, '  Cricket Fever 2027 ', 'IPL and India tours', 8, 6) $$, pg_temp.setting('room_id')),
+  format($$ select public.update_room(%L, '  Cricket Fever 2027 ', 'IPL and India tours', 6) $$, pg_temp.setting('room_id')),
   'the owner can change room settings'
 );
 reset role;
 
 select is(
-  (select row(name, description, predictions_limit, result_reminder_hours)::text from public.rooms where id = pg_temp.setting('room_id')),
-  row('Cricket Fever 2027', 'IPL and India tours', 8, 6)::text,
+  (select row(name, description, result_reminder_hours)::text from public.rooms where id = pg_temp.setting('room_id')),
+  row('Cricket Fever 2027', 'IPL and India tours', 6)::text,
   'room settings are saved and trimmed'
 );
 

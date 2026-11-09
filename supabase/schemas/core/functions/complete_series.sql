@@ -55,6 +55,12 @@ begin
     raise exception 'Series has unfinished predictions and cannot be completed' using errcode = 'P0001';
   end if;
 
+  -- Scheduled ones never went live (nobody saw or bet on them): they go with
+  -- the series, before anything below counts the series' predictions.
+  delete from public.predictions p
+  where p.series_id = p_series_id
+    and p.status = 'scheduled';
+
   -- The same bar decides who can place and who can win awards.
   v_required_bets := private.series_required_bets(p_series_id);
 

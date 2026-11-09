@@ -36,7 +36,7 @@ begin
   v_player_id := private.get_player_id_from_auth();
 
   select * into v_prediction from public.predictions where id = p_prediction_id;
-  if not found or not private.is_room_member(v_prediction.room_id) then
+  if not found or not private.can_view_prediction(p_prediction_id) then
     raise exception 'Prediction not found' using errcode = 'P0002';
   end if;
 
@@ -127,8 +127,12 @@ begin
   v_player_id := private.get_player_id_from_auth();
 
   select room_id into v_room_id from public.predictions where id = p_prediction_id;
-  if v_room_id is null or not private.is_room_member(v_room_id) then
+  if v_room_id is null or not private.can_view_prediction(p_prediction_id) then
     raise exception 'Prediction not found' using errcode = 'P0002';
+  end if;
+
+  if exists (select 1 from public.predictions where id = p_prediction_id and status = 'scheduled') then
+    raise exception 'It isn''t live yet' using errcode = 'P0001';
   end if;
 
   if v_reaction is null then
@@ -170,8 +174,12 @@ begin
   v_player_id := private.get_player_id_from_auth();
 
   select * into v_prediction from public.predictions where id = p_prediction_id;
-  if not found or not private.is_room_member(v_prediction.room_id) then
+  if not found or not private.can_view_prediction(p_prediction_id) then
     raise exception 'Prediction not found' using errcode = 'P0002';
+  end if;
+
+  if v_prediction.status = 'scheduled' then
+    raise exception 'It isn''t live yet' using errcode = 'P0001';
   end if;
 
   select * into v_phrase from public.talk_phrases where id = p_phrase_id and active;

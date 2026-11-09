@@ -3,7 +3,6 @@ create or replace function public.update_room(
   p_room_id               uuid,
   p_name                  text,
   p_description           text,
-  p_predictions_limit     integer,
   p_result_reminder_hours integer
 )
 returns json
@@ -42,10 +41,6 @@ begin
     raise exception 'Description must be 240 characters or fewer' using errcode = 'P0001';
   end if;
 
-  if p_predictions_limit is null or p_predictions_limit not between 1 and 20 then
-    raise exception 'Open predictions limit must be between 1 and 20' using errcode = 'P0001';
-  end if;
-
   if p_result_reminder_hours is null or p_result_reminder_hours not between 1 and 48 then
     raise exception 'Result reminder must be between 1 and 48 hours' using errcode = 'P0001';
   end if;
@@ -53,7 +48,6 @@ begin
   update public.rooms
   set name                  = trim(p_name),
       description           = nullif(trim(coalesce(p_description, '')), ''),
-      predictions_limit     = p_predictions_limit,
       result_reminder_hours = p_result_reminder_hours
   where id = p_room_id
   returning * into v_room;
@@ -66,7 +60,6 @@ begin
     'id',                    v_room.id,
     'name',                  v_room.name,
     'description',           v_room.description,
-    'predictions_limit',     v_room.predictions_limit,
     'result_reminder_hours', v_room.result_reminder_hours
   );
 end;

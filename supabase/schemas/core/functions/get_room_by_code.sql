@@ -34,7 +34,6 @@ begin
     'description',       v_room.description,
     'status',            v_room.status,
     'created_at',        v_room.created_at,
-    'predictions_limit', v_room.predictions_limit,
     'result_reminder_hours', v_room.result_reminder_hours,
     'is_member',         private.is_room_member(v_room.id),
     -- Removed by the owner: the join screen explains instead of offering Join.
