@@ -28,6 +28,8 @@ import { Loading } from "@/shared/ui";
 import { useAppNavigation } from "@/shared/lib/navigation";
 import { RebrandWelcomeDialog } from "@/features/onboarding";
 import { prefetchRoomPages } from "@/app/router/roomPages";
+import { RoomSidebar } from "@/app/layouts/RoomSidebar";
+import { OfflineBar } from "@/shared/ui";
 
 const HowToPlayModal = lazy(
 	() => import("@/features/onboarding/components/HowToPlayModal"),
@@ -129,7 +131,11 @@ export default function RoomLayout() {
 
 	return (
 		<RoomActionsContext.Provider value={roomActions}>
-		<div className='min-h-dvh flex flex-col'>
+		{/* Desktop: the sidebar takes the header's and bottom nav's place, and the
+		    pages sit to its right. Phones and tablets never see it. */}
+		<RoomSidebar room={room} />
+		<div className='min-h-dvh flex flex-col lg:pl-64'>
+			<OfflineBar className='sticky top-0 z-20 hidden lg:flex' />
 			<RoomHeader
 				room={room}
 				leftAction={headerConfig?.leftAction ?? "home"}

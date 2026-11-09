@@ -61,7 +61,7 @@ export default function MembersPage() {
 	);
 
 	return (
-		<div className='mx-auto w-full max-w-md space-y-3 p-4'>
+		<div className='mx-auto w-full max-w-md space-y-3 p-4 lg:max-w-2xl lg:pt-6'>
 			<p className='px-1 text-sm text-muted-foreground'>
 				{can.own
 					? "Give friends a role to share the work. Resolvers reveal results; organizers also create predictions and series."

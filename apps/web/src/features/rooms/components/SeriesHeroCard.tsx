@@ -22,7 +22,8 @@ import { InfoHint } from "@/shared/ui";
 import { RankingRuleHint } from "@/features/leaderboard";
 import { Link } from "react-router-dom";
 
-const HERO_SHELL = "w-full max-w-md mx-auto rounded-2xl border bg-card p-4 mt-4";
+// Desktop puts it in a wider column, which it fills.
+const HERO_SHELL = "w-full max-w-md mx-auto rounded-2xl border bg-card p-4 mt-4 lg:max-w-none";
 
 // Where you stand in the series you're looking at, and what locks next.
 export function SeriesHeroCard() {

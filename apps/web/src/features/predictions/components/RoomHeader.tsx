@@ -62,7 +62,12 @@ function RoomHeader({
 
 	return (
 		<header
-			className={`px-3 py-3 sticky top-0 left-0 right-0 z-10 bg-secondary/30 backdrop-blur-sm border-b`}
+			className={cn(
+				"px-3 py-3 sticky top-0 left-0 right-0 z-10 bg-secondary/30 backdrop-blur-sm border-b",
+				// Desktop: the sidebar carries the room, so tab pages need no
+				// header and inner pages keep only Back and their title.
+				leftAction === "home" && "lg:hidden",
+			)}
 		>
 			<div className={`max-w-280 mx-auto flex gap-2 items-center`}>
 				{leftAction === "none" ? (
@@ -71,14 +76,22 @@ function RoomHeader({
 					<Button
 						variant='linear'
 						size='icon'
-						className={`cursor-pointer rounded-lg shrink-0`}
+						className={cn(
+							"cursor-pointer rounded-lg shrink-0",
+							leftAction === "back" && !title && "lg:w-auto lg:pr-3 lg:pl-2",
+						)}
 						onClick={onLeftAction}
 						aria-label={
 							leftAction === "back" ? "Back" : "Switch room"
 						}
 					>
 						{leftAction === "back" ? (
-							<ChevronLeftIcon />
+							<>
+								<ChevronLeftIcon />
+								{/* Desktop pages without a title of their own: the
+								    sidebar names the room, so this just says Back. */}
+								{title ? null : <span className='hidden lg:inline'>Back</span>}
+							</>
 						) : (
 							<LayoutGridIcon />
 						)}
@@ -102,14 +115,14 @@ function RoomHeader({
 							<Link
 								to={roomHome}
 								onClick={goHome}
-								className='font-bold truncate'
+								className='font-bold truncate lg:hidden'
 							>
 								<h1 className='truncate'>{room.name}</h1>
 							</Link>
 							<button
 								type='button'
 								onClick={openSeriesPicker}
-								className='mt-0.5 flex items-center gap-1 self-start max-w-full rounded-full border border-border/70 bg-muted/50 py-0.5 pl-2 pr-1.5 text-xs font-medium text-foreground/85 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50'
+								className='mt-0.5 flex items-center gap-1 self-start max-w-full lg:hidden rounded-full border border-border/70 bg-muted/50 py-0.5 pl-2 pr-1.5 text-xs font-medium text-foreground/85 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50'
 								aria-label={`Series: ${currentSeries?.title ?? "none"}. Change series`}
 							>
 								{currentSeries?.status === "active" ? (
@@ -130,12 +143,16 @@ function RoomHeader({
 					)}
 				</div>
 
-				{wallet ? <WalletPopover wallet={wallet} /> : null}
+				{wallet ? (
+					<div className='lg:hidden'>
+						<WalletPopover wallet={wallet} />
+					</div>
+				) : null}
 
 				<Button
 					variant='ghost'
 					size='icon'
-					className='relative shrink-0'
+					className='relative shrink-0 lg:hidden'
 					asChild
 				>
 					<Link
@@ -160,7 +177,7 @@ function RoomHeader({
 				<Button
 					variant='ghost'
 					size='icon'
-					className='shrink-0'
+					className='shrink-0 lg:hidden'
 					onClick={() => setIsMenuOpen(true)}
 					aria-label='Room menu'
 				>
@@ -174,7 +191,7 @@ function RoomHeader({
 				onOpenChange={setIsMenuOpen}
 			/>
 			{/* Under the header, full width, so it stays in view while scrolling. */}
-			<OfflineBar className='-mx-3 -mb-3 mt-3' />
+			<OfflineBar className='-mx-3 -mb-3 mt-3 lg:hidden' />
 		</header>
 	);
 }

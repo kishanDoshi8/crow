@@ -306,7 +306,7 @@ export default function SeriesPage() {
 			// Mirrors SeriesDetailView's top: overview, then the open predictions.
 			<div
 				aria-hidden='true'
-				className='mx-auto w-full max-w-md space-y-6 p-4'
+				className='mx-auto w-full max-w-md space-y-6 p-4 lg:max-w-2xl lg:pt-6'
 			>
 				<SeriesOverviewCardSkeleton />
 				<div className='space-y-3'>
@@ -319,7 +319,7 @@ export default function SeriesPage() {
 
 	if (!selectedSeries) {
 		return (
-			<div className='mx-auto w-full max-w-md space-y-4 p-4'>
+			<div className='mx-auto w-full max-w-md space-y-4 p-4 lg:max-w-2xl lg:pt-6'>
 				<p className='text-sm text-muted-foreground'>
 					Series not found.
 				</p>

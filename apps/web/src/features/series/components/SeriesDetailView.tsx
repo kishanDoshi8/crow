@@ -84,7 +84,7 @@ export function SeriesDetailView({
 	const isSeriesClosed =
 		series.status === "completed" || series.status === "archived";
 	return (
-		<div className='mx-auto w-full max-w-md space-y-6 p-4'>
+		<div className='mx-auto w-full max-w-md space-y-6 p-4 lg:max-w-2xl lg:pt-6'>
 			<SeriesOverviewCard
 				series={series}
 				isOrganizer={isOrganizer}

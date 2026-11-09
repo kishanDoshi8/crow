@@ -104,7 +104,7 @@ function HistoryFeed() {
 	}, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
 	return (
-		<div className={`flex flex-col gap-4 p-4 max-w-lg mx-auto w-full`}>
+		<div className={`flex flex-col gap-4 p-4 max-w-lg mx-auto w-full lg:max-w-2xl lg:pt-6`}>
 			{/* Section heading */}
 			<div>
 				<h2 className='text-lg font-semibold'>History</h2>

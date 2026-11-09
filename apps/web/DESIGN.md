@@ -215,7 +215,33 @@ All core components are compact, tactile, and state-explicit.
 - **Tabs:** Compact segmented control with active-state background and state-explicit text color promotion.
 - **Active indicator:** In line-variant tabs, active marker is rendered via pseudo-element underline/edge rail, not extra decorative chrome.
 
-## 6. Do's and Don'ts
+## 6. Layout and Breakpoints
+
+Crow is played on phones, so it is designed **mobile first**: the unprefixed Tailwind classes are the phone design, and wider screens only add `md:` / `lg:` overrides on top. A change for a bigger screen must never change the phone.
+
+| Size | Width | Layout |
+| --- | --- | --- |
+| Phone | < 768px | The app as designed: room header on top, bottom tab bar, one column (`max-w-md` / `max-w-lg`). |
+| Tablet | 768–1023px (`md`) | The phone layout. Columns stay centred; nothing new. |
+| Desktop | ≥ 1024px (`lg`) | Sidebar layout, below. Tablets in landscape land here. |
+
+### Desktop
+
+- **Sidebar, not a top bar** (the Slack / Discord pattern). A fixed 16rem sidebar (`bg-sidebar`, right border) holds what the phone spreads across the header, bottom tab bar and room menu: the room switcher (a dropdown, not the phone's drawer), the series picker (dropdown) and points, the four tabs, Staff (Needs you with its count, New prediction), then Activity, Invite friends and the room menu at the bottom. `RoomSidebar` in `src/app/layouts`.
+- **No header on tab pages.** Inner pages keep a slim header with Back and their title; a page without a title shows "Back".
+- **Content widths.** Lists and feeds (Standings, History, Needs you, Members, Activity, Series) widen to `lg:max-w-2xl`. Forms stay `max-w-md`. Two-column pages are capped at `max-w-260` (65rem):
+  - **Home:** where you stand and What's Hot on the left, the side cards (your week, needs you, results, invite, stats, up next) in a 20rem column on the right. What's Hot shows its cards two across (one card fills the column) instead of the swipe carousel.
+  - **Prediction:** the prediction on the left, Room talk in a 22rem column on the right. The phone's bottom action bar becomes a control pinned to the bottom of the left column.
+- **Sheets stay sheets.** Bottom sheets (bet, phrases, menus) keep working as centred sheets; dialogs are unchanged.
+- **Structure vs style.** Use responsive classes for style. Where desktop needs a different structure (Home, the prediction page), branch on `useIsDesktop()` (`src/shared/lib/useMediaQuery.ts`) so the phone keeps rendering exactly the tree it had.
+
+### Named Rules
+
+**The Phone Is The Product Rule.** Every screen is designed and judged at 390px first. Desktop rearranges what the phone has; it never adds features of its own.
+
+**The One Sidebar Rule.** Desktop navigation lives in the sidebar only. Don't add a second navigation surface (top tabs, a bottom bar) at desktop widths.
+
+## 7. Do's and Don'ts
 
 ### Do:
 

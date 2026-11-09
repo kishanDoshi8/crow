@@ -9,7 +9,7 @@ export { SeriesSectionHeader } from "./SeriesSectionHeader";
 export { SeriesStatusBadge } from "./SeriesStatusBadge";
 export { SeriesTile } from "./SeriesTile";
 export { SeriesSelector } from "./SeriesSelector";
-export { SeriesPickerDrawer } from "./SeriesPickerDrawer";
+export { SeriesPickerDrawer, SeriesPickerPopover } from "./SeriesPickerDrawer";
 export { WalletPopover } from "./WalletPopover";
 export { SeriesScopeToggle, type SeriesScope } from "./SeriesScopeToggle";
 export { UpNextCard } from "./UpNextCard";
