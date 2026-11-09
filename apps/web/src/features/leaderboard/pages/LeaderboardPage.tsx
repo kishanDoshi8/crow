@@ -85,32 +85,35 @@ export function LeaderboardPage() {
 
 	return (
 		<div className='flex flex-col gap-4 p-4 max-w-lg mx-auto w-full'>
-			{/* Section heading */}
-			<div className='flex items-start justify-between gap-3'>
-				<div className='min-w-0'>
-					<h2 className='text-lg font-semibold'>
+			{/* Section heading: the share button sits beside the title, so the
+			    description below gets the full width. */}
+			<div>
+				<div className='flex min-h-8 items-center justify-between gap-3'>
+					<h2 className='min-w-0 truncate text-lg font-semibold'>
 						{scope === "all"
 							? "All series"
 							: (currentSeries?.title ?? "Standings")}
 					</h2>
-					<p className='flex items-center gap-1 text-sm text-muted-foreground'>
-						{subtitle}
-						{scope === "series" && currentSeries?.status === "active" ? (
+					{scope === "series" && currentSeries?.status === "active" ? (
+						<ShareWeeklyButton
+							series={currentSeries}
+							className='h-8 shrink-0 px-3 text-xs'
+							label='Share week'
+						/>
+					) : null}
+				</div>
+				<p className='text-sm text-muted-foreground'>
+					{subtitle}
+					{scope === "series" && currentSeries?.status === "active" ? (
+						<span className='ml-1 inline-flex align-middle'>
 							<InfoHint label='How ranking works'>
 								<RankingRuleHint
 									requiredBets={leaderboard[0]?.required_bets ?? 0}
 								/>
 							</InfoHint>
-						) : null}
-					</p>
-				</div>
-				{scope === "series" && currentSeries?.status === "active" ? (
-					<ShareWeeklyButton
-						series={currentSeries}
-						className='h-8 shrink-0 px-3 text-xs'
-						label='Share week'
-					/>
-				) : null}
+						</span>
+					) : null}
+				</p>
 			</div>
 
 			<SeriesScopeToggle
