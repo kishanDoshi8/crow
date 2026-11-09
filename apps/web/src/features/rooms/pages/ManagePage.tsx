@@ -2,6 +2,7 @@ import { useRoomContext } from "@/shared/lib/roomContext";
 import {
 	CloseWithoutResultDialog,
 	ResolvePredictionDrawer,
+	ScheduledActionDialog,
 } from "@/features/predictions";
 import { useManageQueue } from "@/features/rooms/hooks/staff";
 import { useRoomRole } from "@/features/rooms/hooks/useRoomRole";
@@ -12,14 +13,16 @@ import {
 	CheckCircle2Icon,
 	ChevronRightIcon,
 	PencilIcon,
+	PlusIcon,
 	SettingsIcon,
+	Trash2Icon,
 	UsersIcon,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Link, Navigate } from "react-router-dom";
 
-// One place for staff work: results to reveal, then predictions still open
-// for picks. Resolvers and up.
+// One place for staff work: results to reveal, predictions still open for
+// picks, and (for organizers) the ones scheduled to go live. Resolvers and up.
 export default function ManagePage() {
 	const { room } = useRoomContext();
 	const { can } = useRoomRole(room);
@@ -32,6 +35,7 @@ export default function ManagePage() {
 
 	const toResolve = queue?.to_resolve ?? [];
 	const open = queue?.open ?? [];
+	const scheduled = queue?.scheduled ?? [];
 
 	return (
 		<div className='mx-auto w-full max-w-md space-y-6 p-4'>
@@ -107,6 +111,28 @@ export default function ManagePage() {
 					))
 				)}
 			</Section>
+
+			{can.organize ? (
+				<Section title='Scheduled' count={scheduled.length}>
+					{isPending ? (
+						<QueueSkeleton />
+					) : scheduled.length === 0 ? (
+						<EmptyRow>
+							Nothing scheduled. Write predictions ahead and pick when they go live.
+						</EmptyRow>
+					) : (
+						scheduled.map((item) => (
+							<ScheduledRow key={item.id} item={item} roomId={room.id} roomCode={room.code} />
+						))
+					)}
+					<LinkRow
+						to={`/rooms/${room.code}/predictions/new`}
+						state={{ goLive: "later" }}
+						icon={<PlusIcon className='size-4' />}
+						label='Schedule a prediction'
+					/>
+				</Section>
+			) : null}
 
 			<Section title='Room'>
 				<LinkRow
@@ -198,14 +224,62 @@ function QueueRow({
 	);
 }
 
+// A scheduled prediction: when it goes live, then what can be done with it
+// on a line of its own, so the title and time stay readable.
+function ScheduledRow({
+	item,
+	roomId,
+	roomCode,
+}: Readonly<{ item: ManageQueueItem; roomId: string; roomCode: string }>) {
+	const goesLive = item.opens_at
+		? `Goes live ${describeDeadline(new Date(item.opens_at)).when}`
+		: "Scheduled";
+
+	return (
+		<div className='flex flex-col gap-2 px-3 py-2.5'>
+			<Link
+				to={`/rooms/${roomCode}/predictions/${item.id}`}
+				className='min-w-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50'
+			>
+				<span className='block truncate text-sm font-medium'>{item.title}</span>
+				<span className='block truncate text-xs text-muted-foreground'>
+					{goesLive}
+					{item.series_title ? ` · ${item.series_title}` : ""}
+				</span>
+			</Link>
+			<div className='flex items-center gap-1'>
+				<Button variant='ghost' size='sm' asChild>
+					<Link to={`/rooms/${roomCode}/predictions/${item.id}/edit`}>
+						<PencilIcon />
+						Edit
+					</Link>
+				</Button>
+				<ScheduledActionDialog mode='delete' roomId={roomId} predictionId={item.id} title={item.title}>
+					<Button variant='ghost' size='sm' className='text-destructive'>
+						<Trash2Icon />
+						Delete
+					</Button>
+				</ScheduledActionDialog>
+				<ScheduledActionDialog mode='publish' roomId={roomId} predictionId={item.id} title={item.title}>
+					<Button variant='outline' size='sm' className='ml-auto'>
+						Go live now
+					</Button>
+				</ScheduledActionDialog>
+			</div>
+		</div>
+	);
+}
+
 function LinkRow({
 	to,
+	state,
 	icon,
 	label,
-}: Readonly<{ to: string; icon: ReactNode; label: string }>) {
+}: Readonly<{ to: string; state?: unknown; icon: ReactNode; label: string }>) {
 	return (
 		<Link
 			to={to}
+			state={state}
 			className='flex items-center gap-3 px-3 py-3 text-sm transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 first:rounded-t-2xl last:rounded-b-2xl'
 		>
 			<span className='text-muted-foreground'>{icon}</span>

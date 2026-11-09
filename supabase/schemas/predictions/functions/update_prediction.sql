@@ -1,10 +1,13 @@
 -- Organizers fix a prediction that's still open for picks: the deadline, and
--- the question and options while nobody has bet. Pass null options to keep them.
+-- the question and options while nobody has bet. Pass null options to keep
+-- them. A scheduled one can also move when it goes live (p_opens_at; null
+-- keeps it), and must stay open at least 5 minutes after that.
 create or replace function public.update_prediction(
   p_prediction_id uuid,
   p_title         text,
   p_deadline      timestamptz,
-  p_options       text[] default null
+  p_options       text[] default null,
+  p_opens_at      timestamptz default null
 )
 returns json
 language plpgsql
@@ -17,6 +20,7 @@ declare
   v_labels     text[];
   v_current    text[];
   v_i          int;
+  v_opens_at   timestamptz;
 begin
   v_player_id := private.get_player_id_from_auth();
 
@@ -42,7 +46,10 @@ begin
     raise exception 'Only organizers can edit predictions' using errcode = 'P0012';
   end if;
 
-  if v_prediction.status <> 'draft' or v_prediction.deadline <= now() then
+  if not (
+    v_prediction.status = 'scheduled'
+    or (v_prediction.status = 'draft' and v_prediction.deadline > now())
+  ) then
     raise exception 'Only predictions still open for picks can be edited' using errcode = 'P0006';
   end if;
 
@@ -52,6 +59,16 @@ begin
 
   if p_deadline is null or p_deadline <= now() then
     raise exception 'Deadline must be in the future' using errcode = 'P0001';
+  end if;
+
+  if v_prediction.status = 'scheduled' then
+    v_opens_at := coalesce(p_opens_at, v_prediction.opens_at);
+    if v_opens_at <= now() then
+      raise exception 'Pick a go-live time in the future, or put it live now' using errcode = 'P0001';
+    end if;
+    if p_deadline < v_opens_at + interval '5 minutes' then
+      raise exception 'Leave at least 5 minutes between going live and the deadline' using errcode = 'P0001';
+    end if;
   end if;
 
   -- Once someone has bet, the question they bet on stays as it was.
@@ -95,6 +112,7 @@ begin
   update public.predictions
   set title       = trim(p_title),
       deadline    = p_deadline,
+      opens_at    = coalesce(v_opens_at, opens_at),
       -- A moved deadline earns a fresh "1 hour left" reminder.
       notified_1h = case when p_deadline = deadline then notified_1h else false end
   where id = p_prediction_id;
@@ -102,7 +120,8 @@ begin
   return json_build_object(
     'id',       p_prediction_id,
     'title',    trim(p_title),
-    'deadline', p_deadline
+    'deadline', p_deadline,
+    'opens_at', coalesce(v_opens_at, v_prediction.opens_at)
   );
 end;
 $$;

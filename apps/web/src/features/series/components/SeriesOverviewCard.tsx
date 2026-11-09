@@ -15,6 +15,7 @@ type SeriesOverviewCardProps = {
 	onEdit: () => void;
 	onArchive: () => void;
 	onCloseSeries: () => void;
+	scheduledCount?: number;
 };
 
 export function SeriesOverviewCard({
@@ -25,6 +26,7 @@ export function SeriesOverviewCard({
 	onEdit,
 	onArchive,
 	onCloseSeries,
+	scheduledCount = 0,
 }: Readonly<SeriesOverviewCardProps>) {
 	const progress = getSeriesProgress(series);
 	const stats = progress.isOpenEnded
@@ -54,6 +56,7 @@ export function SeriesOverviewCard({
 						onEdit={onEdit}
 						onArchive={onArchive}
 						onCloseSeries={onCloseSeries}
+						scheduledCount={scheduledCount}
 					/>
 				) : null}
 			</div>

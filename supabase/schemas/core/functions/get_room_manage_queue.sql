@@ -1,5 +1,6 @@
 -- Staff only. Everything waiting on staff across the room, oldest first:
--- locked predictions to close, and predictions still open for picks.
+-- locked predictions to close, predictions still open for picks, and (for
+-- organizers) scheduled ones by when they go live.
 create or replace function public.get_room_manage_queue(
   p_room_id uuid
 )
@@ -35,6 +36,7 @@ begin
         p.title,
         p.status,
         p.deadline,
+        p.opens_at,
         p.series_id,
         p.series_prediction_number,
         s.title as series_title,
@@ -55,7 +57,11 @@ begin
       from public.predictions p
       left join public.series s on s.id = p.series_id
       where p.room_id = p_room_id
-        and p.status in ('draft', 'locked')
+        and (
+          p.status in ('draft', 'locked')
+          -- Scheduled ones are for organizers (resolvers don't create).
+          or (p.status = 'scheduled' and v_role in ('owner', 'organizer'))
+        )
     )
     select json_build_object(
       'role', v_role,
@@ -65,6 +71,10 @@ begin
       ),
       'open', coalesce(
         (select json_agg(q order by q.deadline, q.id) from queue q where q.status = 'draft'),
+        '[]'::json
+      ),
+      'scheduled', coalesce(
+        (select json_agg(q order by q.opens_at, q.id) from queue q where q.status = 'scheduled'),
         '[]'::json
       )
     )

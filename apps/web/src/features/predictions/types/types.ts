@@ -1,4 +1,6 @@
-export type PredictionStatus = 'draft' | 'locked' | 'revealed' | 'cancelled' | 'no_result'
+// scheduled: written ahead, only organizers see it until it goes live
+// (opens_at) · draft: open for picks · locked: waiting for the result.
+export type PredictionStatus = 'scheduled' | 'draft' | 'locked' | 'revealed' | 'cancelled' | 'no_result'
 
 export interface PredictionTag {
   id:            string
@@ -31,6 +33,8 @@ export interface Prediction {
   status:            PredictionStatus
   // deadline is supabase timstamp string, e.g. "2024-06-01T12:00:00Z"
   deadline:          string
+  // When it goes live (scheduled) or went live; null on older predictions.
+  opens_at?:         string | null
   winning_option_id: string | null
   // created_at:        string
   resolved_at:       string | null

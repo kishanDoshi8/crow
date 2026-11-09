@@ -31,7 +31,6 @@ export default function RoomSettingsPage() {
 	const [form, setForm] = useState({
 		name: room.name,
 		description: room.description ?? "",
-		predictionsLimit: String(room.predictions_limit),
 		resultReminderHours: String(room.result_reminder_hours ?? 3),
 	});
 
@@ -40,13 +39,10 @@ export default function RoomSettingsPage() {
 	}
 
 	const nameError = form.name.trim() ? "" : "Name is required.";
-	const limitError = wholeNumberBetween(form.predictionsLimit, 1, 20)
-		? ""
-		: "Use a whole number from 1 to 20.";
 	const reminderError = wholeNumberBetween(form.resultReminderHours, 1, 48)
 		? ""
 		: "Use a whole number of hours from 1 to 48.";
-	const canSave = !isPending && !nameError && !limitError && !reminderError;
+	const canSave = !isPending && !nameError && !reminderError;
 
 	const update =
 		(field: keyof typeof form) =>
@@ -56,14 +52,13 @@ export default function RoomSettingsPage() {
 	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		if (!canSave) {
-			toast(nameError || limitError || reminderError);
+			toast(nameError || reminderError);
 			return;
 		}
 		updateRoom(
 			{
 				name: form.name.trim(),
 				description: form.description.trim(),
-				predictionsLimit: Number(form.predictionsLimit),
 				resultReminderHours: Number(form.resultReminderHours),
 			},
 			{
@@ -114,28 +109,6 @@ export default function RoomSettingsPage() {
 						/>
 						<FieldDescription>
 							Optional. {form.description.length}/{DESCRIPTION_MAX_LENGTH}
-						</FieldDescription>
-					</Field>
-
-					<Field>
-						<FieldLabel htmlFor='room-predictions-limit'>
-							Open predictions limit
-						</FieldLabel>
-						<Input
-							id='room-predictions-limit'
-							type='number'
-							min={1}
-							max={20}
-							step={1}
-							value={form.predictionsLimit}
-							onChange={(event) =>
-								update("predictionsLimit")(event.target.value)
-							}
-							disabled={isPending}
-						/>
-						<FieldDescription>
-							{limitError ||
-								"How many predictions can be open or waiting on a result at once."}
 						</FieldDescription>
 					</Field>
 

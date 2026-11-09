@@ -1,4 +1,4 @@
-import { correctPredictionResult, createPrediction, getActivePrediction, getActivePredictions, getPrediction, getRoomTags, resolvePrediction, setPredictionDetails, updatePrediction } from "@/shared/lib/api";
+import { correctPredictionResult, createPrediction, deleteScheduledPrediction, getActivePrediction, getActivePredictions, getPrediction, getRoomTags, publishPredictionNow, resolvePrediction, setPredictionDetails, updatePrediction } from "@/shared/lib/api";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { roomKeys } from "@/shared/constants/queryKeys";
 import { invalidateRoomResults } from "@/shared/lib/roomCache";
@@ -29,6 +29,8 @@ type CreatePredictionParams = {
     options: string[];
     deadline: Date;
     seriesId?: string | null;
+    // Set to schedule it to go live later.
+    opensAt?: Date | null;
     description?: string;
     tags?: string[];
 }
@@ -38,7 +40,7 @@ export const useCreatePrediction = () => {
 
     return useMutation({
         mutationFn: async (data: CreatePredictionParams) => {
-            const created = await createPrediction(data.roomId, data.title, data.options, data.deadline, data.seriesId);
+            const created = await createPrediction(data.roomId, data.title, data.options, data.deadline, data.seriesId, data.opensAt);
             // Description and tags are saved alongside, once the prediction exists.
             if (data.description?.trim() || data.tags?.length) {
                 await setPredictionDetails(created.id, data.description ?? '', data.tags ?? []);
@@ -127,6 +129,8 @@ type UpdatePredictionParams = {
     deadline: Date;
     // Leave out to keep the current options.
     options?: string[];
+    // A scheduled prediction's new go-live time.
+    opensAt?: Date | null;
     description: string;
     tags: string[];
 }
@@ -136,7 +140,7 @@ export const useUpdatePrediction = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (data: UpdatePredictionParams) => {
-            const updated = await updatePrediction(data.predictionId, data.title, data.deadline, data.options);
+            const updated = await updatePrediction(data.predictionId, data.title, data.deadline, data.options, data.opensAt);
             await setPredictionDetails(data.predictionId, data.description, data.tags);
             return updated;
         },
@@ -163,3 +167,21 @@ export const useRoomTags = (roomId?: string) => {
         staleTime: 5 * 60 * 1000,
     });
 }
+
+// Scheduled predictions: put one live now, or delete it. Both change what's
+// live and what's waiting, so the prediction, the live list and the manage
+// queue are refreshed.
+const useScheduledAction = (action: (predictionId: string) => Promise<unknown>) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ predictionId }: { roomId: string; predictionId: string }) => action(predictionId),
+        onSuccess: (_, { roomId, predictionId }) => {
+            queryClient.invalidateQueries({ queryKey: roomKeys.prediction(roomId, predictionId) });
+            queryClient.invalidateQueries({ queryKey: roomKeys.activePredictions(roomId) });
+            queryClient.invalidateQueries({ queryKey: roomKeys.manageQueue(roomId) });
+        },
+    });
+};
+
+export const usePublishPredictionNow = () => useScheduledAction(publishPredictionNow);
+export const useDeleteScheduledPrediction = () => useScheduledAction(deleteScheduledPrediction);

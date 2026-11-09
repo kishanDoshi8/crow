@@ -5,8 +5,12 @@ create table if not exists public.predictions (
   series_prediction_number integer,
   created_by uuid not null references public.players(id),
   title text not null,
-  status text not null default 'draft' check (status in ('draft', 'locked', 'revealed', 'cancelled', 'no_result')),
+  -- scheduled: written ahead, hidden from members until opens_at · draft:
+  -- open for picks · locked: waiting for the result · then the outcome.
+  status text not null default 'draft' check (status in ('scheduled', 'draft', 'locked', 'revealed', 'cancelled', 'no_result')),
   deadline timestamptz not null,
+  -- When a scheduled prediction goes live (kept afterwards as when it did).
+  opens_at timestamptz,
   winning_option_id uuid,
   -- Why it ended with no result (or was cancelled), shown with the outcome.
   no_result_reason varchar(50),
@@ -25,25 +29,20 @@ create table if not exists public.predictions (
   corrected_by uuid references public.players(id) on delete set null,
   -- False for predictions revealed before rating changes were recorded per
   -- bet: their ratings can't be undone, so their result can't be corrected.
-  ratings_reversible boolean not null default true
+  ratings_reversible boolean not null default true,
+  constraint predictions_scheduled_opens_check check (status <> 'scheduled' or opens_at is not null)
 );
 
-do $$
-begin
-  if not exists (
-    select 1
-    from pg_constraint
-    where conname = 'predictions_series_assignment_check'
-      and conrelid = 'public.predictions'::regclass
-  ) then
-    alter table public.predictions
-      add constraint predictions_series_assignment_check
-      check (
-        (series_id is null and series_prediction_number is null)
-        or (series_id is not null and series_prediction_number is not null)
-      );
-  end if;
-end $$;
+-- A prediction in a series has its number there, except while scheduled: it
+-- gets the next number when it goes live, so numbers follow the order
+-- people see them.
+alter table public.predictions
+  drop constraint if exists predictions_series_assignment_check,
+  add constraint predictions_series_assignment_check
+  check (
+    (series_id is null and series_prediction_number is null)
+    or (series_id is not null and (series_prediction_number is not null or status = 'scheduled'))
+  );
 
 create table if not exists public.prediction_options (
   id uuid primary key default gen_random_uuid(),
@@ -66,6 +65,8 @@ create index if not exists idx_predictions_room_status_deadline on public.predic
 create index if not exists idx_predictions_room_resolved on public.predictions (room_id, status, resolved_at desc) where status in ('revealed', 'cancelled', 'no_result');
 create unique index if not exists idx_predictions_series_number_unique on public.predictions (series_id, series_prediction_number) where series_id is not null and series_prediction_number is not null;
 create index if not exists idx_predictions_series_id on public.predictions (series_id);
+-- The every-minute publish job looks for scheduled predictions that are due.
+create index if not exists idx_predictions_scheduled_opens on public.predictions (opens_at) where status = 'scheduled';
 
 create or replace function private.enforce_series_prediction_immutability()
 returns trigger

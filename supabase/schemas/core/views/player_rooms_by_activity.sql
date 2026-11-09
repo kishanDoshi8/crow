@@ -7,7 +7,6 @@ select distinct on (rm.player_id, r.id)
   r.name,
   r.room_code,
   r.status,              -- 🌟 Added
-  r.predictions_limit,    -- 🌟 Added
   r.created_at,
   -- 1. Compute the latest activity timestamp
   p.created_at as latest_prediction_at,
@@ -26,5 +25,6 @@ select distinct on (rm.player_id, r.id)
   ) as active_prediction_count
 from public.room_members rm
 join public.rooms r on r.id = rm.room_id
-left join public.predictions p on p.room_id = r.id
+-- Scheduled predictions don't count as activity until they go live.
+left join public.predictions p on p.room_id = r.id and p.status <> 'scheduled'
 order by rm.player_id, r.id, p.created_at desc;

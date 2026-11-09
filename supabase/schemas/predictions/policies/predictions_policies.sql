@@ -2,11 +2,15 @@ alter table public.predictions enable row level security;
 revoke all on public.predictions from anon;
 revoke insert, update, delete, truncate, references, trigger on public.predictions from authenticated;
 drop policy if exists "predictions_select" on public.predictions;
-create policy "predictions_select" on public.predictions for select to authenticated using (private.is_room_member(room_id));
+-- Scheduled predictions stay hidden from members until they go live.
+create policy "predictions_select" on public.predictions for select to authenticated using (
+  private.is_room_member(room_id)
+  and (status <> 'scheduled' or private.is_room_organizer(room_id))
+);
 drop policy if exists "predictions_no_direct_write" on public.predictions;
 create policy "predictions_no_direct_write" on public.predictions for insert with check (false);
 drop policy if exists "predictions_no_direct_update" on public.predictions;
 create policy "predictions_no_direct_update" on public.predictions for update using (false);
 drop policy if exists "predictions_no_direct_delete" on public.predictions;
 create policy "predictions_no_direct_delete" on public.predictions for delete using (false);
-grant select (id, room_id, series_id, series_prediction_number, created_by, title, status, deadline, winning_option_id, no_result_reason, affects_rating, resolved_at, resolved_by, notified_1h, notified_result_needed, created_at, description, corrected_at, corrected_by, ratings_reversible) on public.predictions to authenticated;
+grant select (id, room_id, series_id, series_prediction_number, created_by, title, status, deadline, opens_at, winning_option_id, no_result_reason, affects_rating, resolved_at, resolved_by, notified_1h, notified_result_needed, created_at, description, corrected_at, corrected_by, ratings_reversible) on public.predictions to authenticated;

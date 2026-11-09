@@ -280,9 +280,6 @@ export async function createRoom(room_name: string): Promise<Room> {
   return {
     ...room,
     members: members,
-    // predictions_limit is not returned by the create_room RPC; default to 5.
-    // The useRoom hook always re-fetches via spectateRoom (select *) which has the real value.
-    predictions_limit: 5,
   }
 }
 
@@ -314,7 +311,6 @@ type RoomByCode = {
   description: string | null
   status: string
   created_at: string
-  predictions_limit: number
   result_reminder_hours: number
   is_member: boolean
   is_removed: boolean
@@ -432,7 +428,6 @@ export async function transferOwnership(roomId: string, playerId: string) {
 export type RoomSettings = {
   name: string
   description: string
-  predictionsLimit: number
   resultReminderHours: number
 }
 
@@ -441,22 +436,45 @@ export async function updateRoom(roomId: string, settings: RoomSettings) {
     p_room_id: roomId,
     p_name: settings.name,
     p_description: settings.description,
-    p_predictions_limit: settings.predictionsLimit,
     p_result_reminder_hours: settings.resultReminderHours,
   })
   return assertOk(data, error)
 }
 
-// Organizers only, while the prediction is open for picks. Pass options only
-// to change them; they're fixed once anyone has bet.
-export async function updatePrediction(predictionId: string, title: string, deadline: Date, options?: string[]) {
+// Organizers only, while the prediction is open for picks (or scheduled).
+// Pass options only to change them; they're fixed once anyone has bet.
+// opensAt moves a scheduled prediction's go-live time.
+export async function updatePrediction(
+  predictionId: string,
+  title: string,
+  deadline: Date,
+  options?: string[],
+  opensAt?: Date | null,
+) {
   const { data, error } = await supabase.rpc('update_prediction', {
     p_prediction_id: predictionId,
     p_title: title,
     p_deadline: deadline.toISOString(),
     p_options: options,
+    p_opens_at: opensAt ? opensAt.toISOString() : undefined,
   })
   return assertOk(data, error)
+}
+
+// Organizers put a scheduled prediction live straight away.
+export async function publishPredictionNow(predictionId: string) {
+  const { data, error } = await supabase.rpc('publish_prediction_now', {
+    p_prediction_id: predictionId,
+  })
+  return assertOk(data, error)
+}
+
+// Organizers delete a scheduled prediction (nobody has seen it yet).
+export async function deleteScheduledPrediction(predictionId: string) {
+  const { error } = await supabase.rpc('delete_scheduled_prediction', {
+    p_prediction_id: predictionId,
+  })
+  if (error) throw error
 }
 
 // Logs a completed share so we can see which shareables get used.
@@ -484,9 +502,6 @@ export async function joinRoom(roomCode: string, ref?: string | null): Promise<R
   return {
     ...room,
     members: members,
-    // predictions_limit is not returned by the join_room RPC; default to 5.
-    // The useRoom hook always re-fetches via spectateRoom (select *) which has the real value.
-    predictions_limit: 5,
   }
 }
 
@@ -505,7 +520,6 @@ export async function getPlayerRooms(player_id: string): Promise<Room[]> {
     name: row.name,
     code: row.room_code,
     status: row.status,
-    predictions_limit: row.predictions_limit,
     created_at: row.created_at,
     
     // UI Counter Helpers
@@ -724,6 +738,8 @@ export async function createPrediction(
   options: string[],
   deadline: Date,
   seriesId?: string | null,
+  // Set to schedule it: it stays hidden from members until then.
+  opensAt?: Date | null,
 ): Promise<Prediction> {
   const { data, error } = await supabase.rpc('create_prediction', {
     p_room_id: roomId,
@@ -731,6 +747,7 @@ export async function createPrediction(
     p_options: options,
     p_deadline: deadline.toISOString(),
     p_series_id: seriesId ?? undefined,
+    p_opens_at: opensAt ? opensAt.toISOString() : undefined,
   })
   const prediction = assertOk(data, error) as {
     prediction_id: string
@@ -813,7 +830,7 @@ export async function getActivePrediction(roomId: string) {
     .from('predictions')
     .select(`*, series:series_id(title), prediction_tags(id, prediction_id, tag, created_at)`)
     .eq('room_id', roomId)
-    // .in('status', ['draft', 'locked'])
+    .neq('status', 'scheduled')
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle()

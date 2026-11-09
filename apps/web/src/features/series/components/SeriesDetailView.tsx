@@ -41,6 +41,8 @@ type SeriesDetailViewProps = {
 	onEdit: () => void;
 	onArchive: () => void;
 	onCloseSeries: () => void;
+	// Scheduled predictions that closing the series would delete.
+	scheduledCount?: number;
 	onNewPrediction: () => void;
 	onEditDialogOpenChange: (open: boolean) => void;
 	onFormStateChange: (nextState: SeriesFormState) => void;
@@ -68,6 +70,7 @@ export function SeriesDetailView({
 	onEdit,
 	onArchive,
 	onCloseSeries,
+	scheduledCount = 0,
 	onNewPrediction,
 	onEditDialogOpenChange,
 	onFormStateChange,
@@ -90,6 +93,7 @@ export function SeriesDetailView({
 				onEdit={onEdit}
 				onArchive={onArchive}
 				onCloseSeries={onCloseSeries}
+				scheduledCount={scheduledCount}
 			/>
 
 			{/* The room view (Home, Standings, History) follows one series. */}

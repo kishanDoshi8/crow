@@ -9,6 +9,8 @@ with series_prediction_stats as (
     count(*) filter (where p.status = 'cancelled')::int as cancelled_predictions
   from public.predictions p
   where p.series_id is not null
+    -- Not a game of the series until it goes live.
+    and p.status <> 'scheduled'
   group by p.series_id
 )
 select

@@ -35,8 +35,6 @@ export interface Room {
   // The caller was removed and can't rejoin until the owner lets them back.
   is_removed?:       boolean
   has_unseen_activities?: boolean
-  // Max concurrent active (draft/locked) predictions. The owner can change it.
-  predictions_limit: number
   // Hours after a deadline before staff get a "result needed" push.
   result_reminder_hours?: number
 
@@ -50,8 +48,10 @@ export interface Room {
 export interface ManageQueueItem {
   id:                       string
   title:                    string
-  status:                   'draft' | 'locked'
+  status:                   'scheduled' | 'draft' | 'locked'
   deadline:                 string
+  // When a scheduled one goes live (or when a live one did).
+  opens_at:                 string | null
   series_id:                string | null
   series_prediction_number: number | null
   series_title:             string | null
@@ -67,4 +67,6 @@ export interface ManageQueue {
   to_resolve: ManageQueueItem[]
   // Still open for picks.
   open:       ManageQueueItem[]
+  // Organizers only: written ahead, by when they go live.
+  scheduled:  ManageQueueItem[]
 }
