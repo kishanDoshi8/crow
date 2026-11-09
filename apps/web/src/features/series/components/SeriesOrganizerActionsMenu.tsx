@@ -140,7 +140,7 @@ export function SeriesOrganizerActionsMenu({
 						<SettingsIcon className='size-5' />
 					</Button>
 				</DrawerTrigger>
-				<DrawerContent className='data-[vaul-drawer-direction=bottom]:right-auto data-[vaul-drawer-direction=bottom]:left-1/2 data-[vaul-drawer-direction=bottom]:w-full data-[vaul-drawer-direction=bottom]:max-w-md data-[vaul-drawer-direction=bottom]:-translate-x-1/2'>
+				<DrawerContent className='mx-auto max-w-md'>
 					<DrawerHeader className='text-left'>
 						<DrawerTitle>Manage series</DrawerTitle>
 						<DrawerDescription>{series.title}</DrawerDescription>
@@ -211,7 +211,7 @@ export function SeriesOrganizerActionsMenu({
 				open={isArchiveConfirmOpen}
 				onOpenChange={setIsArchiveConfirmOpen}
 			>
-				<DrawerContent className='data-[vaul-drawer-direction=bottom]:right-auto data-[vaul-drawer-direction=bottom]:left-1/2 data-[vaul-drawer-direction=bottom]:w-full data-[vaul-drawer-direction=bottom]:max-w-md data-[vaul-drawer-direction=bottom]:-translate-x-1/2'>
+				<DrawerContent className='mx-auto max-w-md'>
 					<DrawerHeader className='text-left'>
 						<DrawerTitle>Archive series</DrawerTitle>
 						<DrawerDescription>
@@ -281,7 +281,7 @@ export function SeriesOrganizerActionsMenu({
 				open={isCloseConfirmOpen}
 				onOpenChange={setIsCloseConfirmOpen}
 			>
-				<DrawerContent className='data-[vaul-drawer-direction=bottom]:right-auto data-[vaul-drawer-direction=bottom]:left-1/2 data-[vaul-drawer-direction=bottom]:w-full data-[vaul-drawer-direction=bottom]:max-w-md data-[vaul-drawer-direction=bottom]:-translate-x-1/2'>
+				<DrawerContent className='mx-auto max-w-md'>
 					<DrawerHeader className='text-left'>
 						<DrawerTitle>Close series</DrawerTitle>
 					</DrawerHeader>

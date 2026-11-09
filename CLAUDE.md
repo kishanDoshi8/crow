@@ -8,6 +8,9 @@ Predikt), live at playcrow.app. npm workspaces monorepo:
 - `supabase/`: Postgres schema (`schemas/`), migrations, edge functions, SQL tests
 
 Read `apps/web/PRODUCT.md` and `apps/web/DESIGN.md` before UI work.
+The app is mobile first: phone styles are the unprefixed classes, and
+tablet/desktop only add `md:`/`lg:` overrides (DESIGN.md, Layout and
+Breakpoints). Never change the phone view for a bigger screen.
 
 ## Commands (run from the repo root)
 

@@ -62,7 +62,8 @@ function RoomHeader({
 
 	return (
 		<header
-			className={`px-3 py-3 sticky top-0 left-0 right-0 z-10 bg-secondary/30 backdrop-blur-sm border-b`}
+			// Desktop has the top bar and sidebar instead.
+			className={`px-3 py-3 sticky top-0 left-0 right-0 z-10 bg-secondary/30 backdrop-blur-sm border-b lg:hidden`}
 		>
 			<div className={`max-w-280 mx-auto flex gap-2 items-center`}>
 				{leftAction === "none" ? (

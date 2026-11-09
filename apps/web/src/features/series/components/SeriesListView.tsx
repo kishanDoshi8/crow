@@ -34,7 +34,7 @@ export function SeriesListView({
 	onCreateNew,
 }: Readonly<SeriesListViewProps>) {
 	return (
-		<div className='mx-auto w-full max-w-md space-y-5 p-4'>
+		<div className='mx-auto w-full max-w-md space-y-5 p-4 lg:max-w-2xl lg:pt-6'>
 			<div>
 				<div className={`flex items-center justify-between`}>
 					<h2 className='flex-1 text-lg font-semibold'>Series</h2>

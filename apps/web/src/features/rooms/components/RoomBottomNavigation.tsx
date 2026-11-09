@@ -4,8 +4,9 @@ import { HistoryIcon, HomeIcon, MedalIcon, TrophyIcon } from "lucide-react";
 import { useAppNavigation } from "@/shared/lib/navigation";
 import { NavLink } from "react-router-dom";
 
-// Activity lives behind the bell in the room header.
-const navItems = [
+// The room's tabs, shared with the desktop sidebar. Activity lives behind
+// the bell in the room header.
+export const ROOM_TABS = [
 	{ label: "Home", segment: "", icon: HomeIcon },
 	{ label: "Standings", segment: "leaderboard", icon: MedalIcon },
 	{ label: "History", segment: "history", icon: HistoryIcon },
@@ -18,13 +19,14 @@ export function RoomBottomNavigation() {
 
 	return (
 		<nav
-			className='fixed bottom-0 left-0 right-0 z-40 backdrop-blur-sm'
+			// Desktop has the sidebar instead.
+			className='fixed bottom-0 left-0 right-0 z-40 backdrop-blur-sm lg:hidden'
 			style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
 			aria-label='Room navigation'
 		>
 			<div className='max-w-md mx-auto w-full bg-card/80 border border-t rounded-t-lg'>
 				<ul className='flex justify-around h-16 px-2'>
-					{navItems.map(({ label, segment, icon: Icon }) => {
+					{ROOM_TABS.map(({ label, segment, icon: Icon }) => {
 						const to = segment
 							? `/rooms/${room.code}/${segment}`
 							: `/rooms/${room.code}`;

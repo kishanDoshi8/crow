@@ -84,7 +84,7 @@ export default function RoomActivitiesPage() {
 	}, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
 	return (
-		<div className='mx-auto w-full max-w-lg space-y-4 p-4'>
+		<div className='mx-auto w-full max-w-lg space-y-4 p-4 lg:max-w-2xl lg:pt-6'>
 			<div>
 				<h2 className='text-lg font-semibold'>Activity</h2>
 				<p className='mt-1 text-sm text-muted-foreground'>

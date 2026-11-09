@@ -28,6 +28,9 @@ import { Loading } from "@/shared/ui";
 import { useAppNavigation } from "@/shared/lib/navigation";
 import { RebrandWelcomeDialog } from "@/features/onboarding";
 import { prefetchRoomPages } from "@/app/router/roomPages";
+import { RoomSidebar, SIDEBAR_WIDTH } from "@/app/layouts/RoomSidebar";
+import { RoomTopBar } from "@/app/layouts/RoomTopBar";
+import { cn } from "@/shared/lib/utils";
 
 const HowToPlayModal = lazy(
 	() => import("@/features/onboarding/components/HowToPlayModal"),
@@ -56,6 +59,7 @@ export default function RoomLayout() {
 	const [showInvite, setShowInvite] = useState(false);
 	const [showNotifications, setShowNotifications] = useState(false);
 	const [showSeriesPicker, setShowSeriesPicker] = useState(false);
+	const [sidebarOpen, setSidebarOpen] = useState(readSidebarOpen);
 	const roomActions = useMemo<RoomActions>(
 		() => ({
 			openRoomSwitcher: () => setShowRoomSwitcher(true),
@@ -90,6 +94,20 @@ export default function RoomLayout() {
 	useEffect(() => {
 		if (room?.id) prefetchRoomPages();
 	}, [room?.id]);
+
+	// Remember the desktop sidebar's state, and let sheets and dialogs centre
+	// on the area beside it (shared/ui drawer and dialog read the offset).
+	useEffect(() => {
+		writeSidebarOpen(sidebarOpen);
+		const root = document.documentElement;
+		root.style.setProperty(
+			"--sidebar-offset",
+			sidebarOpen ? SIDEBAR_WIDTH.open : SIDEBAR_WIDTH.rail,
+		);
+		return () => {
+			root.style.removeProperty("--sidebar-offset");
+		};
+	}, [sidebarOpen]);
 
 	const handleHowToPlayClose = () => {
 		setShowHowToPlay(false);
@@ -129,7 +147,23 @@ export default function RoomLayout() {
 
 	return (
 		<RoomActionsContext.Provider value={roomActions}>
-		<div className='min-h-dvh flex flex-col'>
+		{/* Desktop: the sidebar takes the header's and bottom nav's place, and the
+		    pages sit to its right. Phones and tablets never see it. */}
+		<RoomSidebar room={room} collapsed={!sidebarOpen} />
+		<div
+			className={cn(
+				'min-h-dvh flex flex-col lg:transition-[padding] lg:duration-200 lg:ease-out motion-reduce:transition-none',
+				sidebarOpen ? 'lg:pl-64' : 'lg:pl-16',
+			)}
+		>
+			<RoomTopBar
+				room={room}
+				title={headerConfig?.title}
+				showBack={headerConfig?.leftAction === "back"}
+				onBack={handleHeaderLeftAction}
+				sidebarOpen={sidebarOpen}
+				onToggleSidebar={() => setSidebarOpen((open) => !open)}
+			/>
 			<RoomHeader
 				room={room}
 				leftAction={headerConfig?.leftAction ?? "home"}
@@ -227,3 +261,21 @@ type RoomHeaderHandle = {
 type RoomRouteHandle = {
 	header?: RoomHeaderHandle;
 };
+
+const SIDEBAR_KEY = "crow.sidebarOpen";
+
+function readSidebarOpen() {
+	try {
+		return localStorage.getItem(SIDEBAR_KEY) !== "false";
+	} catch {
+		return true;
+	}
+}
+
+function writeSidebarOpen(open: boolean) {
+	try {
+		localStorage.setItem(SIDEBAR_KEY, String(open));
+	} catch {
+		// Storage unavailable: it opens again next time.
+	}
+}

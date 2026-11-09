@@ -18,6 +18,7 @@ import {
 } from "@/features/talk";
 import { useRoomContext } from "@/shared/lib/roomContext";
 import { useOnline } from "@/shared/lib/offline";
+import { useIsDesktop } from "@/shared/lib/useMediaQuery";
 import { useBets } from "@/features/predictions/hooks/bet";
 import { ResolvePredictionDrawer } from "@/features/predictions/components/ResolvePredictionDrawer";
 import type { Prediction } from "@/features/predictions/types/types";
@@ -138,6 +139,7 @@ function LoadedPrediction({
 
 	// Offline the screen is read-only: what's saved, no picks or posts.
 	const online = useOnline();
+	const isDesktop = useIsDesktop();
 	const isOpen = status === "draft";
 	const showRevealBar = status === "locked" && can.resolve;
 	const showBetBar = isOpen && !!player;
@@ -158,193 +160,233 @@ function LoadedPrediction({
 		</Button>
 	);
 
+	const roomTalk = !isScheduled ? (
+		<RoomTalk
+			talk={talk}
+			moments={{
+				status,
+				deadline: prediction.deadline,
+				resolvedAt: prediction.resolved_at,
+				winnerLabel,
+			}}
+			viewerId={player?.id ?? null}
+			onReact={(reaction) => react(reaction)}
+			readOnly={!online}
+		/>
+	) : null;
+
+	// Desktop: a control pinned to the bottom of the main column. Phones: the
+	// bar along the bottom of the screen.
+	const actionBar =
+		showBetBar || showRevealBar || showTalkBar ? (
+			<div
+				className={
+					isDesktop
+						? "sticky bottom-4 z-10 rounded-xl border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85"
+						: "sticky bottom-0 z-10 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+				}
+			>
+				<div
+					className={
+						isDesktop
+							? "flex w-full items-center gap-3 px-4 py-3"
+							: "mx-auto flex w-full max-w-md items-center gap-3 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]"
+					}
+				>
+					{showTalkBar ? (
+						<button
+							type='button'
+							onClick={() => setIsTalkOpen(true)}
+							disabled={!talk || !online}
+							className='flex h-12 flex-1 items-center gap-2.5 rounded-full border bg-card px-4 text-left text-sm text-foreground/85 transition-colors hover:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60'
+						>
+							<MessageCircleIcon
+								className='size-4.5'
+								aria-hidden
+							/>
+							<span className='flex-1'>Say something</span>
+							<span className='text-xs text-muted-foreground tabular-nums'>
+								{phrasesLeft} left
+							</span>
+						</button>
+					) : showRevealBar ? (
+						<>
+							{sayButton}
+							<span className='min-w-0 flex-1 text-xs text-muted-foreground'>
+								Waiting on you for the result
+							</span>
+							<Button
+								variant='linear'
+								size='lg'
+								className='shrink-0'
+								onClick={() => setIsRevealOpen(true)}
+								disabled={!online}
+							>
+								Reveal result
+							</Button>
+						</>
+					) : myBet ? (
+						<>
+							{sayButton}
+							{/* min-w-0 lets this shrink, so a long option name truncates
+							    instead of pushing "Change" off the screen. */}
+							<span className='min-w-0 flex-1 leading-tight'>
+								<span className='block text-xs text-muted-foreground'>
+									Your pick
+								</span>
+								<span
+									className='block truncate font-semibold'
+									title={labelOf(myBet.option_id)}
+								>
+									{labelOf(myBet.option_id)}
+								</span>
+								<span className='block text-muted-foreground tabular-nums'>
+									{formatPoints(myBet.amount)} pts
+								</span>
+							</span>
+							<Button
+								variant='outline'
+								size='lg'
+								className='shrink-0'
+								onClick={() => openSheet(myBet.option_id)}
+								disabled={!online}
+							>
+								Change
+							</Button>
+						</>
+					) : (
+						<>
+							{sayButton}
+							<div className='min-w-0 flex-1 text-xs'>
+								<p className='flex-1 text-muted-foreground'>
+									{online
+										? "Tap an option to make your call"
+										: "You're offline · picks are paused"}
+								</p>
+								<p>
+									<span className='font-semibold text-foreground tabular-nums'>
+										{formatPoints(
+											wallet?.available ?? 0,
+										)}{" "}
+										pts
+									</span>{" "}
+									to play
+								</p>
+							</div>
+						</>
+					)}
+				</div>
+			</div>
+		) : null;
+
 	return (
 		<div className='flex min-h-[calc(100dvh-3.5rem)] flex-col'>
-			<div className='mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 pt-4 pb-8'>
-				<PredictionHeading
-					prediction={prediction}
-					roomCode={room.code}
-					menu={
-						<PredictionStaffMenu
-							prediction={prediction}
-							roomId={room.id}
-							roomCode={room.code}
-							can={can}
-						/>
+			{/* Desktop: the prediction on the left, Room talk on the right. */}
+			<div
+				className={
+					isDesktop
+						? "mx-auto grid w-full max-w-260 grid-cols-[minmax(0,1fr)_22rem] items-start gap-8 px-8 pt-6 pb-8"
+						: "flex flex-1 flex-col"
+				}
+			>
+				<div
+					className={
+						isDesktop
+							? "flex min-w-0 flex-col gap-5"
+							: "mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 pt-4 pb-8"
 					}
-				/>
-
-				<PredictionStatusLine
-					prediction={prediction}
-					winnerLabel={winnerLabel}
-					resolvedByName={
-						prediction.resolved_by
-							? nameOf(prediction.resolved_by)
-							: null
-					}
-					correctedByName={
-						prediction.corrected_by
-							? nameOf(prediction.corrected_by)
-							: null
-					}
-					onDeadline={onDeadline}
-				/>
-
-				{player && !isBetsLoading ? (
-					<YourCall
+				>
+					<PredictionHeading
 						prediction={prediction}
-						bets={bets}
-						myBet={myBet}
-						viewerId={player.id}
-						options={options}
-						roomId={room.id}
-						resultCard={resultCard}
+						roomCode={room.code}
+						menu={
+							<PredictionStaffMenu
+								prediction={prediction}
+								roomId={room.id}
+								roomCode={room.code}
+								can={can}
+							/>
+						}
 					/>
-				) : null}
 
-				<section>
-					<h2 className='mb-2.5 flex items-baseline justify-between text-xs font-medium uppercase tracking-wider text-muted-foreground'>
-						{isOpen ? "Make your call" : isScheduled ? "Options" : "The split"}
-						<span className='normal-case tracking-normal tabular-nums'>
-							{isScheduled
-								? null
-								: status === "revealed"
-								? `${bets.filter((bet) => bet.option_id === prediction.winning_option_id).length} of ${picks} called it`
-								: `${formatPoints(pool)} pts · ${picks} ${picks === 1 ? "pick" : "picks"}`}
-						</span>
-					</h2>
-					{isBetsLoading ? (
-						<OptionsSkeleton count={options.length || 2} />
-					) : (
-						<OptionsBoard
+					<PredictionStatusLine
+						prediction={prediction}
+						winnerLabel={winnerLabel}
+						resolvedByName={
+							prediction.resolved_by
+								? nameOf(prediction.resolved_by)
+								: null
+						}
+						correctedByName={
+							prediction.corrected_by
+								? nameOf(prediction.corrected_by)
+								: null
+						}
+						onDeadline={onDeadline}
+					/>
+
+					{player && !isBetsLoading ? (
+						<YourCall
+							prediction={prediction}
+							bets={bets}
+							myBet={myBet}
+							viewerId={player.id}
+							options={options}
+							roomId={room.id}
+							resultCard={resultCard}
+						/>
+					) : null}
+
+					<section>
+						<h2 className='mb-2.5 flex items-baseline justify-between text-xs font-medium uppercase tracking-wider text-muted-foreground'>
+							{isOpen ? "Make your call" : isScheduled ? "Options" : "The split"}
+							<span className='normal-case tracking-normal tabular-nums'>
+								{isScheduled
+									? null
+									: status === "revealed"
+									? `${bets.filter((bet) => bet.option_id === prediction.winning_option_id).length} of ${picks} called it`
+									: `${formatPoints(pool)} pts · ${picks} ${picks === 1 ? "pick" : "picks"}`}
+							</span>
+						</h2>
+						{isBetsLoading ? (
+							<OptionsSkeleton count={options.length || 2} />
+						) : (
+							<OptionsBoard
+								status={status}
+								options={options}
+								winningOptionId={prediction.winning_option_id}
+								myOptionId={myBet?.option_id ?? null}
+								selectedOptionId={
+									isSheetOpen ? sheetOptionId : null
+								}
+								onPick={showBetBar && online ? openSheet : undefined}
+							/>
+						)}
+					</section>
+
+					{!isBetsLoading && !isScheduled ? (
+						<PicksList
 							status={status}
+							bets={bets}
 							options={options}
 							winningOptionId={prediction.winning_option_id}
-							myOptionId={myBet?.option_id ?? null}
-							selectedOptionId={
-								isSheetOpen ? sheetOptionId : null
-							}
-							onPick={showBetBar && online ? openSheet : undefined}
+							viewerId={player?.id ?? null}
+							nameOf={nameOf}
+							onOpenPlayer={setProfileId}
 						/>
-					)}
-				</section>
+					) : null}
 
-				{!isBetsLoading && !isScheduled ? (
-					<PicksList
-						status={status}
-						bets={bets}
-						options={options}
-						winningOptionId={prediction.winning_option_id}
-						viewerId={player?.id ?? null}
-						nameOf={nameOf}
-						onOpenPlayer={setProfileId}
-					/>
-				) : null}
-
-				{status !== "scheduled" ? (
-					<RoomTalk
-						talk={talk}
-						moments={{
-							status,
-							deadline: prediction.deadline,
-							resolvedAt: prediction.resolved_at,
-							winnerLabel,
-						}}
-						viewerId={player?.id ?? null}
-						onReact={(reaction) => react(reaction)}
-						readOnly={!online}
-					/>
+					{isDesktop ? null : roomTalk}
+					{isDesktop ? actionBar : null}
+				</div>
+				{isDesktop && roomTalk ? (
+					<aside aria-label='Room talk' className='sticky top-20 rounded-2xl border bg-card p-4'>
+						{roomTalk}
+					</aside>
 				) : null}
 			</div>
 
-			{showBetBar || showRevealBar || showTalkBar ? (
-				<div className='sticky bottom-0 z-10 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
-					<div className='mx-auto flex w-full max-w-md items-center gap-3 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]'>
-						{showTalkBar ? (
-							<button
-								type='button'
-								onClick={() => setIsTalkOpen(true)}
-								disabled={!talk || !online}
-								className='flex h-12 flex-1 items-center gap-2.5 rounded-full border bg-card px-4 text-left text-sm text-foreground/85 transition-colors hover:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60'
-							>
-								<MessageCircleIcon
-									className='size-4.5'
-									aria-hidden
-								/>
-								<span className='flex-1'>Say something</span>
-								<span className='text-xs text-muted-foreground tabular-nums'>
-									{phrasesLeft} left
-								</span>
-							</button>
-						) : showRevealBar ? (
-							<>
-								{sayButton}
-								<span className='min-w-0 flex-1 text-xs text-muted-foreground'>
-									Waiting on you for the result
-								</span>
-								<Button
-									variant='linear'
-									size='lg'
-									className='shrink-0'
-									onClick={() => setIsRevealOpen(true)}
-									disabled={!online}
-								>
-									Reveal result
-								</Button>
-							</>
-						) : myBet ? (
-							<>
-								{sayButton}
-								{/* min-w-0 lets this shrink, so a long option name truncates
-								    instead of pushing "Change" off the screen. */}
-								<span className='min-w-0 flex-1 leading-tight'>
-									<span className='block text-xs text-muted-foreground'>
-										Your pick
-									</span>
-									<span
-										className='block truncate font-semibold'
-										title={labelOf(myBet.option_id)}
-									>
-										{labelOf(myBet.option_id)}
-									</span>
-									<span className='block text-muted-foreground tabular-nums'>
-										{formatPoints(myBet.amount)} pts
-									</span>
-								</span>
-								<Button
-									variant='outline'
-									size='lg'
-									className='shrink-0'
-									onClick={() => openSheet(myBet.option_id)}
-									disabled={!online}
-								>
-									Change
-								</Button>
-							</>
-						) : (
-							<>
-								{sayButton}
-								<div className='min-w-0 flex-1 text-xs'>
-									<p className='flex-1 text-muted-foreground'>
-										{online
-											? "Tap an option to make your call"
-											: "You're offline · picks are paused"}
-									</p>
-									<p>
-										<span className='font-semibold text-foreground tabular-nums'>
-											{formatPoints(
-												wallet?.available ?? 0,
-											)}{" "}
-											pts
-										</span>{" "}
-										to play
-									</p>
-								</div>
-							</>
-						)}
-					</div>
-				</div>
-			) : null}
+			{isDesktop ? null : actionBar}
 
 			{showBetBar && player ? (
 				<BetSheet

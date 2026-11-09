@@ -62,7 +62,7 @@ export default function UpNextPage() {
 	};
 
 	return (
-		<div className='mx-auto w-full max-w-md space-y-5 p-4'>
+		<div className='mx-auto w-full max-w-md space-y-5 p-4 lg:max-w-2xl lg:pt-6'>
 			<div>
 				<h2 className='text-lg font-semibold'>
 					What should we play next?

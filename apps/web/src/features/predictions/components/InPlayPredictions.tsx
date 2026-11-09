@@ -352,6 +352,9 @@ type InPlayPredictionsProps = {
 	predictionsOverride?: Prediction[];
 	emptyMessage?: string;
 	showSectionHeader?: boolean;
+	// "grid": every card at once, two across (desktop Home). Default: the
+	// swipe carousel.
+	layout?: "carousel" | "grid";
 };
 
 // ── Main component ─────────────────────────────────────────────────────────
@@ -359,6 +362,7 @@ function InPlayPredictions({
 	predictionsOverride,
 	emptyMessage,
 	showSectionHeader = true,
+	layout = "carousel",
 }: Readonly<InPlayPredictionsProps> = {}) {
 	const { room } = useRoomContext();
 	// Home follows the series picked in the room header.
@@ -547,7 +551,7 @@ function InPlayPredictions({
 	}
 
 	return (
-		<div className={`max-w-lg mx-auto`}>
+		<div className={layout === "grid" ? "w-full" : "max-w-lg mx-auto lg:max-w-none"}>
 			{showSectionHeader && isPredictionLoading && (
 				<div
 					aria-hidden='true'
@@ -569,51 +573,67 @@ function InPlayPredictions({
 					/>
 				)}
 
-			<Carousel
-				opts={{ align: "start" }}
-				className={`w-full`}
-				setApi={setApi}
-			>
-				<CarouselContent>{carouselContent}</CarouselContent>
-			</Carousel>
-
-			<div className={`flex justify-between items-center  px-2`}>
-				{predictions.length > 1 && (
-					<button
-						onClick={() => api?.scrollPrev()}
-						aria-label='Previous'
-					>
-						<ChevronLeftIcon className={`text-foreground/75`} />
-					</button>
-				)}
-
-				{/* Dot indicators */}
-				<div className='flex justify-center gap-2 mt-2 mx-auto'>
-					{isPredictionLoading && (
-						<Skeleton className={`h-2 w-6 rounded-full`} />
-					)}
-					{Array.from({ length: predictions.length }).map(
-						(_, index) => (
-							<button
-								key={index}
-								onClick={() => api?.scrollTo(index)}
-								className={`h-2 rounded-full transition-all duration-300 ${
-									index === current
-										? "w-6 bg-primary"
-										: "w-2 bg-muted-foreground/80"
-								}`}
-								aria-label={`Go to slide ${index + 1}`}
-							/>
-						),
-					)}
+			{layout === "grid" && !isPredictionLoading && predictions.length > 0 ? (
+				<div className={cn("grid gap-4", predictions.length > 1 && "grid-cols-2")}>
+					{predictions.map((prediction) => (
+						<PredictionCard
+							key={prediction.id}
+							prediction={prediction}
+							roomId={room.id}
+							roomCode={room.code}
+							refetchPredictions={refetchPredictions}
+						/>
+					))}
 				</div>
+			) : (
+				<>
+					<Carousel
+						opts={{ align: "start" }}
+						className={`w-full`}
+						setApi={setApi}
+					>
+						<CarouselContent>{carouselContent}</CarouselContent>
+					</Carousel>
 
-				{predictions.length > 1 && (
-					<button onClick={() => api?.scrollNext()} aria-label='Next'>
-						<ChevronRightIcon className={`text-foreground/75`} />
-					</button>
-				)}
-			</div>
+					<div className={`flex justify-between items-center  px-2`}>
+						{predictions.length > 1 && (
+							<button
+								onClick={() => api?.scrollPrev()}
+								aria-label='Previous'
+							>
+								<ChevronLeftIcon className={`text-foreground/75`} />
+							</button>
+						)}
+
+						{/* Dot indicators */}
+						<div className='flex justify-center gap-2 mt-2 mx-auto'>
+							{isPredictionLoading && (
+								<Skeleton className={`h-2 w-6 rounded-full`} />
+							)}
+							{Array.from({ length: predictions.length }).map(
+								(_, index) => (
+									<button
+										key={index}
+										onClick={() => api?.scrollTo(index)}
+										className={`h-2 rounded-full transition-all duration-300 ${
+											index === current
+												? "w-6 bg-primary"
+												: "w-2 bg-muted-foreground/80"
+										}`}
+										aria-label={`Go to slide ${index + 1}`}
+									/>
+								),
+							)}
+						</div>
+
+						{predictions.length > 1 && (
+							<button onClick={() => api?.scrollNext()} aria-label='Next'>
+								<ChevronRightIcon className={`text-foreground/75`} />
+							</button>
+						)}
+					</div>
+				</>
+			)}
 		</div>
 	);
 }
