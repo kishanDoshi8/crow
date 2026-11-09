@@ -25,6 +25,7 @@ import {
 	WrenchIcon,
 	CheckCircle2Icon,
 	LockIcon,
+	Trash2Icon,
 } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 
@@ -36,6 +37,8 @@ type SeriesOrganizerActionsMenuProps = {
 	onEdit: () => void;
 	onArchive: () => void;
 	onCloseSeries: () => void;
+	// Scheduled predictions in this series, deleted when it closes.
+	scheduledCount?: number;
 };
 
 type SettingsRowProps = {
@@ -88,6 +91,7 @@ export function SeriesOrganizerActionsMenu({
 	onEdit,
 	onArchive,
 	onCloseSeries,
+	scheduledCount = 0,
 }: Readonly<SeriesOrganizerActionsMenuProps>) {
 	const [isManageOpen, setIsManageOpen] = useState(false);
 	const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false);
@@ -307,6 +311,14 @@ export function SeriesOrganizerActionsMenu({
 									<LockIcon className='size-4 inline-block mr-2 text-accent' />
 									Predictions and settings become read-only.
 								</li>
+								{scheduledCount > 0 ? (
+									<li className='text-destructive'>
+										<Trash2Icon className='size-4 inline-block mr-2' />
+										{scheduledCount === 1
+											? "1 scheduled prediction will be deleted."
+											: `${scheduledCount} scheduled predictions will be deleted.`}
+									</li>
+								) : null}
 							</ul>
 						</div>
 						<FieldLabel>

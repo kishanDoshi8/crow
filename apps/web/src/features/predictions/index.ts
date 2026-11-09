@@ -11,4 +11,5 @@ export {
 	CloseWithoutResultDialog,
 	ResolvePredictionDrawer,
 } from "./components/ResolvePredictionDrawer";
+export { ScheduledActionDialog } from "./components/ScheduledActionDialog";
 export { NotificationPermissionBlockedDialog } from "./components/NotificationPermissionBlockedDialog";

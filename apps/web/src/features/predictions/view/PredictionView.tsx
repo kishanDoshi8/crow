@@ -142,7 +142,9 @@ function LoadedPrediction({
 	const showRevealBar = status === "locked" && can.resolve;
 	const showBetBar = isOpen && !!player;
 	// Everyone else gets "Say something" as the bar.
-	const showTalkBar = !showBetBar && !showRevealBar && !!player;
+	// Scheduled: only organizers see it, nobody can bet or talk yet.
+	const isScheduled = status === "scheduled";
+	const showTalkBar = !showBetBar && !showRevealBar && !!player && !isScheduled;
 	const sayButton = (
 		<Button
 			variant='outline'
@@ -202,9 +204,11 @@ function LoadedPrediction({
 
 				<section>
 					<h2 className='mb-2.5 flex items-baseline justify-between text-xs font-medium uppercase tracking-wider text-muted-foreground'>
-						{isOpen ? "Make your call" : "The split"}
+						{isOpen ? "Make your call" : isScheduled ? "Options" : "The split"}
 						<span className='normal-case tracking-normal tabular-nums'>
-							{status === "revealed"
+							{isScheduled
+								? null
+								: status === "revealed"
 								? `${bets.filter((bet) => bet.option_id === prediction.winning_option_id).length} of ${picks} called it`
 								: `${formatPoints(pool)} pts · ${picks} ${picks === 1 ? "pick" : "picks"}`}
 						</span>
@@ -225,7 +229,7 @@ function LoadedPrediction({
 					)}
 				</section>
 
-				{!isBetsLoading ? (
+				{!isBetsLoading && !isScheduled ? (
 					<PicksList
 						status={status}
 						bets={bets}
@@ -237,18 +241,20 @@ function LoadedPrediction({
 					/>
 				) : null}
 
-				<RoomTalk
-					talk={talk}
-					moments={{
-						status,
-						deadline: prediction.deadline,
-						resolvedAt: prediction.resolved_at,
-						winnerLabel,
-					}}
-					viewerId={player?.id ?? null}
-					onReact={(reaction) => react(reaction)}
-					readOnly={!online}
-				/>
+				{status !== "scheduled" ? (
+					<RoomTalk
+						talk={talk}
+						moments={{
+							status,
+							deadline: prediction.deadline,
+							resolvedAt: prediction.resolved_at,
+							winnerLabel,
+						}}
+						viewerId={player?.id ?? null}
+						onReact={(reaction) => react(reaction)}
+						readOnly={!online}
+					/>
+				) : null}
 			</div>
 
 			{showBetBar || showRevealBar || showTalkBar ? (
@@ -366,7 +372,7 @@ function LoadedPrediction({
 				/>
 			) : null}
 
-			{player ? (
+			{player && !isScheduled ? (
 				<PhraseSheet
 					open={isTalkOpen}
 					onOpenChange={setIsTalkOpen}

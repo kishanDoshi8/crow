@@ -7,8 +7,9 @@ import { Skeleton } from "@/shared/ui";
 import { Navigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
-// Organizers fix a prediction while it's open for picks: the deadline and
-// tags, and the question, details and options until someone bets.
+// Organizers fix a prediction while it's open for picks (or still
+// scheduled): the deadline and tags, the question, details and options until
+// someone bets, and a scheduled one's go-live time.
 export default function EditPrediction() {
 	const { room } = useRoomContext();
 	const { can } = useRoomRole(room);
@@ -33,7 +34,7 @@ export default function EditPrediction() {
 	}
 
 	// Once picks close there's nothing left to edit.
-	if (!prediction || prediction.status !== "draft") {
+	if (!prediction || (prediction.status !== "draft" && prediction.status !== "scheduled")) {
 		return <Navigate to={predictionPath} replace />;
 	}
 
@@ -52,10 +53,14 @@ export default function EditPrediction() {
 				deadline: new Date(prediction.deadline),
 				description: prediction.description ?? "",
 				tags: (prediction.tags ?? []).map((tag) => tag.tag),
+				opensAt:
+					prediction.status === "scheduled" && prediction.opens_at
+						? new Date(prediction.opens_at)
+						: null,
 			}}
 			lockedByBets={hasBets}
 			isSubmitting={isSaving}
-			onSubmit={({ title, options: labels, deadline, description, tags }) =>
+			onSubmit={({ title, options: labels, deadline, opensAt, description, tags }) =>
 				updatePrediction(
 					{
 						roomId: room.id,
@@ -63,6 +68,7 @@ export default function EditPrediction() {
 						title,
 						deadline,
 						options: hasBets ? undefined : labels,
+						opensAt,
 						description,
 						tags,
 					},

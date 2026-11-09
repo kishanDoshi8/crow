@@ -1,6 +1,6 @@
 import { useRoomContext } from "@/shared/lib/roomContext";
 import { useAppNavigation } from "@/shared/lib/navigation";
-import { useRoomRole } from "@/features/rooms";
+import { useManageQueue, useRoomRole } from "@/features/rooms";
 import {
 	usePredictionHistory,
 	useSeriesLeaderboard,
@@ -143,6 +143,8 @@ export default function SeriesPage() {
 	const { can } = useRoomRole(room);
 	const { currentSeriesId } = useCurrentSeries(room.id);
 	const isOrganizer = can.organize;
+	// Closing a series deletes its scheduled predictions: the dialog says how many.
+	const { data: manageQueue } = useManageQueue(room.id, isOrganizer);
 
 	const [editingSeriesId, setEditingSeriesId] = useState<string | null>(null);
 	const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -354,6 +356,10 @@ export default function SeriesPage() {
 			onEdit={() => openEditDialog(selectedSeries)}
 			onArchive={() => handleArchive(selectedSeries.id)}
 			onCloseSeries={() => handleCloseSeries(selectedSeries.id)}
+			scheduledCount={
+				manageQueue?.scheduled.filter((item) => item.series_id === selectedSeries.id)
+					.length ?? 0
+			}
 			onNewPrediction={() =>
 				navigate(`/rooms/${room.code}/predictions/new`, {
 					state: {

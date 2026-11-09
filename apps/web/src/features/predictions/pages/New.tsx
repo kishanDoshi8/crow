@@ -7,12 +7,17 @@ import { useRoomContext } from "@/shared/lib/roomContext";
 import { useCurrentSeries } from "@/features/series";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { useRoomRole } from "@/features/rooms";
+import { describeDeadline } from "@/shared/lib/deadline";
 
 export default function PredictionNew() {
 	const { room } = useRoomContext();
 	const { can } = useRoomRole(room);
 	const location = useLocation();
-	const navigationState = location.state as { seriesId?: string } | null;
+	const navigationState = location.state as {
+		seriesId?: string;
+		// "later" when opened to schedule one (from Needs you).
+		goLive?: "now" | "later";
+	} | null;
 	const { mutate: createPrediction, isPending: isLoading } =
 		useCreatePrediction();
 	const { back } = useAppNavigation();
@@ -53,21 +58,33 @@ export default function PredictionNew() {
 				navigationState?.seriesId ??
 				(currentSeries?.status === "active" ? currentSeries.id : null)
 			}
+			initialGoLive={navigationState?.goLive}
 			isSubmitting={isLoading}
-			onSubmit={({ title, options, deadline, seriesId, description, tags }) =>
+			onSubmit={({ title, options, deadline, opensAt, seriesId, description, tags }) =>
 				createPrediction(
 					{
 						roomId: room?.id || "",
 						title,
 						options,
 						deadline,
+						opensAt,
 						seriesId,
 						description,
 						tags,
 					},
 					{
 						// Back to wherever the form was opened from.
-						onSuccess: () => back(`/rooms/${room.code}`),
+						onSuccess: () => {
+							// Scheduled ones are out of sight until they go live: say
+							// where to find them.
+							if (opensAt) {
+								toast.success(`Scheduled for ${describeDeadline(opensAt).when}`, {
+									description: "It's in Needs you until it goes live.",
+									position: "top-center",
+								});
+							}
+							back(`/rooms/${room.code}`);
+						},
 						onError: (error) => {
 							toast("Failed to create prediction.", {
 								description: error.message,

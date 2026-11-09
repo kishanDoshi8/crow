@@ -342,6 +342,7 @@ export type Database = {
           no_result_reason: string | null
           notified_1h: boolean
           notified_result_needed: boolean
+          opens_at: string | null
           ratings_reversible: boolean
           resolved_at: string | null
           resolved_by: string | null
@@ -364,6 +365,7 @@ export type Database = {
           no_result_reason?: string | null
           notified_1h?: boolean
           notified_result_needed?: boolean
+          opens_at?: string | null
           ratings_reversible?: boolean
           resolved_at?: string | null
           resolved_by?: string | null
@@ -386,6 +388,7 @@ export type Database = {
           no_result_reason?: string | null
           notified_1h?: boolean
           notified_result_needed?: boolean
+          opens_at?: string | null
           ratings_reversible?: boolean
           resolved_at?: string | null
           resolved_by?: string | null
@@ -797,7 +800,6 @@ export type Database = {
           description: string | null
           id: string
           name: string
-          predictions_limit: number
           result_reminder_hours: number
           room_code: string
           status: string
@@ -807,7 +809,6 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
-          predictions_limit?: number
           result_reminder_hours?: number
           room_code: string
           status?: string
@@ -817,7 +818,6 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
-          predictions_limit?: number
           result_reminder_hours?: number
           room_code?: string
           status?: string
@@ -1345,7 +1345,6 @@ export type Database = {
           member_count: number | null
           name: string | null
           player_id: string | null
-          predictions_limit: number | null
           room_code: string | null
           room_id: string | null
           status: string | null
@@ -1437,6 +1436,7 @@ export type Database = {
       create_prediction: {
         Args: {
           p_deadline: string
+          p_opens_at?: string
           p_options: string[]
           p_room_id: string
           p_series_id?: string
@@ -1459,6 +1459,10 @@ export type Database = {
       }
       delete_my_push_subscription: {
         Args: { p_endpoint: string }
+        Returns: undefined
+      }
+      delete_scheduled_prediction: {
+        Args: { p_prediction_id: string }
         Returns: undefined
       }
       get_my_account_deletion: { Args: never; Returns: Json }
@@ -1577,6 +1581,10 @@ export type Database = {
         Args: { p_phrase_id: number; p_prediction_id: string }
         Returns: Json
       }
+      publish_prediction_now: {
+        Args: { p_prediction_id: string }
+        Returns: Json
+      }
       record_share: {
         Args: { p_kind: string; p_room_id: string }
         Returns: undefined
@@ -1651,6 +1659,7 @@ export type Database = {
       update_prediction: {
         Args: {
           p_deadline: string
+          p_opens_at?: string
           p_options?: string[]
           p_prediction_id: string
           p_title: string
@@ -1669,7 +1678,6 @@ export type Database = {
         Args: {
           p_description: string
           p_name: string
-          p_predictions_limit: number
           p_result_reminder_hours: number
           p_room_id: string
         }

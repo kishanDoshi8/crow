@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { CheckIcon, LockIcon, MinusCircleIcon, XCircleIcon } from "lucide-react";
+import { CalendarClockIcon, CheckIcon, LockIcon, MinusCircleIcon, XCircleIcon } from "lucide-react";
 import type { Prediction } from "@/features/predictions/types/types";
 import { describeDeadline } from "@/shared/lib/deadline";
 import { formatAgo, formatWhen } from "@/features/predictions/lib/predictionView";
@@ -19,8 +19,9 @@ type Props = {
 
 type Variant = "box" | "inline";
 
-// The one line that says where a prediction stands: open with its countdown,
-// locked, its result, or no result / cancelled with the reason.
+// The one line that says where a prediction stands: scheduled (organizers
+// only), open with its countdown, locked, its result, or no result /
+// cancelled with the reason.
 export function PredictionStatusLine({
 	prediction,
 	winnerLabel,
@@ -30,6 +31,19 @@ export function PredictionStatusLine({
 	variant = "box",
 }: Readonly<Props>) {
 	const deadline = new Date(prediction.deadline);
+
+	if (prediction.status === "scheduled") {
+		const opens = prediction.opens_at ? describeDeadline(new Date(prediction.opens_at)) : null;
+		return (
+			<StatusShell variant={variant} icon={<CalendarClockIcon className='size-3.5 text-accent' aria-hidden />}>
+				<span className='flex-1'>
+					<span className='font-semibold'>Scheduled</span>
+					{opens ? ` · goes live ${opens.when}` : ""}
+				</span>
+				{opens ? <span className='shrink-0 text-xs text-muted-foreground'>{opens.relative}</span> : null}
+			</StatusShell>
+		);
+	}
 
 	if (prediction.status === "draft") {
 		return (
