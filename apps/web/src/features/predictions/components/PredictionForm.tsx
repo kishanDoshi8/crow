@@ -4,6 +4,7 @@ import {
 	ChevronDownIcon,
 	CirclePlus,
 	CircleX,
+	Copy,
 	Clock,
 	Flame,
 	LockIcon,
@@ -46,11 +47,12 @@ export type PredictionFormValues = {
 type PredictionFormProps = {
 	mode: "create" | "edit";
 	roomId: string;
-	// Edit mode starts from the prediction as it is.
+	// Edit mode starts from the prediction as it is; create mode can start
+	// from a copy of a past one (no deadline: that's picked fresh).
 	initial?: {
 		title: string;
 		options: string[];
-		deadline: Date;
+		deadline?: Date;
 		description?: string | null;
 		tags?: string[];
 		// Scheduled predictions: when it goes live.
@@ -59,6 +61,8 @@ type PredictionFormProps = {
 	// Create mode: the series to preselect, and whether to start on "Later".
 	initialSeriesId?: string | null;
 	initialGoLive?: "now" | "later";
+	// Create mode: opens the list of past predictions to copy from.
+	onCopyPast?: () => void;
 	// The question, details and options can't change once anyone has bet.
 	lockedByBets?: boolean;
 	isSubmitting: boolean;
@@ -72,6 +76,7 @@ export function PredictionForm({
 	initial,
 	initialSeriesId = null,
 	initialGoLive = "now",
+	onCopyPast,
 	lockedByBets = false,
 	isSubmitting,
 	onSubmit,
@@ -102,7 +107,7 @@ export function PredictionForm({
 	const opensAt = goLive === "later" ? (combine(opensDate, opensTime) ?? null) : null;
 	// Editing keeps the current deadline, so it starts on the custom picker.
 	const [biddingDeadline, setBiddingDeadline] = useState(
-		initial ? "custom" : "1h",
+		initial?.deadline ? "custom" : "1h",
 	);
 	const [deadlineDate, setDeadlineDate] = useState(
 		initial?.deadline ?? new Date(Date.now() + 1 * 60 * 60 * 1000),
@@ -111,7 +116,7 @@ export function PredictionForm({
 		initial?.deadline ?? new Date(Date.now() + 24 * 60 * 60 * 1000),
 	);
 	const [customTime, setCustomTime] = useState<string>(
-		initial ? format(initial.deadline, "HH:mm") : "22:00",
+		initial?.deadline ? format(initial.deadline, "HH:mm") : "22:00",
 	);
 	const [selectedSeriesId, setSelectedSeriesId] = useState<string | null>(
 		initialSeriesId,
@@ -214,6 +219,17 @@ export function PredictionForm({
 	return (
 		<div className={`p-4`}>
 			<FieldSet className={`w-full max-w-md mx-auto`}>
+				{mode === "create" && onCopyPast ? (
+					<div className='flex items-center gap-3 rounded-xl border bg-card px-3 py-2.5'>
+						<Copy className='size-4 shrink-0 text-muted-foreground' />
+						<p className='min-w-0 flex-1 text-sm text-muted-foreground'>
+							{initial ? "Copied from a past prediction. Pick a new deadline." : "Same kind of question as before?"}
+						</p>
+						<Button variant='outline' size='sm' onClick={onCopyPast} className='shrink-0'>
+							{initial ? "Copy another" : "Copy a past one"}
+						</Button>
+					</div>
+				) : null}
 				<FieldGroup>
 					{mode === "create" ? (
 						<Field data-invalid={errors.includes("series")}>

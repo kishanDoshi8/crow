@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
 	BanIcon,
+	CopyIcon,
 	MinusCircleIcon,
 	MoreHorizontalIcon,
 	PencilIcon,
@@ -35,8 +36,8 @@ type Props = {
 const ITEM =
 	"flex h-12 w-full items-center justify-start gap-3 rounded-lg px-3 text-[15px] font-medium";
 
-// Staff tools for a prediction, in one place in every state: edit, go live
-// now or delete while it's scheduled; edit and cancel while it's open; no
+// Staff tools for a prediction, in one place in every state: duplicate it
+// (organizers); edit, go live now or delete while it's scheduled; edit and cancel while it's open; no
 // result or cancel once locked (revealing has its own button); correcting a
 // result after it's settled.
 export function PredictionStaffMenu({ prediction, roomId, roomCode, can }: Readonly<Props>) {
@@ -51,8 +52,10 @@ export function PredictionStaffMenu({ prediction, roomId, roomCode, can }: Reado
 	const canCancel = (status === "draft" || status === "locked") && can.resolve;
 	const canNoResult = status === "locked" && can.resolve;
 	const canCorrect = canCorrectResult(prediction, can.organize);
+	// Organizers can start a new prediction from this one, in any state.
+	const canDuplicate = can.organize;
 
-	if (!canEdit && !canCancel && !canNoResult && !canCorrect) return null;
+	if (!canEdit && !canCancel && !canNoResult && !canCorrect && !canDuplicate) return null;
 
 	const scheduledProps = {
 		roomId,
@@ -83,6 +86,18 @@ export function PredictionStaffMenu({ prediction, roomId, roomCode, can }: Reado
 								<Link to={`/rooms/${roomCode}/predictions/${prediction.id}/edit`} onClick={close}>
 									<PencilIcon className='size-5 text-muted-foreground' />
 									Edit
+								</Link>
+							</Button>
+						) : null}
+						{canDuplicate ? (
+							<Button variant='ghost' className={ITEM} asChild>
+								<Link
+									to={`/rooms/${roomCode}/predictions/new`}
+									state={{ copyFrom: prediction.id }}
+									onClick={close}
+								>
+									<CopyIcon className='size-5 text-muted-foreground' />
+									Duplicate
 								</Link>
 							</Button>
 						) : null}
