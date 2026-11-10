@@ -3,7 +3,7 @@ import { Link, NavLink } from "react-router-dom";
 import {
 	ChevronDownIcon,
 	ChevronsUpDownIcon,
-	EllipsisVerticalIcon,
+	MenuIcon,
 	InboxIcon,
 	LayersIcon,
 	LayoutGridIcon,
@@ -47,7 +47,7 @@ type Props = {
 
 // Desktop (lg and up): the room, its series and its pages down the left
 // side, in place of the phone's bottom nav and room menu. Rooms and series
-// switch from dropdowns at the top. Points and Activity are in the top bar,
+// switch from dropdowns at the top. Points are in the top bar; Activity is in the room menu,
 // whose toggle collapses this to a rail of icons.
 export function RoomSidebar({ room, collapsed }: Readonly<Props>) {
 	const { data: player } = usePlayer();
@@ -225,7 +225,7 @@ export function RoomSidebar({ room, collapsed }: Readonly<Props>) {
 								Room menu &amp; account
 							</span>
 						</span>
-						<EllipsisVerticalIcon className={cn("size-4 shrink-0 text-muted-foreground", label, "flex-none")} />
+						<MenuIcon className={cn("size-4 shrink-0 text-muted-foreground", label, "flex-none")} />
 					</button>
 				</RailTip>
 			</div>

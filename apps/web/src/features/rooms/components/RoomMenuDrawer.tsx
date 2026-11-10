@@ -15,6 +15,7 @@ import {
 	Spinner,
 } from "@/shared/ui";
 import {
+	ActivityIcon,
 	BellIcon,
 	CopyIcon,
 	DoorOpenIcon,
@@ -113,8 +114,21 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 		label: string;
 		detail?: string;
 		icon: LucideIcon;
+		// A dot on the icon: something new behind this row.
+		hasDot?: boolean;
 		onClick: () => void;
 	}> = [
+		// Activity lives here rather than in the header; the dot says when
+		// there's something new.
+		{
+			label: "Activity",
+			detail: room.has_unseen_activities
+				? "New updates in the room"
+				: "What's happened in the room",
+			icon: ActivityIcon,
+			hasDot: room.has_unseen_activities,
+			onClick: close(() => navigate(`/rooms/${room.code}/activities`)),
+		},
 		{
 			label: "Invite friends",
 			icon: Share2Icon,
@@ -251,11 +265,19 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 					<div className='flex flex-col gap-1 space-y-5 overflow-y-auto px-4 pb-4'>
 						<ul>
 							{items.map(
-								({ label, detail, icon: Icon, onClick }) => (
+								({ label, detail, icon: Icon, hasDot, onClick }) => (
 									<li key={label}>
 										<SettingsRow
 											icon={
-												<Icon className='size-5 text-muted-foreground' />
+												<span className='relative block'>
+													<Icon className='size-5 text-muted-foreground' />
+													{hasDot ? (
+														<span
+															aria-hidden='true'
+															className='absolute -right-1 -top-1 size-2.5 rounded-full border-2 border-background bg-activity'
+														/>
+													) : null}
+												</span>
 											}
 											label={label}
 											description={detail}

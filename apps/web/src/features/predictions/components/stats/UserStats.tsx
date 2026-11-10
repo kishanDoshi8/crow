@@ -1,11 +1,5 @@
-import { Badge, FadeContent, Reveal, Skeleton } from "@/shared/ui";
-import {
-	ChevronRightIcon,
-	CrosshairIcon,
-	CrownIcon,
-	FlameIcon,
-	TrophyIcon,
-} from "lucide-react";
+import { FadeContent, Skeleton, StatStrip } from "@/shared/ui";
+import { ChevronRightIcon, FlameIcon } from "lucide-react";
 import { Suspense, lazy, useEffect, useState } from "react";
 import { useRoomContext } from "@/shared/lib/roomContext";
 import { usePlayer } from "@/features/home";
@@ -19,7 +13,7 @@ import {
 } from "@/features/leaderboard";
 import { useCurrentSeries } from "@/features/series";
 import type { Room } from "@/features/rooms";
-import { twColor } from "@/shared/lib/utils";
+import { cn, ordinal } from "@/shared/lib/utils";
 import { Link } from "react-router-dom";
 import { useAppNavigation } from "@/shared/lib/navigation";
 
@@ -162,115 +156,69 @@ function LeaderboardContentView({
 	metricValue: (entry: LeaderboardEntry) => number;
 	showSeeAllLink: boolean;
 }>) {
+	const rank = leaderboardPlayer?.rank ?? null;
+	const onStreak = (leaderboardPlayer?.current_streak ?? 0) > 0;
+
 	return (
-		<div className={`flex flex-col gap-4`}>
-			<div
-				className={`text-card-foreground flex flex-col gap-6 rounded-xl border shadow-sm relative overflow-hidden border-border bg-linear-to-br from-card to-primary/5 p-5`}
-			>
-				<div className={`flex gap-4 items-center`}>
+		<div className={`flex flex-col gap-3`}>
+			<div className='overflow-hidden rounded-2xl border bg-card'>
+				{/* Your place: rank, points, and how far the next place up is. */}
+				<div className='flex items-center gap-3.5 p-3.5'>
 					{isLoading ? (
-						<Skeleton
-							className={`w-14 h-14 rounded-lg bg-secondary animate-pulse`}
-						/>
+						<Skeleton className='size-14 shrink-0 rounded-xl' />
 					) : (
 						<FadeContent
-							className={`relative w-14 h-14 flex items-center justify-center rounded-lg font-bold text-foreground text-2xl ${leaderboardPlayer?.rank === 1 ? "bg-rank-1 text-secondary" : "bg-linear-to-r from-primary to-accent"}`}
-						>
-							{leaderboardPlayer?.rank ? `#${leaderboardPlayer.rank}` : "—"}
-							{leaderboardPlayer?.rank === 1 && (
-								<span>
-									<CrownIcon
-										className={`w-6 h-6 text-rank-1 absolute -top-2 border border-rank-1 -right-2 bg-background rounded-full p-1`}
-									/>
-								</span>
+							className={cn(
+								"flex size-14 shrink-0 items-center justify-center rounded-xl text-xl font-bold",
+								rank === 1
+									? "bg-rank-1 text-brand-ink"
+									: "bg-linear-to-r from-primary to-accent text-foreground",
 							)}
+						>
+							{rank ? ordinal(rank) : "–"}
 						</FadeContent>
 					)}
 
 					{isLoading ? (
-						<div className={`flex-1`}>
-							<Skeleton
-								className={`w-1/2 h-4 rounded-lg bg-secondary animate-pulse mb-2`}
-							/>
-							<Skeleton
-								className={`w-1/2 h-8 rounded-lg bg-secondary animate-pulse`}
-							/>
+						<div className='flex flex-1 flex-col gap-1.5'>
+							<Skeleton className='h-3 w-20' />
+							<Skeleton className='h-7 w-24' />
 						</div>
 					) : (
-						<FadeContent
-							className={`flex-1`}
-						>
-							<p className={`text-xs`}>YOUR POINTS</p>
-							<p className={`text-3xl font-extrabold`}>
+						<FadeContent className='min-w-0 flex-1'>
+							<p className='text-xs text-muted-foreground'>Your points</p>
+							<p className='text-[1.75rem] font-bold leading-tight tabular-nums'>
 								{currentMetric.toLocaleString()}
 							</p>
 							{leaderboardPlayer && !leaderboardPlayer.is_ranked ? (
-								<p className={`text-xs text-muted-foreground`}>
-									Not ranked yet ·{" "}
-									{betsNeededLabel(leaderboardPlayer.bets_needed)}
-								</p>
-							) : leaderboardPlayer?.rank_is_new ||
-							  leaderboardPlayer?.rank_change != null ? (
-								<p className={`flex items-center gap-1 text-xs text-muted-foreground`}>
-									<RankChange
-										change={leaderboardPlayer.rank_change}
-										isNew={leaderboardPlayer.rank_is_new}
-									/>
-									<span aria-hidden='true'>since Monday</span>
+								<p className='text-xs text-muted-foreground'>
+									Not ranked yet, {betsNeededLabel(leaderboardPlayer.bets_needed)}
 								</p>
 							) : null}
 						</FadeContent>
 					)}
 
-					{isLoading ? (
-						<Skeleton
-							className={`w-20 h-10 rounded-lg bg-secondary animate-pulse`}
-						/>
-					) : (
-						<>
-							{leaderboardPlayer &&
-								gapToNextPlayer &&
-								gapMetric > 0 && (
-									<FadeContent
-										className={`flex flex-col gap-1`}
-									>
-										<p
-											className={`text-xs justify-end flex items-center gap-1 text-muted-foreground`}
-										>
-											GAP TO #{gapToNextPlayer.rank}
-										</p>
-										<p
-											className={`text-lg font-bold justify-end flex items-center gap-1 text-accent`}
-										>
-											+{gapMetric.toLocaleString()}
-										</p>
-									</FadeContent>
-								)}
-						</>
-					)}
+					{!isLoading && leaderboardPlayer && gapToNextPlayer && gapMetric > 0 ? (
+						<FadeContent className='flex shrink-0 flex-col items-end'>
+							<p className='text-xs text-muted-foreground'>
+								Gap to {gapToNextPlayer.rank ? ordinal(gapToNextPlayer.rank) : "next"}
+							</p>
+							<p className='text-xl font-bold leading-snug text-accent tabular-nums'>
+								{gapMetric.toLocaleString()}
+							</p>
+						</FadeContent>
+					) : null}
 				</div>
 
 				{isLoading ? (
-					<div className={`flex flex-col gap-2`}>
+					<div aria-hidden='true'>
 						{[1, 2, 3, 4].map((i) => (
-							<div
-								key={i}
-								className={`flex items-center gap-3 p-3 rounded-lg bg-secondary/60 animate-pulse`}
-							>
-								<Skeleton
-									className={`w-6 h-6 text-sm font-bold rounded-md bg-secondary animate-pulse`}
-								/>
-								<Skeleton
-									className={`w-1/4 h-4 rounded-lg bg-secondary animate-pulse`}
-								/>
-								<Skeleton
-									className={`ml-auto w-10 h-4 rounded-lg bg-secondary animate-pulse`}
-								/>
+							<div key={i} className={STANDING_ROW}>
+								<Skeleton className='h-4 w-4' />
+								<Skeleton className='h-4 w-1/3' />
+								<Skeleton className='ml-auto h-4 w-12' />
 							</div>
 						))}
-						<Skeleton
-							className={`h-6 w-20 ml-auto bg-secondary rounded-lg mt-2`}
-						/>
 					</div>
 				) : (
 					<LeaderboardMiniRows
@@ -284,40 +232,26 @@ function LeaderboardContentView({
 			</div>
 
 			{isLoading ? (
-				<div className={`flex gap-2`}>
-					{[1, 2, 3].map((i) => (
-						<Skeleton
-							key={i}
-							className={`flex-1 w-full h-24 rounded-lg bg-secondary animate-pulse`}
-						/>
-					))}
-				</div>
+				<Skeleton className='h-16 w-full rounded-xl' />
 			) : (
-				<FadeContent
-					className={`flex gap-2`}
-				>
-					<StatTile
-						icon={<TrophyIcon className={`w-4 h-4 text-rank-1`} />}
-						value={leaderboardPlayer?.winning_bets ?? 0}
-						label='WINS'
-					/>
-					<StatTile
-						icon={<CrosshairIcon className={`w-4 h-4 text-loss`} />}
-						value={`${Math.round(leaderboardPlayer?.win_percentage ?? 0)}%`}
-						label='ACCURACY'
-					/>
-					<StatTile
-						icon={<FlameIcon className={`w-4 h-4 text-rank-3`} />}
-						value={
-							leaderboardPlayer?.current_streak === 0
-								? (leaderboardPlayer?.highest_streak ?? 0)
-								: (leaderboardPlayer?.current_streak ?? 0)
-						}
-						label={`${
-							leaderboardPlayer?.current_streak === 0
-								? "BEST STREAK"
-								: "STREAK"
-						}`}
+				<FadeContent>
+					<StatStrip
+						size='lg'
+						className='bg-card'
+						stats={[
+							{ label: "Wins", value: leaderboardPlayer?.winning_bets ?? 0 },
+							{
+								label: "Accuracy",
+								value: `${Math.round(leaderboardPlayer?.win_percentage ?? 0)}%`,
+							},
+							{
+								label: onStreak ? "Streak" : "Best streak",
+								value: onStreak
+									? (leaderboardPlayer?.current_streak ?? 0)
+									: (leaderboardPlayer?.highest_streak ?? 0),
+								tone: onStreak ? "text-accent" : undefined,
+							},
+						]}
 					/>
 				</FadeContent>
 			)}
@@ -325,33 +259,9 @@ function LeaderboardContentView({
 	);
 }
 
-function getRankChipStyle(rank: number) {
-	if (rank === 1) {
-		return {
-			backgroundColor: twColor("rank-1", 0.1),
-			color: twColor("rank-1"),
-		};
-	}
-
-	if (rank === 2) {
-		return {
-			backgroundColor: twColor("rank-2", 0.2),
-			color: twColor("foreground"),
-		};
-	}
-
-	if (rank === 3) {
-		return {
-			backgroundColor: twColor("rank-3", 0.2),
-			color: twColor("rank-3"),
-		};
-	}
-
-	return {
-		backgroundColor: twColor("foreground", 0.001),
-		color: twColor("foreground"),
-	};
-}
+// One line per player: place, name, points. The name gives way (it
+// truncates) so the points always line up.
+const STANDING_ROW = "flex min-h-11 w-full items-center gap-2.5 border-t px-3.5 text-left";
 
 function LeaderboardMiniRows({
 	leaderboard,
@@ -373,70 +283,63 @@ function LeaderboardMiniRows({
 	);
 	const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
 
-	return (
-		<div className={`flex flex-col gap-2`}>
-			{splitStandings(leaderboard).ranked.slice(0, 4).map((entry, index) => {
-				const rankChipStyle = getRankChipStyle(entry.rank);
+	const ranked = splitStandings(leaderboard).ranked;
 
-				return (
-					<button
-						key={entry.player_id}
-						onClick={() => {
-							setSelectedPlayerId(entry.player_id);
-							setIsProfileDialogOpen(true);
-						}}
-						className={`cursor-pointer`}
-					>
-						<Reveal
-							index={index}
-							className={`flex items-center gap-3 p-3 rounded-lg ${entry.player_id === playerId ? "bg-linear-30 from-accent/10 border to-primary/10" : "bg-secondary/60"}`}
-						>
-							<p
-								className={`w-6 h-6 text-sm font-bold rounded-md flex items-center justify-center`}
-								style={rankChipStyle}
+	return (
+		<div className='flex flex-col'>
+			<ol>
+				{ranked.slice(0, 5).map((entry) => {
+					const isMe = entry.player_id === playerId;
+					return (
+						<li key={entry.player_id}>
+							<button
+								type='button'
+								onClick={() => {
+									setSelectedPlayerId(entry.player_id);
+									setIsProfileDialogOpen(true);
+								}}
+								className={cn(
+									STANDING_ROW,
+									"cursor-pointer transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/50",
+									isMe && "bg-primary/10 hover:bg-primary/15",
+								)}
 							>
-								{entry.rank}
-							</p>
-							<RankChange
-								change={entry.rank_change}
-								isNew={entry.rank_is_new}
-								className='-ml-1'
-							/>
-							<p className={`font-medium`}>
-								{entry.username}
-								{entry.current_streak >= 3 && (
-									<span className={`inline-block`}>
-										<Badge
-											className={`flex gap-0 items-center justify-center bg-accent/20 text-accent text-xs ml-2`}
-										>
-											<FlameIcon
-												className={`w-2 h-2 text-rank-3`}
-											/>
-											{entry.current_streak}
-										</Badge>
-									</span>
-								)}
-								{entry.player_id === playerId && (
-									<Badge
-										variant='outline'
-										className={`ml-3 text-xs rounded-md`}
-									>
-										You
-									</Badge>
-								)}
-							</p>
-							<p className={`ml-auto font-bold`}>
-								{metricValue(entry).toLocaleString()}
 								<span
-									className={`text-xs ml-1 text-muted-foreground font-normal`}
+									className={cn(
+										"w-5 shrink-0 text-sm font-bold tabular-nums",
+										entry.rank === 1
+											? "text-rank-1"
+											: isMe
+												? "text-foreground"
+												: "text-muted-foreground",
+									)}
 								>
-									pts
+									{entry.rank}
 								</span>
-							</p>
-						</Reveal>
-					</button>
-				);
-			})}
+								<span className='flex min-w-0 flex-1 items-center gap-2'>
+									<span className={cn("truncate text-sm", isMe ? "font-bold" : "font-medium")}>
+										{entry.username}
+									</span>
+									{/* Only when the place changed since Monday. */}
+									<RankChange pill change={entry.rank_change} isNew={entry.rank_is_new} />
+									{entry.current_streak >= 3 ? (
+										<span
+											className='flex shrink-0 items-center gap-0.5 rounded-full bg-accent/15 px-1.5 text-[11px] font-semibold leading-[18px] text-accent tabular-nums'
+											aria-label={`${entry.current_streak} wins in a row`}
+										>
+											<FlameIcon className='size-3' aria-hidden='true' />
+											{entry.current_streak}
+										</span>
+									) : null}
+								</span>
+								<span className='shrink-0 text-sm font-semibold tabular-nums'>
+									{metricValue(entry).toLocaleString()}
+								</span>
+							</button>
+						</li>
+					);
+				})}
+			</ol>
 			{showSeeAllLink ? (
 				<Link
 					to={`/rooms/${roomCode}/leaderboard`}
@@ -445,10 +348,10 @@ function LeaderboardMiniRows({
 						event.preventDefault();
 						switchTab(`/rooms/${roomCode}/leaderboard`);
 					}}
-					className={`flex items-center justify-end text-sm text-accent text-right mt-2 cursor-pointer`}
+					className={cn(STANDING_ROW, "justify-between text-sm font-medium")}
 				>
-					see all
-					<ChevronRightIcon className={`w-3 h-3 inline-block ml-1`} />
+					{ranked.length > 5 ? `See all ${ranked.length}` : "See the full standings"}
+					<ChevronRightIcon className='size-4 text-muted-foreground' aria-hidden='true' />
 				</Link>
 			) : null}
 
@@ -465,22 +368,6 @@ function LeaderboardMiniRows({
 					/>
 				</Suspense>
 			) : null}
-		</div>
-	);
-}
-
-function StatTile({
-	icon: Icon,
-	value,
-	label,
-}: Readonly<{ icon: React.ReactNode; value: string | number; label: string }>) {
-	return (
-		<div
-			className={`flex flex-col bg-card p-3 rounded-lg border flex-1 items-center `}
-		>
-			{Icon}
-			<p className={`text-2xl font-bold mt-1`}>{value}</p>
-			<p className={`text-[10px]`}>{label}</p>
 		</div>
 	);
 }

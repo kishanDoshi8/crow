@@ -6,7 +6,7 @@ import {
 } from "@/features/rooms/hooks/home";
 import type { UnseenResult } from "@/shared/lib/api";
 import { cn, formatSignedPoints } from "@/shared/lib/utils";
-import { Skeleton } from "@/shared/ui";
+import { FactTag, Skeleton } from "@/shared/ui";
 import { CheckIcon, CircleSlashIcon, XIcon } from "lucide-react";
 import { AnimatePresence, m } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -28,13 +28,13 @@ function outcomeOf(result: UnseenResult) {
 				Icon: CheckIcon,
 				tone: "text-win",
 				ring: "bg-win/15",
-				value: `${formatSignedPoints(result.net)} pts`,
+				value: formatSignedPoints(result.net),
 			}
 		: {
 				Icon: XIcon,
 				tone: "text-loss",
 				ring: "bg-loss/15",
-				value: `${formatSignedPoints(result.net)} pts`,
+				value: formatSignedPoints(result.net),
 			};
 }
 
@@ -60,7 +60,7 @@ export function ResultsCard() {
 	return (
 		<section
 			aria-label='Your results'
-			className='max-w-md mx-auto mt-3 rounded-xl border border-border/60 bg-card px-3 py-2.5'
+			className='mx-auto mt-3 w-full max-w-md rounded-xl border border-border/60 bg-card px-3 py-2.5'
 		>
 			<div className='flex items-center justify-between gap-2'>
 				<h3 className='text-xs font-semibold text-muted-foreground'>
@@ -96,7 +96,7 @@ export function ResultsCard() {
 									animate={{ opacity: 1, y: 0 }}
 									exit={{ opacity: 0, x: 24 }}
 									transition={{ duration: 0.18 }}
-									className='flex items-center gap-2.5 py-1.5'
+									className='flex items-start gap-2.5 py-2'
 								>
 									<span
 										className={cn(
@@ -118,17 +118,19 @@ export function ResultsCard() {
 										<p className='truncate text-sm font-medium'>
 											{result.title}
 										</p>
-										<p className='truncate text-xs text-muted-foreground'>
-											You picked {result.my_pick}
-											{result.winning_label &&
-											result.status === "revealed"
-												? ` · ${result.winning_label} won`
-												: ""}
-										</p>
+										<span className='mt-1 flex flex-wrap gap-1.5'>
+											<FactTag label='Your pick'>{result.my_pick}</FactTag>
+											{/* The winner only when it wasn't yours. */}
+											{result.status === "revealed" &&
+											result.winning_label &&
+											result.winning_label !== result.my_pick ? (
+												<FactTag label='Winner'>{result.winning_label}</FactTag>
+											) : null}
+										</span>
 									</Link>
 									<span
 										className={cn(
-											"shrink-0 text-sm font-semibold tabular-nums",
+											"shrink-0 pt-1 text-sm font-semibold tabular-nums",
 											outcome.tone,
 										)}
 									>

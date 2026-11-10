@@ -4,11 +4,10 @@ import { useRoomRole } from "@/features/rooms";
 import type { Room} from "@/features/rooms";
 import { RoomMenuDrawer } from "@/features/rooms";
 import {
-	BellIcon,
 	ChevronDownIcon,
 	ChevronLeftIcon,
-	EllipsisVerticalIcon,
 	LayoutGridIcon,
+	MenuIcon,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import type { MouseEvent } from "react";
@@ -20,7 +19,6 @@ import {
 	useSeriesWallet,
 } from "@/features/series";
 import { useRoomActions } from "@/shared/lib/roomActions";
-import { cn } from "@/shared/lib/utils";
 
 export type RoomHeaderLeftAction = "home" | "back" | "none";
 
@@ -133,31 +131,7 @@ function RoomHeader({
 
 				{wallet ? <WalletPopover wallet={wallet} /> : null}
 
-				<Button
-					variant='ghost'
-					size='icon'
-					className='relative shrink-0'
-					asChild
-				>
-					<Link
-						to={`/rooms/${room.code}/activities`}
-						aria-label={
-							room.has_unseen_activities
-								? "Activity, new updates"
-								: "Activity"
-						}
-					>
-						<BellIcon />
-						<span
-							className={cn(
-								"absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-destructive border-2 border-background",
-								!room.has_unseen_activities && "hidden",
-							)}
-							aria-hidden='true'
-						/>
-					</Link>
-				</Button>
-
+				{/* Activity, invites, members and settings are all in the menu. */}
 				<Button
 					variant='ghost'
 					size='icon'
@@ -165,7 +139,7 @@ function RoomHeader({
 					onClick={() => setIsMenuOpen(true)}
 					aria-label='Room menu'
 				>
-					<EllipsisVerticalIcon />
+					<MenuIcon />
 				</Button>
 			</div>
 

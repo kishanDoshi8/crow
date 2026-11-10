@@ -19,6 +19,97 @@ type Props = {
 
 type Variant = "box" | "inline";
 
+const PILL = "inline-flex min-w-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold";
+
+// The same states for the top of a card on Home: what it is on the left as
+// a pill, the time that goes with it on the right. Nothing is joined with a
+// dot, so nothing breaks oddly when the card is narrow.
+export function PredictionStatusRow({
+	prediction,
+	winnerLabel,
+	onDeadline,
+}: Readonly<Pick<Props, "prediction" | "winnerLabel" | "onDeadline">>) {
+	const { status } = prediction;
+	const resolved = prediction.resolved_at ? formatWhen(prediction.resolved_at) : null;
+
+	if (status === "draft") {
+		return <OpenRow deadline={new Date(prediction.deadline)} onDeadline={onDeadline} />;
+	}
+
+	let pill: ReactNode;
+	let aside: string | null = resolved;
+	if (status === "scheduled") {
+		pill = <span className={cn(PILL, "bg-accent/15 text-accent")}>Scheduled</span>;
+		aside = prediction.opens_at ? `Live ${describeDeadline(new Date(prediction.opens_at)).relative}` : null;
+	} else if (status === "locked") {
+		pill = (
+			<span className={cn(PILL, "bg-accent/15 text-accent")}>
+				<LockIcon className='size-3' aria-hidden />
+				Locked
+			</span>
+		);
+		aside = `Closed ${formatAgo(prediction.deadline)}`;
+	} else if (status === "revealed") {
+		pill = (
+			<span className={cn(PILL, "bg-win/15 text-win")}>
+				<CheckIcon className='size-3 shrink-0' strokeWidth={3} aria-hidden />
+				<span className='truncate'>{winnerLabel ?? "Result"} won</span>
+			</span>
+		);
+	} else {
+		pill = (
+			<span className={cn(PILL, "bg-muted text-muted-foreground")}>
+				{status === "cancelled" ? "Cancelled" : "No result"}
+			</span>
+		);
+	}
+
+	return (
+		<div role='status' className='flex flex-col gap-1'>
+			<div className='flex items-center justify-between gap-3'>
+				{pill}
+				{aside ? <span className='shrink-0 text-xs text-muted-foreground'>{aside}</span> : null}
+			</div>
+			{prediction.no_result_reason && (status === "cancelled" || status === "no_result") ? (
+				<p className='text-xs text-muted-foreground'>{prediction.no_result_reason}</p>
+			) : null}
+		</div>
+	);
+}
+
+function OpenRow({ deadline, onDeadline }: Readonly<{ deadline: Date; onDeadline?: () => void }>) {
+	const left = useTimeLeft(deadline, onDeadline);
+	return (
+		<div role='status' className='flex items-center justify-between gap-3'>
+			<span className={cn(PILL, "bg-live/15 text-live")}>
+				<span className='size-1.5 rounded-full bg-live' aria-hidden />
+				{left > 0 ? "Open" : "Closing…"}
+			</span>
+			{left > 0 ? (
+				<span className='shrink-0 text-sm font-semibold tabular-nums text-live'>
+					{formatLeft(left)} left
+				</span>
+			) : null}
+		</div>
+	);
+}
+
+// Milliseconds until the deadline, ticking; calls onDeadline once it passes.
+function useTimeLeft(deadline: Date, onDeadline?: () => void) {
+	const now = useNow(deadline);
+	const left = deadline.getTime() - now;
+	const fired = useRef(false);
+
+	useEffect(() => {
+		if (left <= 0 && !fired.current) {
+			fired.current = true;
+			onDeadline?.();
+		}
+	}, [left, onDeadline]);
+
+	return left;
+}
+
 // The one line that says where a prediction stands: scheduled (organizers
 // only), open with its countdown, locked, its result, or no result /
 // cancelled with the reason.
@@ -122,16 +213,7 @@ function OpenStatus({
 	onDeadline,
 	variant,
 }: Readonly<{ deadline: Date; onDeadline?: () => void; variant: Variant }>) {
-	const now = useNow(deadline);
-	const left = deadline.getTime() - now;
-	const fired = useRef(false);
-
-	useEffect(() => {
-		if (left <= 0 && !fired.current) {
-			fired.current = true;
-			onDeadline?.();
-		}
-	}, [left, onDeadline]);
+	const left = useTimeLeft(deadline, onDeadline);
 
 	return (
 		<StatusShell variant={variant} icon={<span className='size-2 shrink-0 rounded-full bg-live' aria-hidden />}>
