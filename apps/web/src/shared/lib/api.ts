@@ -10,7 +10,7 @@ import type {
 } from "@/features/leaderboard/types/types";
 import type { Prediction, PredictionStatus } from "@/features/predictions/types/types";
 import type { Series } from "@/features/series/types/series";
-import type { FormerMember, ManageQueue, Room, RoomMember } from "@/features/rooms/types/types";
+import type { FormerMember, JoinPolicy, ManageQueue, Room, RoomMember } from "@/features/rooms/types/types";
 import type { PredictionTalk } from "@/features/talk/types";
 import type { RoomRole } from "@/features/rooms/lib/roles";
 import type { ActivityFilter, RoomActivitiesPage } from "@/features/activities/types/types";
@@ -312,6 +312,11 @@ type RoomByCode = {
   status: string
   created_at: string
   result_reminder_hours: number
+  listed: boolean
+  join_policy: JoinPolicy
+  member_limit: number
+  is_full: boolean
+  has_pending_request: boolean
   is_member: boolean
   is_removed: boolean
   member_count: number
@@ -429,6 +434,9 @@ export type RoomSettings = {
   name: string
   description: string
   resultReminderHours: number
+  // Shown in Explore, and whether joining needs the staff's OK.
+  listed: boolean
+  joinPolicy: JoinPolicy
 }
 
 export async function updateRoom(roomId: string, settings: RoomSettings) {
@@ -437,6 +445,8 @@ export async function updateRoom(roomId: string, settings: RoomSettings) {
     p_name: settings.name,
     p_description: settings.description,
     p_result_reminder_hours: settings.resultReminderHours,
+    p_listed: settings.listed,
+    p_join_policy: settings.joinPolicy,
   })
   return assertOk(data, error)
 }
@@ -483,7 +493,12 @@ export async function recordShare(roomId: string, kind: string) {
   if (error) throw error
 }
 
-export async function joinRoom(roomCode: string, ref?: string | null): Promise<Room> {
+// Joins a room, or (for a room that approves new members) sends a join
+// request: membership says which happened.
+export async function joinRoom(
+  roomCode: string,
+  ref?: string | null,
+): Promise<Room & { membership: 'member' | 'requested' }> {
   const { data, error } = await supabase.rpc('join_room', {
     p_room_code: roomCode,
     p_ref: ref ?? undefined,
@@ -496,13 +511,57 @@ export async function joinRoom(roomCode: string, ref?: string | null): Promise<R
     player_id: string
     username: string
     created_at: string
+    membership: 'member' | 'requested'
+  }
+  if (room.membership === 'requested') {
+    return { ...room, members: [], has_pending_request: true }
   }
   const members = await getRoomMembers(room.id)
-  
+
   return {
     ...room,
     members: members,
   }
+}
+
+// Withdraws your pending request to join a room.
+export async function cancelJoinRequest(roomId: string) {
+  const { error } = await supabase.rpc('cancel_join_request', { p_room_id: roomId })
+  if (error) throw error
+}
+
+// Owners and organizers let someone in, or decline them.
+export async function decideJoinRequest(roomId: string, playerId: string, accept: boolean) {
+  const { data, error } = await supabase.rpc('decide_join_request', {
+    p_room_id: roomId,
+    p_player_id: playerId,
+    p_accept: accept,
+  })
+  return assertOk(data, error)
+}
+
+export type ExploreRoom = {
+  id: string
+  room_code: string
+  name: string
+  description: string | null
+  join_policy: JoinPolicy
+  member_count: number
+  member_limit: number
+  series_title: string | null
+  open_prediction_count: number
+  last_activity_at: string | null
+  // You're in it, asked to join, or were removed (can't rejoin).
+  my_status: 'member' | 'requested' | 'removed' | null
+}
+
+// Public rooms, busiest first, optionally matching a search.
+export async function getExploreRooms(search: string, offset = 0): Promise<ExploreRoom[]> {
+  const { data, error } = await supabase.rpc('get_explore_rooms', {
+    p_search: search || undefined,
+    p_offset: offset,
+  })
+  return (assertOk(data, error) ?? []) as unknown as ExploreRoom[]
 }
 
 export async function getPlayerRooms(player_id: string): Promise<Room[]> {

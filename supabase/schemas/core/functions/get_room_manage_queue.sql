@@ -1,6 +1,6 @@
 -- Staff only. Everything waiting on staff across the room, oldest first:
 -- locked predictions to close, predictions still open for picks, and (for
--- organizers) scheduled ones by when they go live.
+-- organizers) scheduled ones by when they go live and join requests.
 create or replace function public.get_room_manage_queue(
   p_room_id uuid
 )
@@ -76,7 +76,12 @@ begin
       'scheduled', coalesce(
         (select json_agg(q order by q.opens_at, q.id) from queue q where q.status = 'scheduled'),
         '[]'::json
-      )
+      ),
+      -- Owners and organizers: people waiting to be let in, oldest first.
+      'join_requests', case
+        when v_role in ('owner', 'organizer') then public.get_room_join_requests(p_room_id)
+        else '[]'::json
+      end
     )
   );
 end;

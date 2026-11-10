@@ -66,7 +66,7 @@ grant execute on function public.set_member_role(uuid, uuid, text) to authentica
 grant execute on function public.transfer_ownership(uuid, uuid) to authenticated;
 grant execute on function public.update_global_preferences(boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean) to authenticated;
 grant execute on function public.update_prediction(uuid, text, timestamp with time zone, text[], timestamp with time zone) to authenticated;
-grant execute on function public.update_room(uuid, text, text, integer) to authenticated;
+grant execute on function public.update_room(uuid, text, text, integer, boolean, text) to authenticated;
 grant execute on function public.update_room_preferences(uuid, boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean) to authenticated;
 grant execute on function public.update_series(uuid, text, text, integer, integer, integer, integer) to authenticated;
 grant execute on function public.upsert_user_push_subscription(jsonb) to authenticated;
@@ -94,3 +94,7 @@ grant execute on function public.set_prediction_reaction(uuid, text) to authenti
 grant execute on function public.post_prediction_phrase(uuid, smallint) to authenticated;
 grant execute on function public.publish_prediction_now(uuid) to authenticated;
 grant execute on function public.delete_scheduled_prediction(uuid) to authenticated;
+grant execute on function public.cancel_join_request(uuid) to authenticated;
+grant execute on function public.decide_join_request(uuid, uuid, boolean) to authenticated;
+grant execute on function public.get_room_join_requests(uuid) to authenticated;
+grant execute on function public.get_explore_rooms(text, integer, integer) to authenticated;

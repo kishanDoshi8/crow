@@ -58,7 +58,8 @@ export function RoomSidebar({ room, collapsed }: Readonly<Props>) {
 	const { switchTab } = useAppNavigation();
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const base = `/rooms/${room.code}`;
-	const toResolve = queue?.to_resolve.length ?? 0;
+	// Results to reveal, plus people waiting to be let in.
+	const toResolve = (queue?.to_resolve.length ?? 0) + (queue?.join_requests?.length ?? 0);
 	const memberCount = room.members.length;
 	const seriesLabel = currentSeries?.title ?? (can.organize ? "Start a series" : "No series yet");
 	// Labels fade as the sidebar narrows, and stay out of the tab order.

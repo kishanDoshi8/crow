@@ -1,7 +1,7 @@
 import { usePlayer } from "@/features/home";
-import { useJoinRoom, useRoom } from "@/features/rooms/hooks/room";
+import { useCancelJoinRequest, useJoinRoom, useRoom } from "@/features/rooms/hooks/room";
 import { Badge, Button, Loading, Spinner } from "@/shared/ui";
-import { ChevronLeftIcon, UsersIcon } from "lucide-react";
+import { ChevronLeftIcon, Clock3Icon, UsersIcon } from "lucide-react";
 import { LogoTile } from "@/features/share";
 import { Navigate, useNavigate, useParams, useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ export function JoinRoomPage() {
 	const { data: player, isPending: isPlayerLoading } = usePlayer();
 	const { data: room, isPending: isRoomLoading, isError } = useRoom(roomCode);
 	const { mutate: joinRoom, isPending: isJoining } = useJoinRoom();
+	const { mutate: cancelRequest, isPending: isCancelling } = useCancelJoinRequest();
 
 	if (isPlayerLoading || isRoomLoading) {
 		return (
@@ -44,7 +45,10 @@ export function JoinRoomPage() {
 	}
 
 	// Only paths inside this room, so a crafted link can't send people elsewhere.
-	const requestedNext = new URLSearchParams(location.search).get("next");
+	const searchParams = new URLSearchParams(location.search);
+	const requestedNext = searchParams.get("next");
+	// Opened from Explore rather than an invite.
+	const fromExplore = searchParams.get("ref") === "explore";
 	const destination =
 		requestedNext?.startsWith(`/rooms/${room.code}/`) && !requestedNext.includes("//")
 			? requestedNext
@@ -63,11 +67,21 @@ export function JoinRoomPage() {
 	const memberCount = room.member_count ?? room.members.length;
 	const predictionCount = room.active_prediction_count ?? 0;
 
+	const needsRequest = room.join_policy === "request";
+	const memberLimit = room.member_limit;
+
 	const handleJoinRoom = () => {
 		joinRoom(
-			{ roomCode: room.code },
+			{ roomCode: room.code, ref: fromExplore ? "explore" : undefined },
 			{
 				onSuccess: (joinedRoom) => {
+					if (joinedRoom.membership === "requested") {
+						toast.success("Request sent", {
+							description: `${room.name} will appear in your rooms once you're let in.`,
+							position: "top-center",
+						});
+						return;
+					}
 					toast.success("Joined room successfully.");
 					navigate(
 						joinedRoom.code === room.code ? destination : `/rooms/${joinedRoom.code}`,
@@ -77,6 +91,20 @@ export function JoinRoomPage() {
 				onError: (error) => {
 					toast.error("Failed to join room.", {
 						description: error.message,
+					});
+				},
+			},
+		);
+	};
+
+	const handleCancelRequest = () => {
+		cancelRequest(
+			{ roomId: room.id },
+			{
+				onError: (error) => {
+					toast.error("Couldn't cancel the request.", {
+						description: error.message,
+						position: "top-center",
 					});
 				},
 			},
@@ -114,14 +142,18 @@ export function JoinRoomPage() {
 				</div>
 
 				<div className='flex flex-col gap-3'>
-					<p className='text-muted-foreground'>You're invited to</p>
+					<p className='text-muted-foreground'>
+						{fromExplore ? "Public room" : "You're invited to"}
+					</p>
 					<h1 className='text-5xl font-bold leading-none tracking-tight wrap-anywhere'>
 						{room.name}
 					</h1>
 					<div className='flex flex-wrap gap-2 pt-1'>
 						<Badge variant='secondary' className='rounded-full px-3 py-1'>
 							<UsersIcon />
-							{memberCount} {memberCount === 1 ? "player" : "players"}
+							{memberLimit
+								? `${memberCount} / ${memberLimit} players`
+								: `${memberCount} ${memberCount === 1 ? "player" : "players"}`}
 						</Badge>
 						<Badge className='rounded-full bg-primary/15 px-3 py-1 text-primary'>
 							<span aria-hidden='true'>●</span>
@@ -129,6 +161,10 @@ export function JoinRoomPage() {
 						</Badge>
 					</div>
 				</div>
+
+				{room.description ? (
+					<p className='text-foreground/85'>{room.description}</p>
+				) : null}
 
 				<dl className='grid gap-3 rounded-2xl border bg-card p-4 text-sm'>
 					<div className='flex justify-between gap-4'>
@@ -154,17 +190,43 @@ export function JoinRoomPage() {
 							You were removed from this room. Ask the owner to let you
 							back in.
 						</p>
+					) : room.has_pending_request ? (
+						<div className='flex items-center gap-3'>
+							<Clock3Icon className='size-5 shrink-0 text-accent' aria-hidden='true' />
+							<p className='min-w-0 flex-1 text-sm'>
+								<span className='block font-semibold'>Request sent</span>
+								<span className='block text-muted-foreground'>
+									You'll be notified when you're let in.
+								</span>
+							</p>
+							<Button variant='outline' onClick={handleCancelRequest} disabled={isCancelling}>
+								{isCancelling && <Spinner />}
+								Cancel request
+							</Button>
+						</div>
+					) : room.is_full ? (
+						<p className='text-center text-sm text-muted-foreground'>
+							This room is full. Try another room, or ask a member for an
+							invite once a place opens.
+						</p>
 					) : (
-						<Button
-							variant='linear'
-							size='lg'
-							className='w-full'
-							onClick={handleJoinRoom}
-							disabled={isJoining}
-						>
-							{isJoining && <Spinner />}
-							Join {room.name}
-						</Button>
+						<div className='flex flex-col gap-2'>
+							<Button
+								variant='linear'
+								size='lg'
+								className='w-full'
+								onClick={handleJoinRoom}
+								disabled={isJoining}
+							>
+								{isJoining && <Spinner />}
+								{needsRequest ? "Request to join" : `Join ${room.name}`}
+							</Button>
+							{needsRequest ? (
+								<p className='text-center text-xs text-muted-foreground'>
+									The room's owner or an organizer lets you in.
+								</p>
+							) : null}
+						</div>
 					)}
 				</div>
 			</div>

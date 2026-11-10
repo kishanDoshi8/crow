@@ -23,6 +23,10 @@ export interface FormerMember {
   left_at:   string
 }
 
+// open: anyone with the link or code joins · request: owners and organizers
+// let each person in.
+export type JoinPolicy = 'open' | 'request'
+
 export interface Room {
   id:                string
   code:              string
@@ -37,6 +41,14 @@ export interface Room {
   has_unseen_activities?: boolean
   // Hours after a deadline before staff get a "result needed" push.
   result_reminder_hours?: number
+  // Shown in Explore (public), or reached only by link or code (private).
+  listed?:           boolean
+  join_policy?:      JoinPolicy
+  // The most members it can have (set by the operator, not in the app).
+  member_limit?:     number
+  is_full?:          boolean
+  // The caller has asked to join and is waiting.
+  has_pending_request?: boolean
 
   // UI helper properties
   member_count?: number
@@ -69,4 +81,14 @@ export interface ManageQueue {
   open:       ManageQueueItem[]
   // Organizers only: written ahead, by when they go live.
   scheduled:  ManageQueueItem[]
+  // Owners and organizers: people waiting to be let in, oldest first.
+  join_requests: JoinRequest[]
+}
+
+export interface JoinRequest {
+  player_id:  string
+  username:   string
+  // 'explore', or the ref of the link they used; null for a typed code.
+  via:        string | null
+  created_at: string
 }

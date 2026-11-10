@@ -1,9 +1,12 @@
--- Owner only. Room name, description and staff settings.
+-- Owner only. Room name, description, staff settings, and who can find and
+-- join the room. The member limit isn't here: only the operator sets it.
 create or replace function public.update_room(
   p_room_id               uuid,
   p_name                  text,
   p_description           text,
-  p_result_reminder_hours integer
+  p_result_reminder_hours integer,
+  p_listed                boolean,
+  p_join_policy           text
 )
 returns json
 language plpgsql
@@ -45,10 +48,16 @@ begin
     raise exception 'Result reminder must be between 1 and 48 hours' using errcode = 'P0001';
   end if;
 
+  if p_listed is null or p_join_policy is null or p_join_policy not in ('open', 'request') then
+    raise exception 'Choose who can find and join the room' using errcode = 'P0001';
+  end if;
+
   update public.rooms
   set name                  = trim(p_name),
       description           = nullif(trim(coalesce(p_description, '')), ''),
-      result_reminder_hours = p_result_reminder_hours
+      result_reminder_hours = p_result_reminder_hours,
+      listed                = p_listed,
+      join_policy           = p_join_policy
   where id = p_room_id
   returning * into v_room;
 
@@ -60,7 +69,9 @@ begin
     'id',                    v_room.id,
     'name',                  v_room.name,
     'description',           v_room.description,
-    'result_reminder_hours', v_room.result_reminder_hours
+    'result_reminder_hours', v_room.result_reminder_hours,
+    'listed',                v_room.listed,
+    'join_policy',           v_room.join_policy
   );
 end;
 $$;

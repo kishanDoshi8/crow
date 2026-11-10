@@ -794,11 +794,44 @@ export type Database = {
           },
         ]
       }
+      room_join_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          player_id: string
+          room_id: string
+          status: string
+          via: string | null
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          player_id: string
+          room_id: string
+          status?: string
+          via?: string | null
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          player_id?: string
+          room_id?: string
+          status?: string
+          via?: string | null
+        }
+        Relationships: []
+      }
       rooms: {
         Row: {
           created_at: string
           description: string | null
           id: string
+          join_policy: string
+          listed: boolean
+          member_limit: number
           name: string
           result_reminder_hours: number
           room_code: string
@@ -808,6 +841,9 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          join_policy?: string
+          listed?: boolean
+          member_limit?: number
           name: string
           result_reminder_hours?: number
           room_code: string
@@ -817,6 +853,9 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          join_policy?: string
+          listed?: boolean
+          member_limit?: number
           name?: string
           result_reminder_hours?: number
           room_code?: string
@@ -1420,6 +1459,7 @@ export type Database = {
       archive_series: { Args: { p_series_id: string }; Returns: Json }
       cancel_account_deletion: { Args: never; Returns: Json }
       cancel_bet: { Args: { p_prediction_id: string }; Returns: Json }
+      cancel_join_request: { Args: { p_room_id: string }; Returns: undefined }
       claim_weekly_points: { Args: { p_auto_claimed?: boolean }; Returns: Json }
       collect_series_rewards: { Args: { series_id: string }; Returns: Json }
       complete_series: { Args: { p_series_id: string }; Returns: Json }
@@ -1457,6 +1497,10 @@ export type Database = {
         }
         Returns: Json
       }
+      decide_join_request: {
+        Args: { p_accept: boolean; p_player_id: string; p_room_id: string }
+        Returns: Json
+      }
       delete_my_push_subscription: {
         Args: { p_endpoint: string }
         Returns: undefined
@@ -1467,6 +1511,10 @@ export type Database = {
       }
       get_my_account_deletion: { Args: never; Returns: Json }
       get_my_series_wallets: { Args: { p_room_id: string }; Returns: Json }
+      get_explore_rooms: {
+        Args: { p_limit?: number; p_offset?: number; p_search?: string }
+        Returns: Json
+      }
       get_player: { Args: never; Returns: Json }
       get_prediction_talk: { Args: { p_prediction_id: string }; Returns: Json }
       get_preferences: { Args: { p_room_id?: string }; Returns: Json }
@@ -1483,6 +1531,7 @@ export type Database = {
       }
       get_room_by_code: { Args: { p_room_code: string }; Returns: Json }
       get_room_former_members: { Args: { p_room_id: string }; Returns: Json }
+      get_room_join_requests: { Args: { p_room_id: string }; Returns: Json }
       get_room_has_unseen_activities: {
         Args: { p_room_id: string }
         Returns: boolean
@@ -1677,6 +1726,8 @@ export type Database = {
       update_room: {
         Args: {
           p_description: string
+          p_join_policy: string
+          p_listed: boolean
           p_name: string
           p_result_reminder_hours: number
           p_room_id: string

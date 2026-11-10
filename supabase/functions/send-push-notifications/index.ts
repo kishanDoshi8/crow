@@ -7,7 +7,9 @@ type NotificationEventType =
 	| "deadline_1h"
 	| "result_revealed"
 	| "weekly_points_claim"
-	| "result_needed";
+	| "result_needed"
+	| "join_request"
+	| "join_accepted";
 
 const EVENT_TO_COLUMN: Record<NotificationEventType, string> = {
 	prediction_live: "prediction_live",
@@ -16,6 +18,10 @@ const EVENT_TO_COLUMN: Record<NotificationEventType, string> = {
 	result_revealed: "result_revealed",
 	weekly_points_claim: "weekly_points_claim",
 	result_needed: "result_needed",
+	// Staff alerts share the "Result needed" setting; a "you're in" follows
+	// the room's general new-activity setting.
+	join_request: "result_needed",
+	join_accepted: "prediction_live",
 };
 
 const corsHeaders = {
@@ -35,6 +41,8 @@ const DELIVERY: Record<
 	result_revealed: { ttl: 12 * 3600, urgency: "normal" },
 	weekly_points_claim: { ttl: 24 * 3600, urgency: "normal" },
 	result_needed: { ttl: 12 * 3600, urgency: "high" },
+	join_request: { ttl: 24 * 3600, urgency: "normal" },
+	join_accepted: { ttl: 24 * 3600, urgency: "normal" },
 };
 // Keeps .in() filters well under URL length limits in big rooms.
 const ID_BATCH_SIZE = 150;
@@ -62,6 +70,8 @@ type RequestBody = {
 		url?: string;
 		/** With room_id: only members with one of these roles, e.g. staff. */
 		roles?: string[];
+		/** With room_id, privileged only: just this player (a member of it). */
+		target_player_id?: string;
 		[key: string]: unknown;
 	};
 	target_player_token?: string;
@@ -221,6 +231,10 @@ Deno.serve(async (req) => {
 			.from("room_members")
 			.select("player_id")
 			.eq("room_id", body.room_id);
+		const onlyPlayer = body.payload?.target_player_id;
+		if (typeof onlyPlayer === "string" && onlyPlayer) {
+			memberQuery = memberQuery.eq("player_id", onlyPlayer);
+		}
 		const roles = body.payload?.roles;
 		if (Array.isArray(roles) && roles.length > 0) {
 			memberQuery = memberQuery.in("role", roles);

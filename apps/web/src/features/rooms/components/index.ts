@@ -7,3 +7,4 @@ export { InviteSheet } from "./InviteSheet";
 export { RoomPrefetcher } from "./RoomPrefetcher";
 export { RoomCardsList } from "./RoomCardsList";
 export { RoomSwitcherDrawer, RoomSwitcherPopover } from "./RoomSwitcherDrawer";
+export { ExploreRooms } from "./ExploreRooms";
