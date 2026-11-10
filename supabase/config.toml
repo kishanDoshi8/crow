@@ -71,6 +71,7 @@ schema_paths = [
   "./schemas/stats/tables/room_member_milestones.sql",
   "./schemas/stats/tables/room_stats.sql",
   "./schemas/stats/tables/series_standing_snapshots.sql",
+  "./schemas/stats/tables/weekly_job_runs.sql",
   "./schemas/**/functions/*.sql",
   "./schemas/**/views/*.sql",
   "./schemas/**/policies/*.sql",
