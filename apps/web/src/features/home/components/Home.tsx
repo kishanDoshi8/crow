@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { usePlayer } from "@/features/home/hooks/player";
 import Brand from "./Brand";
+import { AccountSheet, accountInitials } from "./AccountSheet";
 import { RoomCardsList } from "@/features/rooms/components/RoomCardsList";
 import { useCreateRoom } from "@/features/rooms/hooks/room";
 import type { Room } from "@/features/rooms/types/types";
@@ -59,6 +60,7 @@ export default function Home({
 	const { data: player } = usePlayer();
 	const [openHowToPlay, setOpenHowToPlay] = React.useState(false);
 	const [activeTab, setActiveTab] = React.useState<HomeTab>(defaultTab);
+	const [isAccountOpen, setIsAccountOpen] = React.useState(false);
 
 	React.useEffect(() => {
 		setActiveTab(defaultTab);
@@ -66,6 +68,15 @@ export default function Home({
 
 	return (
 		<div className={`p-8 mt-4 flex flex-col items-center gap-8`}>
+			{/* Account: sign out and delete account, even with no rooms yet. */}
+			<button
+				type='button'
+				onClick={() => setIsAccountOpen(true)}
+				aria-label='Account'
+				className='fixed top-4 right-4 flex size-10 items-center justify-center rounded-full border bg-secondary text-xs font-semibold transition-colors hover:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+			>
+				{accountInitials(player?.username)}
+			</button>
 			<Brand />
 
 			{player && (
@@ -121,6 +132,12 @@ export default function Home({
 					How to Play
 				</Button>
 			</div>
+
+			<AccountSheet
+				open={isAccountOpen}
+				onOpenChange={setIsAccountOpen}
+				onHowToPlay={() => setOpenHowToPlay(true)}
+			/>
 
 			{openHowToPlay ? (
 				<Suspense fallback={null}>
