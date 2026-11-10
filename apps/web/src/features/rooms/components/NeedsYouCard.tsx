@@ -4,7 +4,7 @@ import { useRoomRole } from "@/features/rooms/hooks/useRoomRole";
 import type { ManageQueueItem } from "@/features/rooms/types/types";
 import { describeDeadline } from "@/shared/lib/deadline";
 import { Collapse } from "@/shared/ui";
-import { ChevronRightIcon, FlagIcon } from "lucide-react";
+import { ChevronRightIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 
 // For staff only, and only when results are due: how many, and how long the
@@ -38,16 +38,18 @@ function NeedsYouLink({
 	return (
 		<Link
 			to={`/rooms/${roomCode}/manage`}
+			aria-label={`Needs you: ${count} ${count === 1 ? "result" : "results"} to reveal`}
 			className='mt-3 w-full max-w-md mx-auto flex items-center gap-3 rounded-2xl border border-primary/40 bg-primary/5 p-3 transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50'
 		>
-			<span className='flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary'>
-				<FlagIcon className='size-4' />
+			<span className='min-w-7 text-center text-3xl font-bold leading-none text-primary tabular-nums'>
+				{count}
 			</span>
 			<span className='min-w-0 flex-1'>
-				<span className='block text-sm font-semibold'>Needs you</span>
+				<span className='block text-sm font-semibold'>
+					{count === 1 ? "result" : "results"} to reveal
+				</span>
 				<span className='block text-xs text-muted-foreground'>
-					{count} {count === 1 ? "result" : "results"} to reveal ·
-					oldest locked {oldest.relative}
+					Oldest locked {oldest.relative}
 				</span>
 			</span>
 			<span className='flex items-center gap-1 text-xs font-medium text-primary'>

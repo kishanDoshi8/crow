@@ -228,12 +228,25 @@ Crow is played on phones, so it is designed **mobile first**: the unprefixed Tai
 ### Desktop
 
 - **Sidebar for navigation** (the Slack / Discord pattern). A fixed 16rem sidebar (`bg-sidebar`, right border) holds what the phone spreads across the bottom tab bar and room menu: the room switcher (a dropdown, not the phone's drawer), the series picker (dropdown), the four tabs, Staff (Needs you with its count, New prediction), then Invite friends and the room menu at the bottom. It collapses, animated, to a 4rem rail; the choice is remembered on the device. Every row is one 44px height in both states with its icon in the same spot, so collapsing only narrows the sidebar and fades the labels: nothing moves, and in the rail each item is a 44px square (labels in tooltips; Needs you shows just its count when there is one). The room button is the phone header's grid tile. `RoomSidebar` in `src/app/layouts`.
-- **A slim top bar on every page**, in place of the phone's header: the sidebar toggle by the sidebar, then Back on inner pages, the page title (with the room's name when the sidebar is collapsed) and on the right the points and Activity, as on the phone. That row is capped at the content width (`max-w-260`) so on wide screens the title and points stay over the page, not at the window's edges. The offline notice sits under it. `RoomTopBar` in `src/app/layouts`.
+- **A slim top bar on every page**, in place of the phone's header: the sidebar toggle by the sidebar, then Back on inner pages, the page title (with the room's name when the sidebar is collapsed) and on the right the points, as on the phone. Activity is in the room menu, on both (a dot on its row says there's something new). That row is capped at the content width (`max-w-260`) so on wide screens the title and points stay over the page, not at the window's edges. The offline notice sits under it. `RoomTopBar` in `src/app/layouts`.
 - **Content widths.** Lists and feeds (Standings, History, Needs you, Members, Activity, Series) widen to `lg:max-w-2xl`. Forms stay `max-w-md`. Two-column pages are capped at `max-w-260` (65rem):
   - **Home:** where you stand and What's Hot on the left, the side cards (your week, needs you, results, invite, stats, up next) in a 20rem column on the right. What's Hot shows its cards two across (one card fills the column) instead of the swipe carousel.
   - **Prediction:** the prediction on the left, Room talk in a 22rem column on the right. The phone's bottom action bar becomes a control pinned to the bottom of the left column.
 - **Sheets stay sheets.** Bottom sheets (bet, phrases, menus) and dialogs keep their phone behaviour, but centre on the area beside the sidebar, not the whole window: the room layout sets `--sidebar-offset` and `shared/ui` drawer and dialog read it. Give a sheet a width with `mx-auto max-w-md`, never by centring it on the window yourself (`left-1/2`).
 - **Structure vs style.** Use responsive classes for style. Where desktop needs a different structure (Home, the prediction page), branch on `useIsDesktop()` (`src/shared/lib/useMediaQuery.ts`) so the phone keeps rendering exactly the tree it had.
+
+### Showing several facts together
+
+Don't join facts with a middle dot ("1,200 pooled · 6 picks"): it says nothing about how they relate and breaks badly when the line wraps. Give each fact a place instead:
+
+- **Unrelated figures:** `StatStrip` (`shared/ui/facts.tsx`), one cell each with the label above the value.
+- **Two parts of one total:** a split bar labelled at each end (the hero's "to spend" and "in play").
+- **A state and its time:** the state as a pill on the left, the time on the right (`PredictionStatusRow`).
+- **A pick against an outcome:** `FactTag`s in a wrapping row ("Your pick Over", "Winner Under").
+- **A fact and what you can do about it:** the fact as text, the action as a button.
+- **A state and the next step:** two lines.
+
+Home follows this throughout; the other screens still have dot-joined lines to convert.
 
 ### Named Rules
 

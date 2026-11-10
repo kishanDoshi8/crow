@@ -31,3 +31,4 @@ export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGr
 export { InfoHint } from './info-hint'
 export { CrowGlyph, CrowTile, CROW_PATH, CROW_EYE, CROW_PUPIL, CROW_WING } from './crow-mark'
 export { OfflineBar } from './offline-bar'
+export { StatStrip, FactTag } from './facts'

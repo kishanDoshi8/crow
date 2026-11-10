@@ -2,27 +2,32 @@ import { useRoomContext } from "@/shared/lib/roomContext";
 import { useCurrentSeries } from "@/features/series";
 import { useDismissWeeklyRecap, useMyWeeklyRecap } from "@/features/rooms/hooks/home";
 import type { MyWeeklyRecap } from "@/shared/lib/api";
-import { formatSignedPoints } from "@/shared/lib/utils";
+import { formatSignedPoints, ordinal } from "@/shared/lib/utils";
+import { StatStrip } from "@/shared/ui";
 import { ShareWeeklyButton, useSeriesWeeklyRecap } from "@/features/leaderboard";
 import { CalendarDaysIcon, XIcon } from "lucide-react";
 
-// The parts of last week worth saying, and only those.
-function recapLines(recap: MyWeeklyRecap) {
-	const lines: string[] = [];
+// The parts of last week worth saying, and only those: one cell each.
+function recapStats(recap: MyWeeklyRecap) {
+	const stats: { label: string; value: string; tone?: string }[] = [];
 	if (recap.newly_ranked && recap.rank !== null) {
-		lines.push(`You're ranked now, at #${recap.rank}.`);
+		stats.push({ label: "Rank", value: `Now ${ordinal(recap.rank)}`, tone: "text-win" });
 	} else if (recap.rank_change && recap.rank !== null) {
-		const places = Math.abs(recap.rank_change);
-		lines.push(
-			recap.rank_change > 0
-				? `Up ${places} ${places === 1 ? "place" : "places"} to #${recap.rank}.`
-				: `Down ${places} to #${recap.rank}.`,
-		);
+		const up = recap.rank_change > 0;
+		stats.push({
+			label: "Rank",
+			value: `${up ? "Up" : "Down"} ${Math.abs(recap.rank_change)} to ${ordinal(recap.rank)}`,
+			tone: up ? "text-win" : "text-loss",
+		});
 	}
 	if (recap.balance_change !== 0) {
-		lines.push(`${formatSignedPoints(recap.balance_change)} pts on the week.`);
+		stats.push({
+			label: "Points",
+			value: formatSignedPoints(recap.balance_change),
+			tone: recap.balance_change > 0 ? "text-win" : "text-loss",
+		});
 	}
-	return lines;
+	return stats;
 }
 
 // Last week in this series, once per week: the new standings, how you did,
@@ -36,9 +41,9 @@ export function WeeklyRecapCard() {
 	const { mutate: dismiss } = useDismissWeeklyRecap(room.id, currentSeriesId);
 
 	if (!currentSeries || !isActive || !recap) return null;
-	const lines = recapLines(recap);
+	const stats = recapStats(recap);
 	const hasStandings = !!standings && standings.standings.length > 0;
-	if (lines.length === 0 && !hasStandings) return null;
+	if (stats.length === 0 && !hasStandings) return null;
 
 	return (
 		<section
@@ -52,7 +57,7 @@ export function WeeklyRecapCard() {
 				<p className='text-xs font-semibold text-muted-foreground'>
 					{hasStandings ? `Week ${standings.week_number} standings are in` : "Your week"}
 				</p>
-				{lines.length > 0 ? <p className='text-sm'>{lines.join(" ")}</p> : null}
+				{stats.length > 0 ? <StatStrip stats={stats} className='mt-1.5' /> : null}
 				{hasStandings ? (
 					<ShareWeeklyButton
 						series={currentSeries}

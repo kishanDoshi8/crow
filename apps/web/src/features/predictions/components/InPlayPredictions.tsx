@@ -3,7 +3,8 @@ import type { Prediction } from "@/features/predictions/types/types";
 import { useActivePredictions } from "@/features/predictions/hooks/prediction";
 import { useBets } from "@/features/predictions/hooks/bet";
 import { useRoomContext } from "@/shared/lib/roomContext";
-import { Button, Reveal, Skeleton } from "@/shared/ui";
+import { Button, Reveal, Skeleton, StatStrip } from "@/shared/ui";
+import { describeDeadline } from "@/shared/lib/deadline";
 import type {
 	CarouselApi} from "@/shared/ui/carousel";
 import {
@@ -27,14 +28,14 @@ import { useRoomActions } from "@/shared/lib/roomActions";
 import { PredictionTags } from "@/features/predictions/components/PredictionTags";
 import type { Bet } from "@/features/predictions/types/bet";
 import { ReactionSummary, usePredictionTalk } from "@/features/talk";
-import { PredictionStatusLine } from "@/features/predictions/view/PredictionStatusLine";
+import { PredictionStatusRow } from "@/features/predictions/view/PredictionStatusLine";
 import {
 	formatPoints,
 	optionTone,
 	tallyOptions,
 	type OptionTally,
 } from "@/features/predictions/lib/predictionView";
-import { cn } from "@/shared/lib/utils";
+import { capitalize, cn } from "@/shared/lib/utils";
 import { ShareOpenPredictionsButton } from "@/features/predictions/components/ShareOpenPredictionsButton";
 
 const PREDICTION_CARD_SHELL =
@@ -76,19 +77,17 @@ function PredictionCard({
 				to={`/rooms/${roomCode}/predictions/${prediction.id}`}
 				className='flex flex-col gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 			>
-				<PredictionStatusLine
-					variant='inline'
+				<PredictionStatusRow
 					prediction={prediction}
 					winnerLabel={winnerLabel}
-					resolvedByName={null}
-					correctedByName={null}
 					onDeadline={refetchPredictions}
 				/>
 
 				<div>
 					{prediction.series_title ? (
-						<p className='truncate text-xs text-muted-foreground'>
-							#{prediction.series_prediction_number} · {prediction.series_title}
+						<p className='flex items-baseline justify-between gap-3 text-xs text-muted-foreground'>
+							<span className='truncate'>{prediction.series_title}</span>
+							<span className='shrink-0 tabular-nums'>No. {prediction.series_prediction_number}</span>
 						</p>
 					) : null}
 					<h3 className='text-lg font-semibold leading-snug'>{prediction.title}</h3>
@@ -102,10 +101,26 @@ function PredictionCard({
 					myOptionId={myBet?.option_id ?? null}
 				/>
 
-				<p className='text-xs text-muted-foreground tabular-nums'>
-					<span className='font-semibold text-foreground'>{formatPoints(pool)}</span> pts pooled ·{" "}
-					{picks} {picks === 1 ? "pick" : "picks"}
-				</p>
+				<StatStrip
+					stats={[
+						{ label: "Pool", value: formatPoints(pool) },
+						{ label: "Picks", value: picks },
+						...(prediction.status === "draft"
+							? [
+									{
+										label: "Closes",
+										// "Today 8:00 PM": the label already says what it is.
+										value: capitalize(
+											describeDeadline(new Date(prediction.deadline)).when.replace(" at ", " "),
+										),
+										grow: 1.8,
+									},
+								]
+							: prediction.status === "locked"
+								? [{ label: "Result", value: "Awaited", grow: 1.8 }]
+								: []),
+					]}
+				/>
 
 				<div className='flex flex-col gap-2.5 border-t pt-3'>
 					<PredictionCardFooter
@@ -191,45 +206,59 @@ type FooterProps = {
 	optionLabel: (optionId: string) => string | undefined;
 };
 
-// One plain line saying where you stand: your stake once you've bet, and how
-// it turned out once it's settled.
+// Where you stand on this one: your pick while it's open, how it turned out
+// once it's settled. The fact is text; what you can do about it is a button
+// (drawn as one: the whole card is the link).
 function PredictionCardFooter({ prediction, myBet, optionLabel }: Readonly<FooterProps>) {
 	const pts = (n: number) => `${Math.abs(n).toLocaleString()} pts`;
-	let text: string;
-	let tone = "text-muted-foreground";
-	let showArrow = false;
+	const stake = myBet ? `${optionLabel(myBet.option_id)}, ${pts(myBet.amount)}` : null;
+	let label = "Your pick";
+	let value = stake ?? "You sat this one out";
+	let tone = "";
+	let action: { text: string; primary: boolean } | null = null;
+	let amount: string | null = null;
 
 	if (prediction.status === "draft") {
-		showArrow = true;
-		tone = myBet ? "text-foreground" : "text-primary font-semibold";
-		text = myBet
-			? `${pts(myBet.amount)} on ${optionLabel(myBet.option_id)} · tap to change`
-			: "Pick a side";
-	} else if (prediction.status === "locked") {
-		text = myBet
-			? `${pts(myBet.amount)} on ${optionLabel(myBet.option_id)} · result pending`
-			: "Bets are closed · you sat this one out";
-	} else if (prediction.status === "revealed") {
-		if (!myBet) {
-			text = "You sat this one out";
+		value = stake ?? "None yet";
+		action = myBet ? { text: "Change", primary: false } : { text: "Pick a side", primary: true };
+	} else if (prediction.status === "revealed" && myBet) {
+		label = "Your result";
+		if (myBet.option_id === prediction.winning_option_id) {
+			value = "You called it";
+			tone = "text-win";
+			amount = `+${((myBet.payout ?? 0) - myBet.amount).toLocaleString()}`;
 		} else {
-			const net = (myBet.payout ?? 0) - myBet.amount;
-			if (myBet.option_id === prediction.winning_option_id) {
-				tone = "text-win font-semibold";
-				text = `You called it · +${pts(net)}`;
-			} else {
-				tone = "text-loss";
-				text = `You missed it · −${pts(myBet.amount)}`;
-			}
+			value = "You missed it";
+			tone = "text-loss";
+			amount = `−${myBet.amount.toLocaleString()}`;
 		}
-	} else {
-		text = myBet ? `${pts(myBet.amount)} refunded` : "Nothing staked";
+	} else if (prediction.status === "cancelled" || prediction.status === "no_result") {
+		label = "Your stake";
+		value = myBet ? `${pts(myBet.amount)} refunded` : "Nothing staked";
 	}
 
 	return (
-		<span className={cn("flex items-center justify-between gap-2 text-sm", tone)}>
-			<span className='min-w-0 truncate'>{text}</span>
-			{showArrow ? <ChevronRightIcon className='size-4 shrink-0' aria-hidden /> : null}
+		<span className='flex items-center justify-between gap-3'>
+			<span className='flex min-w-0 flex-col'>
+				<span className='text-xs text-muted-foreground'>{label}</span>
+				<span className={cn("truncate text-sm font-semibold", tone)}>{value}</span>
+			</span>
+			{action ? (
+				<span
+					className={cn(
+						"flex h-9 shrink-0 items-center gap-1 rounded-md px-3 text-sm font-semibold",
+						action.primary
+							? "bg-linear-to-r from-primary to-accent text-foreground"
+							: "border",
+					)}
+				>
+					{action.text}
+					<ChevronRightIcon className='size-4' aria-hidden />
+				</span>
+			) : null}
+			{amount ? (
+				<span className={cn("shrink-0 text-lg font-bold tabular-nums", tone)}>{amount}</span>
+			) : null}
 		</span>
 	);
 }
@@ -286,16 +315,11 @@ function SectionHeader({
 	if (activeCount > 0) {
 		return (
 			<div className={`flex items-center justify-between gap-2 my-4`}>
-				<div className={`flex flex-col`}>
-					<div className={`flex flex-1 items-center gap-2`}>
-						<span
-							className={`h-2 w-2 rounded-full bg-primary animate-pulse`}
-						/>
-						<h2 className={`text-lg font-semibold`}>What's Hot</h2>
-					</div>
-					<div className={`text-xs text-muted-foreground`}>
+				<div className={`flex items-center gap-2`}>
+					<h2 className={`text-lg font-semibold whitespace-nowrap`}>What's Hot</h2>
+					<span className='whitespace-nowrap rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-semibold text-primary tabular-nums'>
 						{activeCount} active
-					</div>
+					</span>
 				</div>
 				{action}
 			</div>
@@ -390,7 +414,8 @@ function InPlayPredictions({
 					state={{ seriesId: currentSeries.id }}
 				>
 					<PlusIcon />
-					New prediction
+					{/* Phones: the heading and count need the room. */}
+					New<span className='max-sm:sr-only'> prediction</span>
 				</Link>
 			</Button>
 		);

@@ -6,21 +6,25 @@ type RankChangeProps = {
 	change: number | null | undefined;
 	// Ranked now but not on Monday.
 	isNew?: boolean;
+	// A small chip for after a name; shows nothing when the rank didn't move.
+	pill?: boolean;
 	className?: string;
 };
 
 // ▲2 / ▼3 / – / NEW next to a rank. Arrows and words carry the meaning, so
 // it reads the same without colour.
-export function RankChange({ change, isNew = false, className }: Readonly<RankChangeProps>) {
+export function RankChange({ change, isNew = false, pill = false, className }: Readonly<RankChangeProps>) {
 	if (isNew) {
 		return (
 			<span
 				className={cn(
-					"rounded-sm bg-primary/15 px-1 text-[10px] font-semibold leading-4 text-primary",
+					pill
+						? "shrink-0 rounded-full bg-activity/15 px-1.5 text-[11px] font-semibold leading-[18px] text-activity"
+						: "rounded-sm bg-primary/15 px-1 text-[10px] font-semibold leading-4 text-primary",
 					className,
 				)}
 			>
-				NEW
+				{pill ? "New" : "NEW"}
 				<span className='sr-only'> in the standings since Monday</span>
 			</span>
 		);
@@ -31,6 +35,7 @@ export function RankChange({ change, isNew = false, className }: Readonly<RankCh
 	}
 
 	if (change === 0) {
+		if (pill) return null;
 		return (
 			<span className={cn("text-xs text-muted-foreground", className)}>
 				<span aria-hidden='true'>–</span>
@@ -44,8 +49,10 @@ export function RankChange({ change, isNew = false, className }: Readonly<RankCh
 	return (
 		<span
 			className={cn(
-				"text-xs font-semibold tabular-nums",
+				"font-semibold tabular-nums",
+				pill ? "shrink-0 rounded-full px-1.5 text-[11px] leading-[18px]" : "text-xs",
 				up ? "text-win" : "text-loss",
+				pill && (up ? "bg-win/15" : "bg-loss/15"),
 				className,
 			)}
 		>
