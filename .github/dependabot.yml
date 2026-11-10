@@ -1,5 +1,7 @@
 # Opens a weekly PR for outdated dependencies. Minor and patch updates are
-# grouped into one PR per ecosystem; major updates get their own PRs.
+# grouped into one PR per ecosystem. npm major versions (React 19,
+# TypeScript 7, Vite 8...) are skipped: they change APIs and need a planned
+# upgrade on their own branch, not a bot PR.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -10,6 +12,9 @@ updates:
     groups:
       npm-minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: /
