@@ -277,7 +277,7 @@ select throws_ok(
   'an organizer cannot archive a series'
 );
 select throws_ok(
-  format($$ select public.update_room(%L, 'Renamed', null, 3) $$, pg_temp.setting('room_id')),
+  format($$ select public.update_room(%L, 'Renamed', null, 3, false, 'open') $$, pg_temp.setting('room_id')),
   'P0012', null,
   'an organizer cannot change room settings'
 );
@@ -286,12 +286,12 @@ reset role;
 select pg_temp.login('00000000-0000-0000-0000-00000000a11c');
 set local role authenticated;
 select throws_ok(
-  format($$ select public.update_room(%L, 'Cricket Fever', null, 49) $$, pg_temp.setting('room_id')),
+  format($$ select public.update_room(%L, 'Cricket Fever', null, 49, false, 'open') $$, pg_temp.setting('room_id')),
   'P0001', null,
   'the result reminder is capped at 48 hours'
 );
 select lives_ok(
-  format($$ select public.update_room(%L, '  Cricket Fever 2027 ', 'IPL and India tours', 6) $$, pg_temp.setting('room_id')),
+  format($$ select public.update_room(%L, '  Cricket Fever 2027 ', 'IPL and India tours', 6, false, 'open') $$, pg_temp.setting('room_id')),
   'the owner can change room settings'
 );
 reset role;

@@ -35,6 +35,17 @@ begin
     'status',            v_room.status,
     'created_at',        v_room.created_at,
     'result_reminder_hours', v_room.result_reminder_hours,
+    'listed',            v_room.listed,
+    'join_policy',       v_room.join_policy,
+    'member_limit',      v_room.member_limit,
+    'is_full',           private.room_is_full(v_room.id),
+    -- The caller's own pending request, for the join screen.
+    'has_pending_request', exists (
+      select 1 from public.room_join_requests q
+      where q.room_id = v_room.id
+        and q.player_id = v_player_id
+        and q.status = 'pending'
+    ),
     'is_member',         private.is_room_member(v_room.id),
     -- Removed by the owner: the join screen explains instead of offering Join.
     'is_removed', exists (

@@ -9,4 +9,4 @@ drop policy if exists "rooms_no_direct_update" on public.rooms;
 create policy "rooms_no_direct_update" on public.rooms for update using (false);
 drop policy if exists "rooms_no_direct_delete" on public.rooms;
 create policy "rooms_no_direct_delete" on public.rooms for delete using (false);
-grant select (id, room_code, name, description, status, created_at, result_reminder_hours) on public.rooms to authenticated;
+grant select (id, room_code, name, description, status, created_at, result_reminder_hours, listed, join_policy, member_limit) on public.rooms to authenticated;
