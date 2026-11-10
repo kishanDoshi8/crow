@@ -33,6 +33,12 @@ jobs:
       # Installs the CLI version pinned in package-lock.json, so CI and
       # `npm run db:*` locally always use the same one.
       - uses: supabase/setup-cli@v3
+      # Supabase's local ports (54320-54329, see supabase/config.toml) sit inside
+      # Linux's ephemeral range (32768-60999), so an outgoing connection, e.g.
+      # one of the image pulls, can hold 54322 just as Postgres tries to bind it
+      # ("address already in use"). Reserve them so the kernel never hands them out.
+      - name: Reserve Supabase ports
+        run: sudo sysctl -w net.ipv4.ip_local_reserved_ports=54320-54329
       # Applies every migration in supabase/migrations to a fresh local database.
       - run: supabase db start
       - run: supabase test db
