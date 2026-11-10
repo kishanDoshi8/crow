@@ -118,7 +118,7 @@ jobs:
                -o -name '*.svg' -o -name '*.webmanifest' \) \
             -exec gzip -9 -k -n {} +
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: web-${{ env.TAG }}
           path: apps/web/dist/
@@ -141,7 +141,7 @@ jobs:
       PORT: ${{ vars.DEPLOY_PORT || '22' }}
       APP_DIR: ${{ vars.DEPLOY_PATH || '/var/www/crow' }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: web-${{ env.TAG }}
           path: dist
