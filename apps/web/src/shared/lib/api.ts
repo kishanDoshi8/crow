@@ -853,6 +853,42 @@ export async function createPrediction(
   }
 }
 
+export type PredictionDraft = {
+  title: string
+  options: string[]
+  description?: string
+}
+
+// Organizers create a set of predictions in one go: one call, one push to
+// members. They share the series, timing, tags and (optionally) an event.
+export async function createPredictions(
+  roomId: string,
+  seriesId: string,
+  predictions: PredictionDraft[],
+  deadline: Date,
+  opensAt?: Date | null,
+  eventTitle?: string,
+  tags?: string[],
+) {
+  const { data, error } = await untypedSupabase.rpc('create_predictions', {
+    p_room_id: roomId,
+    p_series_id: seriesId,
+    p_predictions: predictions,
+    p_deadline: deadline.toISOString(),
+    p_opens_at: opensAt ? opensAt.toISOString() : null,
+    p_event_title: eventTitle?.trim() || null,
+    p_tags: tags ?? [],
+  })
+  return assertOk(data, error) as {
+    room_id: string
+    series_id: string
+    event_id: string | null
+    status: 'draft' | 'scheduled'
+    prediction_ids: string[]
+    count: number
+  }
+}
+
 export async function getPrediction(predictionId: string) {
   const { data, error } = await supabase
     .from('predictions')
@@ -1022,6 +1058,28 @@ export async function resolvePrediction(
     p_no_result_reason: noResultReason ?? undefined,
   })
   return assertOk(data, error)
+}
+
+export type PredictionResult = {
+  prediction_id: string
+  outcome: 'win' | 'no_result' | 'cancel'
+  winning_option_id?: string
+  no_result_reason?: string | null
+}
+
+// Staff close several predictions in one go, each with its own outcome:
+// one call, one push to members. All or nothing.
+export async function resolvePredictions(roomId: string, results: PredictionResult[]) {
+  const { data, error } = await untypedSupabase.rpc('resolve_predictions', {
+    p_room_id: roomId,
+    p_results: results,
+  })
+  return assertOk(data, error) as {
+    resolved: number
+    revealed: number
+    no_result: number
+    cancelled: number
+  }
 }
 
 // Organizers fix a result that went out wrong, while the series runs.

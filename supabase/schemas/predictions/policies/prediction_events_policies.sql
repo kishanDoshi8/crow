@@ -1,0 +1,12 @@
+alter table public.prediction_events enable row level security;
+revoke all on public.prediction_events from anon;
+revoke insert, update, delete, truncate, references, trigger on public.prediction_events from authenticated;
+drop policy if exists "prediction_events_select" on public.prediction_events;
+create policy "prediction_events_select" on public.prediction_events for select to authenticated using (private.is_room_member(room_id));
+drop policy if exists "prediction_events_no_direct_write" on public.prediction_events;
+create policy "prediction_events_no_direct_write" on public.prediction_events for insert with check (false);
+drop policy if exists "prediction_events_no_direct_update" on public.prediction_events;
+create policy "prediction_events_no_direct_update" on public.prediction_events for update using (false);
+drop policy if exists "prediction_events_no_direct_delete" on public.prediction_events;
+create policy "prediction_events_no_direct_delete" on public.prediction_events for delete using (false);
+grant select (id, room_id, title, created_by, created_at) on public.prediction_events to authenticated;

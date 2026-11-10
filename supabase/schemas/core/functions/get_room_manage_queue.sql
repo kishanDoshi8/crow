@@ -40,6 +40,9 @@ begin
         p.series_id,
         p.series_prediction_number,
         s.title as series_title,
+        -- The event it was made for, to group a set together.
+        p.event_id,
+        e.title as event_title,
         (select count(*)::int from public.bets b where b.prediction_id = p.id) as bet_count,
         (
           select coalesce(sum(po.total_bet), 0)::int
@@ -56,6 +59,7 @@ begin
         ) as options
       from public.predictions p
       left join public.series s on s.id = p.series_id
+      left join public.prediction_events e on e.id = p.event_id
       where p.room_id = p_room_id
         and (
           p.status in ('draft', 'locked')

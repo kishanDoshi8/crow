@@ -1,37 +1,19 @@
-import {
-	Calendar,
-	CalendarClock,
-	ChevronDownIcon,
-	CirclePlus,
-	CircleX,
-	Copy,
-	Clock,
-	Flame,
-	LockIcon,
-} from "lucide-react";
+import { CalendarClock, CirclePlus, CircleX, Copy, Flame, Layers, LockIcon } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { TagInput } from "@/features/predictions/components/TagInput";
+import {
+	PredictionTimingFields,
+	usePredictionTiming,
+} from "@/features/predictions/components/PredictionTiming";
 import { useEffect, useState } from "react";
-import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
-import { Alert, AlertDescription } from "@/shared/ui/alert";
-import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
-import { Calendar as UICalendar } from "@/shared/ui/calendar";
-import { format } from "date-fns";
 import { Spinner } from "@/shared/ui/spinner";
 import { SeriesSelector } from "@/features/series";
-import { describeDeadline } from "@/shared/lib/deadline";
 
-const PRESET_HOURS: Record<string, number> = { "1h": 1, "6h": 6, "12h": 12 };
-const TOGGLE_ITEM =
-	"flex-1 data-[state=on]:border data-[state=on]:border-primary data-[state=on]:text-primary data-[state=on]:ring-1 data-[state=on]:ring-primary";
 const MAX_OPTIONS = 6;
 const DEFAULT_PLACEHOLDERS = ["Yes, it will happen", "No, it will not happen"];
-
-// A scheduled prediction must stay open at least this long after going live.
-const MIN_OPEN_MS = 5 * 60 * 1000;
 
 export type PredictionFormValues = {
 	title: string;
@@ -63,6 +45,8 @@ type PredictionFormProps = {
 	initialGoLive?: "now" | "later";
 	// Create mode: opens the list of past predictions to copy from.
 	onCopyPast?: () => void;
+	// Create mode: switches to writing several predictions at once.
+	onCreateSet?: () => void;
 	// The question, details and options can't change once anyone has bet.
 	lockedByBets?: boolean;
 	isSubmitting: boolean;
@@ -77,6 +61,7 @@ export function PredictionForm({
 	initialSeriesId = null,
 	initialGoLive = "now",
 	onCopyPast,
+	onCreateSet,
 	lockedByBets = false,
 	isSubmitting,
 	onSubmit,
@@ -92,41 +77,14 @@ export function PredictionForm({
 	const [question, setQuestion] = useState(initial?.title ?? "");
 	const [description, setDescription] = useState(initial?.description ?? "");
 	const [tags, setTags] = useState<string[]>(initial?.tags ?? []);
-	// "later" schedules it: hidden from members until opensAt. Editing a
-	// scheduled prediction keeps it scheduled (going live early is a menu
-	// action), so the choice only shows when creating.
-	const [goLive, setGoLive] = useState<"now" | "later">(
-		initial?.opensAt ? "later" : initialGoLive,
-	);
-	const [opensDate, setOpensDate] = useState<Date | undefined>(
-		initial?.opensAt ?? nextWholeHour(Date.now() + 24 * 60 * 60 * 1000),
-	);
-	const [opensTime, setOpensTime] = useState<string>(
-		format(initial?.opensAt ?? nextWholeHour(Date.now() + 24 * 60 * 60 * 1000), "HH:mm"),
-	);
-	const opensAt = goLive === "later" ? (combine(opensDate, opensTime) ?? null) : null;
-	// Editing keeps the current deadline, so it starts on the custom picker.
-	const [biddingDeadline, setBiddingDeadline] = useState(
-		initial?.deadline ? "custom" : "1h",
-	);
-	const [deadlineDate, setDeadlineDate] = useState(
-		initial?.deadline ?? new Date(Date.now() + 1 * 60 * 60 * 1000),
-	);
-	const [customDate, setCustomDate] = useState<Date | undefined>(
-		initial?.deadline ?? new Date(Date.now() + 24 * 60 * 60 * 1000),
-	);
-	const [customTime, setCustomTime] = useState<string>(
-		initial?.deadline ? format(initial.deadline, "HH:mm") : "22:00",
-	);
+	// Editing a scheduled prediction keeps it scheduled (going live early is a
+	// menu action), so the now / later choice only shows when creating.
+	const timing = usePredictionTiming(initial, initialGoLive);
 	const [selectedSeriesId, setSelectedSeriesId] = useState<string | null>(
 		initialSeriesId,
 	);
 
 	const [errors, setErrors] = useState<string[]>([]);
-
-	useEffect(() => {
-		calculateDeadline();
-	}, [customDate, customTime, biddingDeadline, opensAt?.getTime()]);
 
 	useEffect(() => {
 		if (errors.includes("question") && question.trim()) {
@@ -167,14 +125,8 @@ export function PredictionForm({
 		if (!question.trim()) {
 			newErrors.push("question");
 		}
-		if (opensAt && opensAt.getTime() <= Date.now()) {
-			newErrors.push("opens");
-		}
-		if (
-			deadlineDate.getTime() <= Date.now() ||
-			(opensAt && deadlineDate.getTime() < opensAt.getTime() + MIN_OPEN_MS)
-		) {
-			newErrors.push("deadline");
+		if (!timing.isValid()) {
+			newErrors.push("timing");
 		}
 		options.forEach((option) => {
 			if (!option.text.trim()) {
@@ -187,8 +139,8 @@ export function PredictionForm({
 			onSubmit({
 				title: question,
 				options: options.map((opt) => opt.text),
-				deadline: new Date(deadlineDate),
-				opensAt,
+				deadline: new Date(timing.deadline),
+				opensAt: timing.opensAt,
 				seriesId: selectedSeriesId,
 				description: description.trim(),
 				tags,
@@ -196,24 +148,6 @@ export function PredictionForm({
 		}
 	};
 
-	const calculateDeadline = () => {
-		// Presets count from when it goes live.
-		if (biddingDeadline in PRESET_HOURS) {
-			const hours = PRESET_HOURS[biddingDeadline];
-			const from = opensAt?.getTime() ?? Date.now();
-			setDeadlineDate(new Date(from + hours * 60 * 60 * 1000));
-			return;
-		}
-		if (biddingDeadline === "custom") {
-			const date = combine(customDate, customTime);
-			if (date) setDeadlineDate(date);
-		}
-	};
-
-	const deadlineInfo = describeDeadline(deadlineDate);
-	const opensInfo = opensAt ? describeDeadline(opensAt) : null;
-	const tooShort =
-		!!opensAt && deadlineDate.getTime() < opensAt.getTime() + MIN_OPEN_MS;
 	const showGoLive = mode === "create" || !!initial?.opensAt;
 
 	return (
@@ -227,6 +161,17 @@ export function PredictionForm({
 						</p>
 						<Button variant='outline' size='sm' onClick={onCopyPast} className='shrink-0'>
 							{initial ? "Copy another" : "Copy a past one"}
+						</Button>
+					</div>
+				) : null}
+				{mode === "create" && onCreateSet ? (
+					<div className='-mt-3 flex items-center gap-3 rounded-xl border bg-card px-3 py-2.5'>
+						<Layers className='size-4 shrink-0 text-muted-foreground' />
+						<p className='min-w-0 flex-1 text-sm text-muted-foreground'>
+							Several questions about one match or event?
+						</p>
+						<Button variant='outline' size='sm' onClick={onCreateSet} className='shrink-0'>
+							Add a set
 						</Button>
 					</div>
 				) : null}
@@ -359,167 +304,11 @@ export function PredictionForm({
 							</Button>
 						)}
 
-						{showGoLive ? (
-							<>
-								<FieldLabel htmlFor='go-live' className={`mt-4`}>
-									Goes live
-								</FieldLabel>
-								{mode === "create" ? (
-									<ToggleGroup
-										id='go-live'
-										type='single'
-										variant='outline'
-										spacing={2}
-										className={`flex`}
-										value={goLive}
-										onValueChange={(value) => {
-											if (value === "now" || value === "later") setGoLive(value);
-										}}
-									>
-										<ToggleGroupItem
-											value='now'
-											aria-label='Now'
-											className={TOGGLE_ITEM}
-										>
-											Now
-										</ToggleGroupItem>
-										<ToggleGroupItem
-											value='later'
-											aria-label='Later'
-											className={TOGGLE_ITEM}
-										>
-											<CalendarClock />
-											Later
-										</ToggleGroupItem>
-									</ToggleGroup>
-								) : null}
-								{goLive === "later" ? (
-									<>
-										<DateTimeFields
-											date={opensDate}
-											time={opensTime}
-											onDateChange={setOpensDate}
-											onTimeChange={setOpensTime}
-											timeLabel='Go-live time'
-											className={mode === "create" ? "mt-2" : undefined}
-										/>
-										<p className='text-xs text-muted-foreground'>
-											Only organizers see it until then. Everyone is notified when it goes live.
-										</p>
-									</>
-								) : null}
-							</>
-						) : null}
-
-						<FieldLabel htmlFor='deadline' className={`mt-4`}>
-							{opensAt ? "Locks after going live" : "Bidding deadline"}
-						</FieldLabel>
-						<ToggleGroup
-							id='deadline'
-							type='single'
-							variant='outline'
-							spacing={2}
-							className={`flex`}
-							value={biddingDeadline}
-							onValueChange={(value) => {
-								setBiddingDeadline(value);
-							}}
-						>
-							<ToggleGroupItem
-								value='1h'
-								aria-label='1 hour'
-								className={TOGGLE_ITEM}
-							>
-								1h
-							</ToggleGroupItem>
-							<ToggleGroupItem
-								value='6h'
-								aria-label='6 hours'
-								className={TOGGLE_ITEM}
-							>
-								6h
-							</ToggleGroupItem>
-							<ToggleGroupItem
-								value='12h'
-								aria-label='12 hours'
-								className={TOGGLE_ITEM}
-							>
-								12h
-							</ToggleGroupItem>
-							<ToggleGroupItem
-								value='custom'
-								aria-label='Custom'
-								className={TOGGLE_ITEM}
-							>
-								<Calendar />
-							</ToggleGroupItem>
-						</ToggleGroup>
-
-						{biddingDeadline === "custom" && (
-							<DateTimeFields
-								date={customDate}
-								time={customTime}
-								onDateChange={setCustomDate}
-								onTimeChange={setCustomTime}
-								timeLabel='Lock time'
-								className='mt-4'
-							/>
-						)}
-
-						<Alert
-							variant={
-								deadlineInfo.isPast || opensInfo?.isPast || tooShort
-									? "destructive"
-									: "default"
-							}
-						>
-							<Clock
-								className={
-									deadlineInfo.isPast || opensInfo?.isPast || tooShort
-										? undefined
-										: `text-muted-foreground`
-								}
-							/>
-							<AlertDescription>
-								{opensInfo?.isPast ? (
-									<span>
-										The go-live time has already passed. Pick a later one.
-									</span>
-								) : deadlineInfo.isPast ? (
-									<span>
-										That time has already passed. Pick a later one.
-									</span>
-								) : tooShort ? (
-									<span>
-										Lock it at least 5 minutes after it goes live.
-									</span>
-								) : opensInfo ? (
-									<span>
-										Goes live{" "}
-										<span className='font-semibold text-foreground'>
-											{opensInfo.when}
-										</span>
-										{opensInfo.date ? ` · ${opensInfo.date}` : ""}
-										{" · locks "}
-										<span className='font-semibold text-foreground'>
-											{deadlineInfo.when}
-										</span>
-										{deadlineInfo.date && deadlineInfo.date !== opensInfo.date
-											? ` · ${deadlineInfo.date}`
-											: ""}
-									</span>
-								) : (
-									<span>
-										Locks{" "}
-										<span className='font-semibold text-foreground'>
-											{deadlineInfo.when}
-										</span>
-										{deadlineInfo.date ? ` · ${deadlineInfo.date}` : ""}
-										{` · ${deadlineInfo.relative}`}
-									</span>
-								)}
-							</AlertDescription>
-						</Alert>
+						<PredictionTimingFields
+							timing={timing}
+							showGoLive={showGoLive}
+							showGoLiveChoice={mode === "create"}
+						/>
 					</Field>
 				</FieldGroup>
 				<Button
@@ -532,7 +321,7 @@ export function PredictionForm({
 					{isSubmitting && <Spinner />}
 					{mode === "edit" ? (
 						"Save changes"
-					) : opensAt ? (
+					) : timing.opensAt ? (
 						<>
 							Schedule it <CalendarClock />
 						</>
@@ -552,89 +341,6 @@ export function PredictionForm({
 					Cancel
 				</Button>
 			</FieldSet>
-		</div>
-	);
-}
-
-// A date ("PPP") and a time ("HH:mm") as one Date, or undefined.
-function combine(date: Date | undefined, time: string) {
-	if (!date || !time) return undefined;
-	const [hours, minutes] = time.split(":").map(Number);
-	const combined = new Date(date);
-	combined.setHours(hours, minutes, 0, 0);
-	return combined;
-}
-
-// The next whole hour after `ms`, e.g. 9:20 → 10:00.
-function nextWholeHour(ms: number) {
-	const date = new Date(ms);
-	date.setHours(date.getHours() + 1, 0, 0, 0);
-	return date;
-}
-
-type DateTimeFieldsProps = {
-	date: Date | undefined;
-	time: string;
-	onDateChange: (date: Date) => void;
-	onTimeChange: (time: string) => void;
-	timeLabel: string;
-	className?: string;
-};
-
-// A day from the calendar and a time of day, side by side.
-function DateTimeFields({
-	date,
-	time,
-	onDateChange,
-	onTimeChange,
-	timeLabel,
-	className,
-}: Readonly<DateTimeFieldsProps>) {
-	const [open, setOpen] = useState(false);
-	return (
-		<div className={`flex items-center gap-3 ${className ?? ""}`}>
-			<div className={`min-w-0 flex-1`}>
-				<Popover open={open} onOpenChange={setOpen}>
-					<PopoverTrigger asChild>
-						<Button variant='outline' className='w-full justify-between'>
-							<span className='truncate'>{date ? format(date, "EEE, MMM d") : "Select date"}</span>
-							<ChevronDownIcon />
-						</Button>
-					</PopoverTrigger>
-					<PopoverContent className='w-auto overflow-hidden p-0' align='start'>
-						<UICalendar
-							mode='single'
-							selected={date}
-							defaultMonth={date}
-							captionLayout='dropdown'
-							disabled={{ before: new Date() }}
-							onSelect={(next) => {
-								if (!next) return;
-								onDateChange(next);
-								setOpen(false);
-							}}
-						/>
-					</PopoverContent>
-				</Popover>
-			</div>
-			<Input
-				type='time'
-				aria-label={timeLabel}
-				value={time}
-				onChange={(e) => {
-					if (e.target.value) onTimeChange(e.target.value);
-				}}
-				onClick={(e) => {
-					// Opens the clock where the browser supports it;
-					// elsewhere tapping the field opens the native picker.
-					try {
-						e.currentTarget.showPicker?.();
-					} catch {
-						// Not allowed in this context; typing still works.
-					}
-				}}
-				className='w-34 shrink-0 bg-background'
-			/>
 		</div>
 	);
 }

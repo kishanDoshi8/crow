@@ -55,6 +55,8 @@ const JoinRoomPage = lazy(() =>
 	})),
 );
 const PredictionNew = lazy(roomPageLoaders.predictionNew);
+const PredictionNewSet = lazy(roomPageLoaders.predictionNewSet);
+const ResolveSeveral = lazy(roomPageLoaders.resolveSeveral);
 const EditPrediction = lazy(roomPageLoaders.editPrediction);
 const ManagePage = lazy(roomPageLoaders.manage);
 const MembersPage = lazy(roomPageLoaders.members);
@@ -220,6 +222,16 @@ export const router = createBrowserRouter([
 												},
 											},
 											{
+												path: "predictions/new/set",
+												element: withSuspense(<PredictionNewSet />),
+												handle: {
+													header: {
+														leftAction: "back",
+														title: "New predictions",
+													},
+												},
+											},
+											{
 												path: "predictions/:predictionId/edit",
 												element: withSuspense(<EditPrediction />),
 												handle: {
@@ -246,6 +258,17 @@ export const router = createBrowserRouter([
 													header: {
 														leftAction: "back",
 														title: "Manage",
+													},
+												},
+											},
+											{
+												path: "manage/close",
+												element: withSuspense(<ResolveSeveral />),
+												handle: {
+													header: {
+														leftAction: "back",
+														title: "Close several",
+														parent: "manage",
 													},
 												},
 											},

@@ -67,6 +67,9 @@ export interface ManageQueueItem {
   series_id:                string | null
   series_prediction_number: number | null
   series_title:             string | null
+  // The event it was made for (e.g. a match), when it's one of a set.
+  event_id:                 string | null
+  event_title:              string | null
   bet_count:                number
   total_pool:               number
   options:                  { id: string; label: string; display_order: number }[]
