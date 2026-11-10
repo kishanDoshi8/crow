@@ -1,3 +1,16 @@
+-- What a set of predictions is about, e.g. one match ("Arsenal vs Chelsea").
+-- Predictions made together can share one, so staff can find and close them
+-- together and members get one push for the set. Optional: a prediction
+-- made on its own has none.
+create table if not exists public.prediction_events (
+  id uuid primary key default gen_random_uuid(),
+  room_id uuid not null references public.rooms(id) on delete cascade,
+  title text not null check (char_length(btrim(title)) between 1 and 80),
+  created_by uuid references public.players(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_prediction_events_room on public.prediction_events (room_id, created_at desc);
+
 create table if not exists public.predictions (
   id uuid primary key default gen_random_uuid(),
   room_id uuid not null references public.rooms(id) on delete cascade,
@@ -30,6 +43,8 @@ create table if not exists public.predictions (
   -- False for predictions revealed before rating changes were recorded per
   -- bet: their ratings can't be undone, so their result can't be corrected.
   ratings_reversible boolean not null default true,
+  -- The event it was made for, when it's one of a set.
+  event_id uuid references public.prediction_events(id) on delete set null,
   constraint predictions_scheduled_opens_check check (status <> 'scheduled' or opens_at is not null)
 );
 
@@ -67,6 +82,7 @@ create unique index if not exists idx_predictions_series_number_unique on public
 create index if not exists idx_predictions_series_id on public.predictions (series_id);
 -- The every-minute publish job looks for scheduled predictions that are due.
 create index if not exists idx_predictions_scheduled_opens on public.predictions (opens_at) where status = 'scheduled';
+create index if not exists idx_predictions_event on public.predictions (event_id) where event_id is not null;
 
 create or replace function private.enforce_series_prediction_immutability()
 returns trigger

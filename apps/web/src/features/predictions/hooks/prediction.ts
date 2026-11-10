@@ -1,4 +1,4 @@
-import { correctPredictionResult, createPrediction, deleteScheduledPrediction, getActivePrediction, getActivePredictions, getPrediction, getRoomTags, publishPredictionNow, resolvePrediction, setPredictionDetails, updatePrediction } from "@/shared/lib/api";
+import { correctPredictionResult, createPrediction, createPredictions, deleteScheduledPrediction, getActivePrediction, getActivePredictions, getPrediction, getRoomTags, publishPredictionNow, resolvePrediction, resolvePredictions, setPredictionDetails, updatePrediction, type PredictionDraft, type PredictionResult } from "@/shared/lib/api";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { roomKeys } from "@/shared/constants/queryKeys";
 import { invalidateRoomResults } from "@/shared/lib/roomCache";
@@ -64,6 +64,34 @@ export const useCreatePrediction = () => {
     });            
 }
 
+type CreatePredictionsParams = {
+    roomId: string;
+    seriesId: string;
+    predictions: PredictionDraft[];
+    deadline: Date;
+    // Set to schedule the set to go live later.
+    opensAt?: Date | null;
+    // What they're about, e.g. the match.
+    eventTitle?: string;
+    tags?: string[];
+}
+
+// Organizers create several predictions at once; members get one push.
+export const useCreatePredictions = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: CreatePredictionsParams) =>
+            createPredictions(data.roomId, data.seriesId, data.predictions, data.deadline, data.opensAt, data.eventTitle, data.tags),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: roomKeys.activePrediction(variables.roomId) });
+            queryClient.invalidateQueries({ queryKey: roomKeys.activePredictions(variables.roomId) });
+            queryClient.invalidateQueries({ queryKey: roomKeys.manageQueue(variables.roomId) });
+            queryClient.invalidateQueries({ queryKey: roomKeys.roomTags(variables.roomId) });
+        },
+    });
+}
+
 type ResolvePredictionParams = {
     predictionId: string;
     outcome: 'win' | 'no_result' | 'cancel';
@@ -86,6 +114,23 @@ export const useResolvePrediction = () => {
         },
         onError: (error) => {
             console.error("Error resolving prediction:", error);
+        },
+    });
+}
+
+// Staff close several predictions at once, each with its own outcome.
+export const useResolvePredictions = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: { roomId: string; results: PredictionResult[] }) =>
+            resolvePredictions(data.roomId, data.results),
+        onSuccess: (_, variables) => {
+            invalidateRoomResults(queryClient, variables.roomId);
+            for (const result of variables.results) {
+                queryClient.invalidateQueries({
+                    queryKey: roomKeys.prediction(variables.roomId, result.prediction_id),
+                });
+            }
         },
     });
 }

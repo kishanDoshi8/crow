@@ -12,6 +12,8 @@ import { Button, Skeleton } from "@/shared/ui";
 import {
 	CheckCircle2Icon,
 	ChevronRightIcon,
+	LayersIcon,
+	ListChecksIcon,
 	PencilIcon,
 	PlusIcon,
 	SettingsIcon,
@@ -81,6 +83,14 @@ export default function ManagePage() {
 						</QueueRow>
 					))
 				)}
+				{/* One push for the lot, and the only way to cancel a whole match at once. */}
+				{toResolve.length + open.length > 1 ? (
+					<LinkRow
+						to={`/rooms/${room.code}/manage/close`}
+						icon={<ListChecksIcon className='size-4' />}
+						label='Close several at once'
+					/>
+				) : null}
 			</Section>
 
 			<Section title='Open for picks' count={open.length}>
@@ -146,6 +156,12 @@ export default function ManagePage() {
 						state={{ goLive: "later" }}
 						icon={<PlusIcon className='size-4' />}
 						label='Schedule a prediction'
+					/>
+					<LinkRow
+						to={`/rooms/${room.code}/predictions/new/set`}
+						state={{ goLive: "later" }}
+						icon={<LayersIcon className='size-4' />}
+						label='Schedule a set'
 					/>
 				</Section>
 			) : null}

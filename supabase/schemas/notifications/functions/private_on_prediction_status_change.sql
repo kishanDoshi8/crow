@@ -1,3 +1,9 @@
+-- Pushes for one prediction changing: it went live, or staff closed it.
+-- Functions that change several at once (create_predictions,
+-- resolve_predictions) switch this off for their transaction with
+-- crow.skip_prediction_push and send one push for the set instead. Locking
+-- is pushed per statement, below, so a deadline shared by several
+-- predictions is one push too.
 create or replace function private.on_prediction_status_change()
 returns trigger
 language plpgsql
@@ -11,6 +17,10 @@ declare
   v_series_prediction_number integer;
   v_extra_payload jsonb;
 begin
+  if coalesce(current_setting('crow.skip_prediction_push', true), '') = 'on' then
+    return NEW;
+  end if;
+
   select name, room_code into v_room_name, v_room_code from public.rooms where id = NEW.room_id;
   select s.title into v_series_title from public.series s where s.id = NEW.series_id;
   v_series_prediction_number := NEW.series_prediction_number;
@@ -29,21 +39,6 @@ begin
       NEW.id,
       NEW.room_id,
       '🎯 New Prediction',
-      coalesce(v_room_name, 'Your room') || ' · ' || NEW.title,
-      '/rooms/' || v_room_code || '/predictions/' || NEW.id::text,
-      v_extra_payload
-    );
-
-  -- Organizer (or cron) locked the prediction
-  elsif TG_OP = 'UPDATE'
-    and OLD.status = 'draft'
-    and NEW.status = 'locked'
-  then
-    perform private.fire_push_notification(
-      'prediction_locked',
-      NEW.id,
-      NEW.room_id,
-      '🔒 Betting Closed',
       coalesce(v_room_name, 'Your room') || ' · ' || NEW.title,
       '/rooms/' || v_room_code || '/predictions/' || NEW.id::text,
       v_extra_payload
@@ -69,5 +64,34 @@ begin
   end if;
 
   return NEW;
+end;
+$$;
+
+-- Picks closed, by the every-minute job or an organizer. Runs once per
+-- statement, so predictions that lock together are one push per room.
+create or replace function private.on_predictions_locked()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, private
+as $$
+declare
+  v_ids uuid[];
+begin
+  select array_agg(n.id) into v_ids
+  from new_rows n
+  join old_rows o on o.id = n.id
+  where o.status = 'draft' and n.status = 'locked';
+
+  if v_ids is not null then
+    perform private.push_for_predictions(
+      'prediction_locked',
+      v_ids,
+      '🔒 Betting Closed',
+      '🔒 Betting closed on %s predictions'
+    );
+  end if;
+
+  return null;
 end;
 $$;

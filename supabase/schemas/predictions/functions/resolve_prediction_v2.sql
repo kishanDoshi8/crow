@@ -1,9 +1,14 @@
-create or replace function public.resolve_prediction_v2(
+-- Closes one prediction as p_player_id: settles the points, then ratings,
+-- stats and the room feed. The caller has already checked that the player is
+-- room staff. Shared by resolve_prediction_v2 (one) and resolve_predictions
+-- (several at once).
+create or replace function private.resolve_prediction(
   p_prediction_id     uuid,
   p_room_id           uuid,
   p_outcome           text,
-  p_winning_option_id uuid default null,
-  p_no_result_reason  varchar(50) default null
+  p_winning_option_id uuid,
+  p_no_result_reason  varchar(50),
+  p_player_id         uuid
 )
 returns json
 language plpgsql
@@ -11,27 +16,12 @@ security definer
 set search_path = public, private
 as $$
 declare
-  v_player_id   uuid;
+  v_player_id   uuid := p_player_id;
   v_prediction  public.predictions%rowtype;
   v_plan        record;
   v_counts      record;
   v_activity    text;
 begin
-  v_player_id := private.get_player_id_from_auth();
-
-  if v_player_id is null then
-    raise exception 'Player profile not found. Please complete registration.' using errcode = 'P0004';
-  end if;
-
-  if not exists (
-    select 1 from public.room_members
-    where room_id = p_room_id
-      and player_id = v_player_id
-      and role in ('owner', 'organizer', 'resolver')
-  ) then
-    raise exception 'Only room staff can close predictions' using errcode = 'P0012';
-  end if;
-
   select * into v_prediction
   from public.predictions
   where id      = p_prediction_id
@@ -118,6 +108,43 @@ begin
     'reason',            v_plan.no_result_reason,
     'winning_option_id', v_plan.winning_option_id,
     'refunded',          true
+  );
+end;
+$$;
+
+-- Staff close one prediction: reveal the winner, mark no result, or cancel.
+create or replace function public.resolve_prediction_v2(
+  p_prediction_id     uuid,
+  p_room_id           uuid,
+  p_outcome           text,
+  p_winning_option_id uuid default null,
+  p_no_result_reason  varchar(50) default null
+)
+returns json
+language plpgsql
+security definer
+set search_path = public, private
+as $$
+declare
+  v_player_id   uuid;
+begin
+  v_player_id := private.get_player_id_from_auth();
+
+  if v_player_id is null then
+    raise exception 'Player profile not found. Please complete registration.' using errcode = 'P0004';
+  end if;
+
+  if not exists (
+    select 1 from public.room_members
+    where room_id = p_room_id
+      and player_id = v_player_id
+      and role in ('owner', 'organizer', 'resolver')
+  ) then
+    raise exception 'Only room staff can close predictions' using errcode = 'P0012';
+  end if;
+
+  return private.resolve_prediction(
+    p_prediction_id, p_room_id, p_outcome, p_winning_option_id, p_no_result_reason, v_player_id
   );
 end;
 $$;

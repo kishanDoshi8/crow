@@ -14,8 +14,6 @@ as $$
 declare
   v_prediction public.predictions%rowtype;
   v_published  uuid[] := '{}';
-  v_room       record;
-  v_series_title text;
 begin
   for v_prediction in
     select p.*
@@ -52,48 +50,12 @@ begin
     v_published := v_published || v_prediction.id;
   end loop;
 
-  for v_room in
-    select r.id, r.name, r.room_code,
-      count(*)::int as n,
-      (array_agg(p.id order by p.deadline, p.id))[1] as first_id,
-      (array_agg(p.title order by p.deadline, p.id))[1] as first_title,
-      (array_agg(p.series_id order by p.deadline, p.id))[1] as first_series_id,
-      (array_agg(p.series_prediction_number order by p.deadline, p.id))[1] as first_number
-    from public.predictions p
-    join public.rooms r on r.id = p.room_id
-    where p.id = any(v_published)
-    group by r.id
-  loop
-    if v_room.n = 1 then
-      select title into v_series_title from public.series where id = v_room.first_series_id;
-      perform private.fire_push_notification(
-        'prediction_live',
-        v_room.first_id,
-        v_room.id,
-        '🎯 New Prediction',
-        coalesce(v_room.name, 'Your room') || ' · ' || v_room.first_title,
-        '/rooms/' || v_room.room_code || '/predictions/' || v_room.first_id::text,
-        jsonb_build_object(
-          'predictionId', v_room.first_id,
-          'predictionTitle', v_room.first_title,
-          'seriesId', v_room.first_series_id,
-          'seriesTitle', v_series_title,
-          'seriesPredictionNumber', v_room.first_number
-        )
-      );
-    else
-      perform private.fire_push_notification(
-        'prediction_live',
-        null,
-        v_room.id,
-        '🎯 ' || v_room.n || ' new predictions',
-        coalesce(v_room.name, 'Your room') || ' · ' || v_room.first_title
-          || ' and ' || (v_room.n - 1) || ' more',
-        '/rooms/' || v_room.room_code,
-        jsonb_build_object('predictionCount', v_room.n)
-      );
-    end if;
-  end loop;
+  perform private.push_for_predictions(
+    'prediction_live',
+    v_published,
+    '🎯 New Prediction',
+    '🎯 %s new predictions'
+  );
 
   return coalesce(array_length(v_published, 1), 0);
 end;

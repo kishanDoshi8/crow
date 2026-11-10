@@ -8,7 +8,7 @@ import { useState } from "react";
 import { PredictionForm } from "@/features/predictions/components/PredictionForm";
 import { useRoomContext } from "@/shared/lib/roomContext";
 import { useCurrentSeries } from "@/features/series";
-import { Link, Navigate, useLocation } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useRoomRole } from "@/features/rooms";
 import { describeDeadline } from "@/shared/lib/deadline";
 
@@ -16,6 +16,7 @@ export default function PredictionNew() {
 	const { room } = useRoomContext();
 	const { can } = useRoomRole(room);
 	const location = useLocation();
+	const navigate = useNavigate();
 	const navigationState = location.state as {
 		seriesId?: string;
 		// "later" when opened to schedule one (from Needs you).
@@ -92,6 +93,13 @@ export default function PredictionNew() {
 				roomId={room.id}
 				initial={initial}
 				onCopyPast={() => setIsCopyOpen(true)}
+				// Swaps the form in place, so Back still leaves the way it came in.
+				onCreateSet={() =>
+					navigate(`/rooms/${room.code}/predictions/new/set`, {
+						replace: true,
+						state: location.state,
+					})
+				}
 				// Every prediction belongs to a series: default to the one the player is looking at.
 				initialSeriesId={
 					navigationState?.seriesId ??

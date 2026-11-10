@@ -187,7 +187,8 @@ select is(
   ),
   array[
     'activate_series', 'allow_room_member_back', 'archive_series', 'cancel_account_deletion', 'cancel_bet', 'cancel_join_request',
-    'collect_series_rewards', 'complete_series', 'correct_prediction_result', 'create_prediction', 'create_room', 'create_series',
+    'collect_series_rewards', 'complete_series', 'correct_prediction_result', 'create_prediction', 'create_predictions', 'create_room',
+    'create_series',
     'decide_join_request', 'delete_my_push_subscription', 'delete_scheduled_prediction', 'dismiss_weekly_recap',
     'get_explore_rooms', 'get_my_account_deletion', 'get_my_series_wallets', 'get_my_unseen_results', 'get_my_weekly_recap',
     'get_player', 'get_prediction_talk', 'get_preferences', 'get_room_activities', 'get_room_by_code', 'get_room_former_members',
@@ -198,7 +199,7 @@ select is(
     'leave_room', 'mark_how_to_play_seen', 'mark_ratings_tip_seen', 'mark_results_seen', 'mark_room_activities_seen',
     'mark_series_suggestion_played', 'place_bet', 'post_prediction_phrase', 'publish_prediction_now', 'record_share',
     'register_player', 'remove_room_member', 'remove_series_suggestion', 'request_account_deletion', 'reset_room_preferences',
-    'resolve_prediction_v2', 'set_last_visited_room', 'set_member_role', 'set_prediction_details', 'set_prediction_reaction',
+    'resolve_prediction_v2', 'resolve_predictions', 'set_last_visited_room', 'set_member_role', 'set_prediction_details', 'set_prediction_reaction',
     'suggest_series', 'toggle_series_suggestion_vote', 'transfer_ownership', 'update_global_preferences', 'update_prediction',
     'update_room', 'update_room_preferences', 'update_series', 'upsert_user_push_subscription'
   ],
