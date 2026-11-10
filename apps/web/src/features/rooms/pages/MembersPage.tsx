@@ -1,7 +1,9 @@
 import { useRoomContext } from "@/shared/lib/roomContext";
 import { usePlayer } from "@/features/home";
+import { useDecideJoinRequest } from "@/features/rooms/hooks/room";
 import {
 	useAllowRoomMemberBack,
+	useManageQueue,
 	useRemoveRoomMember,
 	useSetMemberRole,
 	useTransferOwnership,
@@ -13,7 +15,7 @@ import {
 	roomRoleRank,
 	type RoomRole,
 } from "@/features/rooms/lib/roles";
-import type { FormerMember, RoomMember } from "@/features/rooms/types/types";
+import type { FormerMember, JoinRequest, RoomMember } from "@/features/rooms/types/types";
 import {
 	Avatar,
 	AvatarFallback,
@@ -36,7 +38,7 @@ import {
 	RadioGroupItem,
 	Spinner,
 } from "@/shared/ui";
-import { ChevronRightIcon, CrownIcon, ShieldAlertIcon, UserMinusIcon } from "lucide-react";
+import { ChevronRightIcon, CrownIcon, ShieldAlertIcon, UserMinusIcon, XIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -62,6 +64,14 @@ export default function MembersPage() {
 
 	return (
 		<div className='mx-auto w-full max-w-md space-y-3 p-4 lg:max-w-2xl lg:pt-6'>
+			{can.organize ? <JoinRequests roomId={room.id} /> : null}
+			<p className='flex justify-between px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground'>
+				<span>Members</span>
+				<span className='tabular-nums'>
+					{room.members.length}
+					{room.member_limit ? ` / ${room.member_limit}` : ""}
+				</span>
+			</p>
 			<p className='px-1 text-sm text-muted-foreground'>
 				{can.own
 					? "Give friends a role to share the work. Resolvers reveal results; organizers also create predictions and series."
@@ -446,4 +456,90 @@ function FormerMembers({
 			</ul>
 		</section>
 	);
+}
+
+// Owners and organizers: people waiting to be let in, oldest first.
+function JoinRequests({ roomId }: Readonly<{ roomId: string }>) {
+	const { data: queue } = useManageQueue(roomId);
+	const requests = queue?.join_requests ?? [];
+	if (requests.length === 0) return null;
+
+	return (
+		<section aria-labelledby='join-requests-heading' className='space-y-2 pb-2'>
+			<h2
+				id='join-requests-heading'
+				className='px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground'
+			>
+				Join requests ({requests.length})
+			</h2>
+			<ul className='divide-y rounded-2xl border border-accent/40 bg-card'>
+				{requests.map((request) => (
+					<JoinRequestRow key={request.player_id} roomId={roomId} request={request} />
+				))}
+			</ul>
+		</section>
+	);
+}
+
+function JoinRequestRow({ roomId, request }: Readonly<{ roomId: string; request: JoinRequest }>) {
+	const { mutate: decide, isPending, variables } = useDecideJoinRequest(roomId);
+	const answer = (accept: boolean) =>
+		decide(
+			{ playerId: request.player_id, accept },
+			{
+				onSuccess: () =>
+					toast.success(accept ? `${request.username} is in.` : "Request declined.", {
+						position: "top-center",
+					}),
+				onError: (error) =>
+					toast.error(accept ? "Couldn't let them in." : "Couldn't decline.", {
+						description: error.message,
+						position: "top-center",
+					}),
+			},
+		);
+	const how =
+		request.via === "explore"
+			? "From Explore"
+			: request.via
+				? "From a shared link"
+				: "Typed the room code";
+
+	return (
+		<li className='flex items-center gap-3 px-3 py-2.5'>
+			<Avatar className='size-9'>
+				<AvatarFallback className='text-xs font-semibold'>
+					{request.username.slice(0, 2).toUpperCase()}
+				</AvatarFallback>
+			</Avatar>
+			<span className='min-w-0 flex-1'>
+				<span className='block truncate font-medium'>{request.username}</span>
+				<span className='block truncate text-xs text-muted-foreground'>
+					{how} · {requestAge(request.created_at)}
+				</span>
+			</span>
+			<Button
+				variant='outline'
+				size='icon-sm'
+				onClick={() => answer(false)}
+				disabled={isPending}
+				aria-label={`Decline ${request.username}`}
+			>
+				{isPending && variables?.accept === false ? <Spinner /> : <XIcon />}
+			</Button>
+			<Button size='sm' onClick={() => answer(true)} disabled={isPending}>
+				{isPending && variables?.accept ? <Spinner /> : null}
+				Let in
+			</Button>
+		</li>
+	);
+}
+
+// "just now", "2h ago", "3d ago".
+function requestAge(iso: string) {
+	const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
+	if (minutes < 60) return minutes < 1 ? "just now" : `${minutes}m ago`;
+	const hours = Math.floor(minutes / 60);
+	if (hours < 24) return `${hours}h ago`;
+	return `${Math.floor(hours / 24)}d ago`;
 }

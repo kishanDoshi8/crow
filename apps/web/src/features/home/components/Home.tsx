@@ -8,13 +8,13 @@ import {
 import { Button } from "@/shared/ui/button";
 import { Spinner } from "@/shared/ui/spinner";
 import {
-	CircleQuestionMark,
 	TriangleAlert,
 } from "lucide-react";
 import { usePlayer } from "@/features/home/hooks/player";
 import Brand from "./Brand";
 import { AccountSheet, accountInitials } from "./AccountSheet";
 import { RoomCardsList } from "@/features/rooms/components/RoomCardsList";
+import { ExploreRooms } from "@/features/rooms/components/ExploreRooms";
 import { useCreateRoom } from "@/features/rooms/hooks/room";
 import type { Room } from "@/features/rooms/types/types";
 import {
@@ -43,7 +43,7 @@ type Props = {
 	playerRoomsError?: Error | null;
 };
 
-export type HomeTab = "rooms" | "join" | "create";
+export type HomeTab = "rooms" | "explore" | "join" | "create";
 
 export default function Home({
 	roomCode,
@@ -92,9 +92,10 @@ export default function Home({
 					onValueChange={(value) => setActiveTab(value as HomeTab)}
 				>
 					<TabsList className={`w-full `}>
-						<TabsTrigger value='rooms'>Your Rooms</TabsTrigger>
+						<TabsTrigger value='rooms'>Rooms</TabsTrigger>
+						<TabsTrigger value='explore'>Explore</TabsTrigger>
 						<TabsTrigger value='join'># Join</TabsTrigger>
-						<TabsTrigger value='create'>Create Room</TabsTrigger>
+						<TabsTrigger value='create'>Create</TabsTrigger>
 					</TabsList>
 					<TabsContent value='rooms'>
 						<div className={`mt-4`}>
@@ -104,6 +105,9 @@ export default function Home({
 								error={playerRoomsError}
 							/>
 						</div>
+					</TabsContent>
+					<TabsContent value='explore'>
+						<ExploreRooms />
 					</TabsContent>
 					<TabsContent value='join'>
 						<JoinRoom
@@ -121,17 +125,6 @@ export default function Home({
 				</Tabs>
 			</div>
 
-			<div className={`fixed bottom-4 right-4`}>
-				<Button
-					variant='outline'
-					className={`text-muted-foreground`}
-					size='sm'
-					onClick={() => setOpenHowToPlay(true)}
-				>
-					<CircleQuestionMark />
-					How to Play
-				</Button>
-			</div>
 
 			<AccountSheet
 				open={isAccountOpen}

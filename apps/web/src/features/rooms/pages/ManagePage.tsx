@@ -16,6 +16,7 @@ import {
 	PlusIcon,
 	SettingsIcon,
 	Trash2Icon,
+	UserPlusIcon,
 	UsersIcon,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
@@ -36,9 +37,24 @@ export default function ManagePage() {
 	const toResolve = queue?.to_resolve ?? [];
 	const open = queue?.open ?? [];
 	const scheduled = queue?.scheduled ?? [];
+	const joinRequests = queue?.join_requests ?? [];
 
 	return (
 		<div className='mx-auto w-full max-w-md space-y-6 p-4 lg:max-w-2xl lg:pt-6'>
+			{joinRequests.length > 0 ? (
+				<Section title='Join requests' count={joinRequests.length}>
+					<LinkRow
+						to={`/rooms/${room.code}/members`}
+						icon={<UserPlusIcon className='size-4' />}
+						label={
+							joinRequests.length === 1
+								? `${joinRequests[0].username} wants to join`
+								: `${joinRequests[0].username} and ${joinRequests.length - 1} more want to join`
+						}
+					/>
+				</Section>
+			) : null}
+
 			<Section title='To reveal' count={toResolve.length}>
 				{isPending ? (
 					<QueueSkeleton />

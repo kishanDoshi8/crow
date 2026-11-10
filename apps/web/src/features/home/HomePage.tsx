@@ -136,7 +136,7 @@ export function HomePage() {
 }
 
 function getHomeTab(tab: string | null): HomeTab | null {
-	if (tab === "rooms" || tab === "join" || tab === "create") {
+	if (tab === "rooms" || tab === "explore" || tab === "join" || tab === "create") {
 		return tab;
 	}
 	return null;

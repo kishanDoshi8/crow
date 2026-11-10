@@ -10,7 +10,7 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/shared/ui";
-import { CircleQuestionMarkIcon, PlusIcon, UsersIcon } from "lucide-react";
+import { CircleQuestionMarkIcon, CompassIcon, PlusIcon, UsersIcon } from "lucide-react";
 import React, { Suspense, lazy, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { RoomCardsList } from "./RoomCardsList";
@@ -91,7 +91,7 @@ function RoomList({ playerId, onDone }: Readonly<{ playerId: string; onDone: () 
 	);
 }
 
-// The actions under the room list (create, join, how to play), and the
+// The actions under the room list (explore, create, join, how to play), and the
 // how-to-play guide they can open, shared by the drawer and the dropdown.
 function RoomSwitcher({
 	onOpenChange,
@@ -103,7 +103,7 @@ function RoomSwitcher({
 	const navigate = useNavigate();
 	const [openHowToPlay, setOpenHowToPlay] = React.useState(false);
 
-	const handleOpenTab = (tab: "join" | "create") => {
+	const handleOpenTab = (tab: "explore" | "join" | "create") => {
 		onOpenChange(false);
 		navigate(`/?tab=${tab}`);
 	};
@@ -115,6 +115,14 @@ function RoomSwitcher({
 
 	const actions = (
 		<>
+			<Button
+				variant='ghost'
+				className='w-full justify-start'
+				onClick={() => handleOpenTab("explore")}
+			>
+				<CompassIcon />
+				Explore rooms
+			</Button>
 			<Button
 				variant='ghost'
 				className='w-full justify-start'
