@@ -13,6 +13,7 @@ import {
 	TopThreePodium,
 	type PodiumEntry,
 } from "@/features/leaderboard/components/leaderboard/TopThreePodium";
+import { NetPoints } from "@/features/leaderboard/components/leaderboard/LeaderboardRow";
 import { RankingRuleHint } from "@/features/leaderboard/components/leaderboard/RankingRuleHint";
 import {
 	SeriesScopeToggle,
@@ -51,14 +52,14 @@ export function LeaderboardPage() {
 					player_id: entry.player_id,
 					username: entry.username,
 					rank: entry.rank,
-					primary: `${entry.balance.toLocaleString()} pts`,
-					secondary: formatSignedPoints(entry.net_profit),
+					primary: entry.balance.toLocaleString(),
+					secondary: <NetPoints value={entry.net_profit} />,
 				}))
 			: overall.slice(0, 3).map((entry) => ({
 					player_id: entry.player_id,
 					username: entry.username,
 					rank: entry.rank,
-					primary: `${formatSignedPoints(entry.net_profit)} pts`,
+					primary: formatSignedPoints(entry.net_profit),
 					secondary:
 						entry.titles > 0
 							? `${entry.titles} ${entry.titles === 1 ? "title" : "titles"}`
@@ -90,9 +91,7 @@ export function LeaderboardPage() {
 			<div>
 				<div className='flex min-h-8 items-center justify-between gap-3'>
 					<h2 className='min-w-0 truncate text-lg font-semibold'>
-						{scope === "all"
-							? "All series"
-							: (currentSeries?.title ?? "Standings")}
+						Standings
 					</h2>
 					{scope === "series" && currentSeries?.status === "active" ? (
 						<ShareWeeklyButton
@@ -122,7 +121,8 @@ export function LeaderboardPage() {
 				seriesTitle={currentSeries?.title}
 			/>
 
-			<div className='flex flex-col gap-3'>
+			{/* The podium stands on the table: no gap between them. */}
+			<div className='flex flex-col'>
 				<TopThreePodium
 					top={podium}
 					currentPlayerId={player?.id ?? ""}
@@ -139,6 +139,7 @@ export function LeaderboardPage() {
 						currentPlayerId={player?.id ?? ""}
 						isLoading={!!currentSeriesId && isLeaderboardLoading}
 						onRowClick={openProfile}
+						attachTop={podium.length > 0}
 					/>
 				) : (
 					<OverallStandingsList
@@ -146,6 +147,7 @@ export function LeaderboardPage() {
 						currentPlayerId={player?.id ?? ""}
 						isLoading={isOverallLoading}
 						onRowClick={openProfile}
+						attachTop={podium.length > 0}
 					/>
 				)}
 			</div>

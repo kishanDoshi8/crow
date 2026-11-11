@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(11);
+select plan(15);
 
 insert into auth.users (id, aud, role, email)
 values
@@ -146,6 +146,39 @@ set local role authenticated;
 select public.dismiss_weekly_recap(pg_temp.setting('cup'), '2026-W41');
 reset role;
 select is(pg_temp.recap('00000000-0000-0000-0000-00000000a11c')::text, null, 'a dismissed recap stays away until next week');
+
+-- ------------------------------------------------------------
+-- History filter counts
+-- ------------------------------------------------------------
+select pg_temp.login('00000000-0000-0000-0000-00000000a11c');
+set local role authenticated;
+select is(
+  public.get_room_prediction_history_counts(pg_temp.setting('room_id'))::jsonb,
+  '{"all": 2, "wins": 1, "losses": 0, "my_bets": 2}'::jsonb,
+  'the winner sees one win among two finished predictions, both bet on'
+);
+select is(
+  public.get_room_prediction_history_counts(pg_temp.setting('room_id'), pg_temp.setting('cup'), 'no such title')::jsonb,
+  '{"all": 0, "wins": 0, "losses": 0, "my_bets": 0}'::jsonb,
+  'the counts follow the search'
+);
+reset role;
+select pg_temp.login('00000000-0000-0000-0000-000000000b0b');
+set local role authenticated;
+select is(
+  public.get_room_prediction_history_counts(pg_temp.setting('room_id'))::jsonb,
+  '{"all": 2, "wins": 0, "losses": 1, "my_bets": 1}'::jsonb,
+  'the other player sees a loss, and one finished prediction they sat out'
+);
+reset role;
+select pg_temp.login('00000000-0000-0000-0000-00000000da7e');
+set local role authenticated;
+select throws_ok(
+  format($$ select public.get_room_prediction_history_counts(%L) $$, pg_temp.setting('room_id')),
+  NULL, NULL,
+  'people outside the room get nothing'
+);
+reset role;
 
 select * from finish();
 rollback;

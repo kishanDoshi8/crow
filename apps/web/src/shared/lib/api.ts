@@ -1209,6 +1209,27 @@ export async function getSeriesWeeklyRecap(roomId: string, seriesId: string) {
   return (data ?? null) as SeriesWeeklyRecap | null
 }
 
+export type PredictionHistoryCounts = {
+  all: number
+  wins: number
+  losses: number
+  my_bets: number
+}
+
+// How many finished predictions each History filter holds for the caller.
+export async function getRoomPredictionHistoryCounts(
+  roomId: string,
+  seriesId?: string,
+  search?: string,
+) {
+  const { data, error } = await untypedSupabase.rpc('get_room_prediction_history_counts', {
+    p_room_id: roomId,
+    p_series_id: seriesId ?? null,
+    p_search: search || null,
+  })
+  return assertOk(data, error) as PredictionHistoryCounts
+}
+
 type GetRoomPredictionHistoryParams = {
   roomId: string
   limit?: number

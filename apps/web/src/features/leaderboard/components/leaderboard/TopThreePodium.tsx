@@ -1,5 +1,5 @@
-import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
-import { cn } from "@/shared/lib/utils";
+import type { ReactNode } from "react";
+import { cn, ordinal } from "@/shared/lib/utils";
 import { Reveal, Skeleton } from "@/shared/ui";
 
 // What each podium spot shows; callers decide (series balance or overall profit).
@@ -7,8 +7,10 @@ export type PodiumEntry = {
 	player_id: string;
 	username: string;
 	rank: number;
+	// Under the name: the number the table ranks by.
 	primary: string;
-	secondary: string;
+	// On the step: what goes with it (profit, titles).
+	secondary: ReactNode;
 };
 
 type Props = {
@@ -17,53 +19,42 @@ type Props = {
 	isLoading?: boolean;
 };
 
-const MEDALS = ["🥇", "🥈", "🥉"] as const;
-
 const podiumOrder = [1, 0, 2]; // visually: 2nd | 1st | 3rd
+const PODIUM_SHELL = "grid grid-cols-3 items-end gap-2 pt-2";
 
-const PODIUM_SHELL = "flex items-end justify-center gap-2 pt-4 pb-2";
+// Each place's step: the winner's is tallest and gold.
+const STEPS: Record<number, { height: string; step: string; place: string; avatar: string }> = {
+	1: {
+		height: "h-28",
+		step: "border-rank-1/40 bg-rank-1/15",
+		place: "text-3xl text-rank-1",
+		avatar: "size-15 text-lg ring-rank-1",
+	},
+	2: {
+		height: "h-19",
+		step: "border-border bg-muted/70",
+		place: "text-[1.375rem] text-foreground",
+		avatar: "size-11 text-sm ring-border",
+	},
+	3: {
+		height: "h-14",
+		step: "border-border bg-muted/40",
+		place: "text-lg text-muted-foreground",
+		avatar: "size-11 text-sm ring-border",
+	},
+};
 
-function slotClassName(isFirst: boolean) {
-	return cn(
-		"flex flex-col items-center gap-1 flex-1",
-		isFirst && "order-first md:order-0",
-	);
-}
-
-function stepClassName(rank: number) {
-	let podiumClass = "bg-muted/30 min-h-6";
-	if (rank === 1) {
-		podiumClass = "bg-rank-1/15 min-h-[3rem]";
-	} else if (rank === 2) {
-		podiumClass = "bg-muted/50 min-h-8";
-	}
-	return cn(
-		"w-full rounded-t-md flex items-center justify-center",
-		podiumClass,
-	);
-}
-
-// The podium's exact shape (medal, avatar, three text lines, the step) with
-// placeholders, so the standings below don't move when names arrive.
 function TopThreePodiumSkeleton() {
 	return (
 		<div aria-hidden='true' className={PODIUM_SHELL}>
 			{podiumOrder.map((index) => {
 				const rank = index + 1;
-				const isFirst = rank === 1;
 				return (
-					<div key={rank} className={slotClassName(isFirst)}>
-						<Skeleton className='my-0.5 size-6 rounded-full' />
-						<Skeleton
-							className={cn(
-								"rounded-full",
-								isFirst ? "size-14" : "size-10",
-							)}
-						/>
-						<Skeleton className='my-px h-4 w-16' />
-						<Skeleton className='my-0.5 h-3 w-12' />
-						<Skeleton className='my-0.5 h-2.5 w-8' />
-						<div className={stepClassName(rank)} />
+					<div key={rank} className='flex flex-col items-center gap-1.5'>
+						<Skeleton className={cn("rounded-full", rank === 1 ? "size-15" : "size-11")} />
+						<Skeleton className='h-4 w-16' />
+						<Skeleton className='h-3 w-10' />
+						<div className={cn("w-full rounded-t-xl bg-muted/40", STEPS[rank].height)} />
 					</div>
 				);
 			})}
@@ -71,6 +62,8 @@ function TopThreePodiumSkeleton() {
 	);
 }
 
+// The top three on their steps, the place written on each. It sits on top
+// of the standings table, which lists everyone (these three included).
 export function TopThreePodium({
 	top,
 	currentPlayerId,
@@ -79,85 +72,71 @@ export function TopThreePodium({
 	if (isLoading) return <TopThreePodiumSkeleton />;
 	if (top.length === 0) return null;
 
-	const slots = podiumOrder.map((i) => top[i]).filter(Boolean);
-
 	return (
-		<div className={PODIUM_SHELL}>
-			{slots.map((entry, index) => {
-				const visualRank = entry.rank; // 1, 2, or 3
-				const isFirst = visualRank === 1;
+		<ol aria-label='Top three' className={PODIUM_SHELL}>
+			{podiumOrder.map((slot, index) => {
+				const entry = top[slot];
+				// Fewer than three ranked: keep the gap so first stays in the middle.
+				if (!entry) return <li key={slot} aria-hidden='true' />;
+				const style = STEPS[entry.rank] ?? STEPS[3];
 				const isSelf = entry.player_id === currentPlayerId;
-				const initials = entry.username.slice(0, 2).toUpperCase();
+				const isFirst = entry.rank === 1;
 
 				return (
 					<Reveal
+						as='li'
 						key={entry.player_id}
 						index={index}
-						className={slotClassName(isFirst)}
+						className='flex min-w-0 flex-col items-center gap-1.5'
 					>
-						<span className='text-xl'>
-							{MEDALS[visualRank - 1]}
-						</span>
-
-						<Avatar
-							size='lg'
+						<span
+							aria-hidden='true'
 							className={cn(
-								"ring-2",
-								isFirst
-									? "ring-rank-1 size-14"
-									: "ring-muted size-10",
-								isSelf && "ring-win",
+								"flex shrink-0 items-center justify-center rounded-full bg-secondary font-semibold ring-2 ring-offset-2 ring-offset-background",
+								style.avatar,
+								isSelf && "ring-primary",
 							)}
 						>
-							<AvatarFallback
+							{entry.username.slice(0, 2).toUpperCase()}
+						</span>
+						<span className='flex w-full min-w-0 flex-col items-center'>
+							<span
 								className={cn(
-									isFirst
-										? "text-base font-semibold"
-										: "text-sm",
+									"max-w-full truncate",
+									isFirst ? "text-base font-bold" : "text-sm font-semibold",
 								)}
 							>
-								{initials}
-							</AvatarFallback>
-						</Avatar>
-
-						<p
+								{entry.username}
+							</span>
+							<span
+								className={cn(
+									"text-xs tabular-nums",
+									isFirst ? "font-semibold" : "text-muted-foreground",
+								)}
+							>
+								{entry.primary}
+							</span>
+						</span>
+						<span
 							className={cn(
-								"text-center font-medium leading-tight max-w-24 truncate text-sm",
-								isSelf && "text-win",
+								"flex w-full flex-col items-center gap-0.5 rounded-t-xl border border-b-0 pt-2.5",
+								style.height,
+								isSelf && !isFirst ? "border-primary/35 bg-primary/10" : style.step,
 							)}
 						>
-							{entry.username}
-							{isSelf && (
-								<span className='ml-1 text-xs text-muted-foreground'>
-									(You)
-								</span>
-							)}
-						</p>
-
-						<p
-							className={cn(
-								"text-xs tabular-nums",
-								isFirst
-									? "font-semibold"
-									: "text-muted-foreground",
-							)}
-						>
-							{entry.primary}
-						</p>
-						<p className='text-[10px] text-muted-foreground tabular-nums'>
-							{entry.secondary}
-						</p>
-
-						<div className={stepClassName(visualRank)}>
-							{isFirst && (
-								<span className='text-[10px] font-semibold uppercase tracking-wider text-muted-foreground'>
+							<span className={cn("font-bold leading-none", style.place)}>
+								{ordinal(entry.rank)}
+							</span>
+							<span className='text-xs font-semibold tabular-nums'>{entry.secondary}</span>
+							{isFirst ? (
+								<span className='mt-auto pb-2 text-xs font-semibold text-rank-1'>
 									Top crow
 								</span>
-							)}
-						</div>
+							) : null}
+						</span>
 					</Reveal>
 				);
 			})}
-		</div>
+		</ol>
 	);
 }

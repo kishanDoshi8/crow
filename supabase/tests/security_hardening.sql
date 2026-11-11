@@ -194,6 +194,7 @@ select is(
     'get_player', 'get_prediction_talk', 'get_preferences', 'get_room_activities', 'get_room_by_code', 'get_room_former_members',
     'get_room_has_unseen_activities', 'get_room_join_requests', 'get_room_manage_queue', 'get_room_member_recent_predictions',
     'get_room_member_stats', 'get_room_member_style', 'get_room_overall_standings', 'get_room_prediction_history',
+    'get_room_prediction_history_counts',
     'get_room_series', 'get_room_series_selector', 'get_room_stat_cards', 'get_room_tags', 'get_series_awards',
     'get_series_leaderboard', 'get_series_placements', 'get_series_suggestions', 'get_series_weekly_recap', 'join_room',
     'leave_room', 'mark_how_to_play_seen', 'mark_ratings_tip_seen', 'mark_results_seen', 'mark_room_activities_seen',

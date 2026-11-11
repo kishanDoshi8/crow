@@ -1,24 +1,33 @@
-import type {
-	PredictionHistoryFilter} from "@/features/leaderboard";
+import type { PredictionHistoryFilter } from "@/features/leaderboard";
 import {
 	PredictionHistoryFeed,
 	PredictionHistoryFeedSkeleton,
-	usePredictionHistory
+	usePredictionHistory,
+	usePredictionHistoryCounts,
 } from "@/features/leaderboard";
 import { useRoomContext } from "@/shared/lib/roomContext";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Input, Button } from "@/shared/ui";
+import { cn } from "@/shared/lib/utils";
+import { SearchIcon } from "lucide-react";
 import {
 	SeriesScopeToggle,
 	type SeriesScope,
 	useCurrentSeries,
 } from "@/features/series";
 
-const FILTERS: Array<{ label: string; value: PredictionHistoryFilter }> = [
-	{ label: "All", value: "all" },
-	{ label: "Wins", value: "wins" },
-	{ label: "Losses", value: "losses" },
-	{ label: "My Bets", value: "my_bets" },
+// Each filter is your outcome, and carries how many predictions it holds,
+// so the row doubles as your record.
+const FILTERS: Array<{
+	label: string;
+	value: PredictionHistoryFilter;
+	count: "all" | "wins" | "losses" | "my_bets";
+	// A dot in the outcome's colour.
+	dot?: string;
+}> = [
+	{ label: "All", value: "all", count: "all" },
+	{ label: "Won", value: "wins", count: "wins", dot: "bg-win" },
+	{ label: "Lost", value: "losses", count: "losses", dot: "bg-loss" },
+	{ label: "My bets", value: "my_bets", count: "my_bets" },
 ];
 
 function emptyStateMessage(
@@ -74,6 +83,11 @@ function HistoryFeed() {
 		seriesId,
 	);
 
+	const { data: counts } = usePredictionHistoryCounts(
+		room.id,
+		debouncedSearch,
+		seriesId,
+	);
 	const history = useMemo(
 		() => data?.pages.flatMap((page) => page.items) ?? [],
 		[data],
@@ -114,30 +128,48 @@ function HistoryFeed() {
 			</div>
 
 			<div className='space-y-3'>
-				<Input
-					type='search'
-					placeholder='Search prediction titles...'
-					value={searchInput}
-					onChange={(event) => setSearchInput(event.target.value)}
-				/>
 				<SeriesScopeToggle
 					value={scope}
 					onValueChange={setScope}
 					seriesTitle={currentSeries?.title}
 				/>
-				<div className='flex flex-wrap gap-2'>
-					{FILTERS.map((item) => (
-						<Button
-							key={item.value}
-							size='sm'
-							variant={
-								filter === item.value ? "default" : "outline"
-							}
-							onClick={() => setFilter(item.value)}
-						>
-							{item.label}
-						</Button>
-					))}
+				<label className='flex h-11 items-center gap-2 rounded-lg border px-3 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50'>
+					<SearchIcon className='size-4 shrink-0 text-muted-foreground' aria-hidden='true' />
+					<span className='sr-only'>Search prediction titles</span>
+					<input
+						type='search'
+						placeholder='Search prediction titles'
+						value={searchInput}
+						onChange={(event) => setSearchInput(event.target.value)}
+						className='min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground md:text-sm'
+					/>
+				</label>
+				<div role='group' aria-label='Filter by your outcome' className='flex gap-1.5 overflow-x-auto'>
+					{FILTERS.map((item) => {
+						const isOn = filter === item.value;
+						return (
+							<button
+								key={item.value}
+								type='button'
+								aria-pressed={isOn}
+								onClick={() => setFilter(item.value)}
+								className={cn(
+									"flex h-9.5 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+									isOn
+										? "border-foreground bg-foreground font-semibold text-background"
+										: "font-medium text-muted-foreground hover:text-foreground",
+								)}
+							>
+								{item.dot ? (
+									<span aria-hidden='true' className={cn("size-2 rounded-full", item.dot)} />
+								) : null}
+								{item.label}
+								{counts ? (
+									<span className='font-semibold tabular-nums'>{counts[item.count]}</span>
+								) : null}
+							</button>
+						);
+					})}
 				</div>
 			</div>
 
