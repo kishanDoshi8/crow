@@ -2,6 +2,7 @@ import {
     getRoomMemberRecentPredictions,
     getRoomMemberStats,
     getRoomPredictionHistory,
+    getRoomPredictionHistoryCounts,
     getRoomMemberSeriesRecognition,
     getRoomMemberMilestones,
     getRoomMemberStyle,
@@ -179,5 +180,20 @@ export const useRoomMemberStyle = (
         queryKey: roomKeys.roomMemberStyle(roomId ?? "", playerId ?? ""),
         queryFn: () => getRoomMemberStyle(roomId ?? "", playerId ?? ""),
         enabled: !!roomId && !!playerId && enabled,
+    })
+}
+
+// The number on each History filter. Shares the history list's key prefix,
+// so anything that refreshes the list (a new result) refreshes these too.
+export const usePredictionHistoryCounts = (
+    roomId?: string,
+    search = '',
+    seriesId?: string,
+) => {
+    return useQuery({
+        queryKey: ['prediction-history', roomId ?? '', 'counts', search, seriesId ?? 'all'],
+        queryFn: () => getRoomPredictionHistoryCounts(roomId ?? '', seriesId, search),
+        enabled: !!roomId,
+        placeholderData: keepPreviousData,
     })
 }

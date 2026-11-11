@@ -3,9 +3,13 @@ import {
 	SeriesSectionHeaderSkeleton,
 } from "@/features/series/components/SeriesSectionHeader";
 import {
+	FINISHED_ROW,
+	FinishedSeriesRow,
 	SeriesTile,
 	SeriesTileSkeleton,
 } from "@/features/series/components/SeriesTile";
+import { useMySeriesWallets } from "@/features/series/hooks/wallets";
+import { cn } from "@/shared/lib/utils";
 import type { Series } from "@/features/series/types/series";
 import { Button, Reveal, SkeletonList } from "@/shared/ui";
 import { PlusIcon } from "lucide-react";
@@ -33,6 +37,11 @@ export function SeriesListView({
 	isOrganizer,
 	onCreateNew,
 }: Readonly<SeriesListViewProps>) {
+	// Your points per series: every series you've joined, finished ones too.
+	const { data: wallets = [] } = useMySeriesWallets(roomId);
+	const walletOf = (seriesId: string) =>
+		wallets.find((wallet) => wallet.series_id === seriesId) ?? null;
+
 	return (
 		<div className='mx-auto w-full max-w-md space-y-5 p-4 lg:max-w-2xl lg:pt-6'>
 			<div>
@@ -46,12 +55,12 @@ export function SeriesListView({
 							onClick={onCreateNew}
 						>
 							<PlusIcon className='h-4 w-4' />
-							New
+							New series
 						</Button>
 					)}
 				</div>
 				<p className='mt-1 text-sm text-muted-foreground'>
-					Browse active and completed runs.
+					Each series has its own points, table and title.
 				</p>
 			</div>
 
@@ -68,12 +77,12 @@ export function SeriesListView({
 				<>
 					<section className='space-y-3'>
 						<SeriesSectionHeader
-							label='Active'
+							label='Playing now'
 							count={activeSeries.length}
 						/>
 						{activeSeries.length === 0 ? (
 							<p className='text-sm text-muted-foreground'>
-								No active series.
+								Nothing is being played right now.
 							</p>
 						) : (
 							<div className='space-y-3'>
@@ -85,6 +94,7 @@ export function SeriesListView({
 											isCurrent={
 												series.id === currentSeriesId
 											}
+											wallet={walletOf(series.id)}
 										/>
 									</Reveal>
 								))}
@@ -96,25 +106,31 @@ export function SeriesListView({
 
 					<section className='space-y-3'>
 						<SeriesSectionHeader
-							label='Completed'
+							label='Finished'
 							count={completedSeries.length}
 						/>
 						{completedSeries.length === 0 ? (
 							<p className='text-sm text-muted-foreground'>
-								No completed series.
+								No series has finished yet.
 							</p>
 						) : (
-							<div className='space-y-3'>
-								{completedSeries.map((series, index) => (
-									<Reveal key={series.id} index={index}>
-										<SeriesTile
-											series={series}
-											roomCode={roomCode}
-											isCurrent={
-												series.id === currentSeriesId
-											}
-										/>
-									</Reveal>
+							<div className='overflow-hidden rounded-2xl border bg-card'>
+								<div
+									aria-hidden='true'
+									className={cn(FINISHED_ROW, "py-2 text-xs font-medium text-muted-foreground")}
+								>
+									<span>Series</span>
+									<span className='text-right'>Your net</span>
+									<span />
+								</div>
+								{completedSeries.map((series) => (
+									<FinishedSeriesRow
+										key={series.id}
+										series={series}
+										roomCode={roomCode}
+										isCurrent={series.id === currentSeriesId}
+										wallet={walletOf(series.id)}
+									/>
 								))}
 							</div>
 						)}
