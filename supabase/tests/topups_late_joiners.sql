@@ -79,14 +79,6 @@ where series_id = pg_temp.setting('cup')
 select pg_temp.join_as('00000000-0000-0000-0000-000000000e7e', 'erin');
 select is(pg_temp.granted('erin'), 1100, 'a late joiner gets the stack plus half the top-ups active players got');
 
--- Dave starts betting on the bare stack; he no longer drags newcomers down.
-select pg_temp.login('00000000-0000-0000-0000-00000000da7e');
-select public.place_bet(pg_temp.setting('game'), (select id from public.prediction_options where prediction_id = pg_temp.setting('game') and label = 'Home'), 50);
-insert into auth.users (id, aud, role, email)
-values ('00000000-0000-0000-0000-0000000f0a11', 'authenticated', 'authenticated', 'frank@example.com');
-select pg_temp.join_as('00000000-0000-0000-0000-0000000f0a11', 'frank');
-select is(pg_temp.granted('frank'), 1100, 'an active player on the bare stack does not lower what newcomers get');
-
 -- ------------------------------------------------------------
 -- Next Monday's top-up: earned by betting this week
 -- ------------------------------------------------------------
@@ -111,6 +103,16 @@ select is(pg_temp.bet_this_week('00000000-0000-0000-0000-00000000da7e'), false, 
 update public.bets set placed_at = now() - interval '8 days', updated_at = now() - interval '8 days'
 where prediction_id = pg_temp.setting('game');
 select is(pg_temp.bet_this_week('00000000-0000-0000-0000-00000000a11c'), false, 'last week''s bets do not count for this Monday');
+
+-- ------------------------------------------------------------
+-- A late bettor on the bare stack doesn't lower what newcomers get
+-- ------------------------------------------------------------
+select pg_temp.login('00000000-0000-0000-0000-00000000da7e');
+select public.place_bet(pg_temp.setting('game'), (select id from public.prediction_options where prediction_id = pg_temp.setting('game') and label = 'Home'), 50);
+insert into auth.users (id, aud, role, email)
+values ('00000000-0000-0000-0000-0000000f0a11', 'authenticated', 'authenticated', 'frank@example.com');
+select pg_temp.join_as('00000000-0000-0000-0000-0000000f0a11', 'frank');
+select is(pg_temp.granted('frank'), 1100, 'an active player on the bare stack does not lower what newcomers get');
 
 select * from finish();
 rollback;
