@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { CalendarClockIcon, CheckIcon, LockIcon, MinusCircleIcon, XCircleIcon } from "lucide-react";
+import { CalendarClockIcon, CheckIcon, ClockIcon, LockIcon, MinusCircleIcon, XCircleIcon } from "lucide-react";
 import type { Prediction } from "@/features/predictions/types/types";
 import { describeDeadline } from "@/shared/lib/deadline";
 import { formatAgo, formatWhen } from "@/features/predictions/lib/predictionView";
@@ -12,12 +12,7 @@ type Props = {
 	correctedByName: string | null;
 	// Called once when an open prediction's deadline passes.
 	onDeadline?: () => void;
-	// "box": its own bordered line (prediction screen). "inline": no frame,
-	// for sitting inside a card.
-	variant?: Variant;
 };
-
-type Variant = "box" | "inline";
 
 const PILL = "inline-flex min-w-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold";
 
@@ -110,100 +105,130 @@ function useTimeLeft(deadline: Date, onDeadline?: () => void) {
 	return left;
 }
 
-// The one line that says where a prediction stands: scheduled (organizers
-// only), open with its countdown, locked, its result, or no result /
-// cancelled with the reason.
+// Where a prediction stands, as a strip tinted in the state's colour:
+// scheduled (organizers only), open with its countdown, locked, its result,
+// or no result / cancelled with the reason. What happened on the left, when
+// on the right.
 export function PredictionStatusLine({
 	prediction,
 	winnerLabel,
 	resolvedByName,
 	correctedByName,
 	onDeadline,
-	variant = "box",
 }: Readonly<Props>) {
 	const deadline = new Date(prediction.deadline);
+	const when = prediction.resolved_at ? formatWhen(prediction.resolved_at) : null;
+	const corrected = correctedByName ? `Corrected by ${correctedByName}` : null;
 
 	if (prediction.status === "scheduled") {
 		const opens = prediction.opens_at ? describeDeadline(new Date(prediction.opens_at)) : null;
 		return (
-			<StatusShell variant={variant} icon={<CalendarClockIcon className='size-3.5 text-accent' aria-hidden />}>
-				<span className='flex-1'>
-					<span className='font-semibold'>Scheduled</span>
-					{opens ? ` · goes live ${opens.when}` : ""}
-				</span>
-				{opens ? <span className='shrink-0 text-xs text-muted-foreground'>{opens.relative}</span> : null}
-			</StatusShell>
+			<StatusStrip
+				tone='accent'
+				icon={<CalendarClockIcon className='size-4' aria-hidden />}
+				title='Scheduled'
+				lines={opens ? [`Goes live ${opens.when}`] : []}
+				aside={opens ? { main: opens.relative } : null}
+			/>
 		);
 	}
 
 	if (prediction.status === "draft") {
-		return (
-			<OpenStatus deadline={deadline} onDeadline={onDeadline} variant={variant} />
-		);
+		return <OpenStatus deadline={deadline} onDeadline={onDeadline} />;
 	}
 
 	if (prediction.status === "locked") {
 		return (
-			<StatusShell variant={variant} icon={<LockIcon className='size-3.5 text-accent' aria-hidden />}>
-				<span className='flex-1'>Locked · awaiting result</span>
-				<span className='shrink-0 text-xs text-muted-foreground' title='When betting closed'>
-					{formatAgo(prediction.deadline)}
-				</span>
-			</StatusShell>
+			<StatusStrip
+				tone='accent'
+				icon={<LockIcon className='size-3.5' aria-hidden />}
+				title='Locked'
+				lines={["Waiting on the result"]}
+				aside={{ main: formatAgo(prediction.deadline), sub: "picks closed" }}
+			/>
 		);
 	}
 
-	const when = prediction.resolved_at ? formatWhen(prediction.resolved_at) : null;
-	const corrected = correctedByName ? ` · corrected by ${correctedByName}` : "";
-
 	if (prediction.status === "revealed") {
 		return (
-			<StatusShell variant={variant} icon={<CheckIcon className='size-3.5 text-win' strokeWidth={3} aria-hidden />}>
-				<span className='flex-1'>
-					<span className='font-semibold'>{winnerLabel ?? "Result"} won</span>
-					{resolvedByName ? ` · revealed by ${resolvedByName}` : ""}
-					{corrected}
-				</span>
-				{when ? <span className='text-xs text-muted-foreground'>{when}</span> : null}
-			</StatusShell>
+			<StatusStrip
+				tone='win'
+				icon={<CheckIcon className='size-4' strokeWidth={3} aria-hidden />}
+				title={`${winnerLabel ?? "Result"} won`}
+				lines={[resolvedByName ? `Revealed by ${resolvedByName}` : null, corrected]}
+				aside={when ? { main: when } : null}
+			/>
 		);
 	}
 
 	const cancelled = prediction.status === "cancelled";
 	const Icon = cancelled ? XCircleIcon : MinusCircleIcon;
-	const by = resolvedByName
-		? `${cancelled ? "Cancelled" : "Marked"} by ${resolvedByName}${when ? ` · ${when}` : ""}`
-		: when;
 
 	return (
-		<StatusShell variant={variant} icon={<Icon className='mt-0.5 size-3.5 text-muted-foreground' aria-hidden />} alignTop>
-			<span className='flex-1'>
-				<span className='font-semibold'>{cancelled ? "Cancelled" : "No result"}</span>
-				{prediction.no_result_reason ? ` · ${prediction.no_result_reason}` : ""}
-				{corrected}
-				{by ? <span className='block text-xs text-muted-foreground'>{by}</span> : null}
-			</span>
-		</StatusShell>
+		<StatusStrip
+			tone='muted'
+			icon={<Icon className='size-4' aria-hidden />}
+			title={cancelled ? "Cancelled" : "No result"}
+			reason={prediction.no_result_reason}
+			lines={[
+				resolvedByName ? `${cancelled ? "Cancelled" : "Marked"} by ${resolvedByName}` : null,
+				corrected,
+			]}
+			aside={when ? { main: when } : null}
+		/>
 	);
 }
 
-function StatusShell({
+type Tone = "live" | "accent" | "win" | "muted";
+
+const TONES: Record<Tone, { strip: string; icon: string; title: string }> = {
+	live: { strip: "bg-live/10", icon: "bg-live/15 text-live", title: "text-live" },
+	accent: { strip: "bg-accent/10", icon: "bg-accent/15 text-accent", title: "text-accent" },
+	win: { strip: "bg-win/10", icon: "bg-win/15 text-win", title: "text-win" },
+	muted: { strip: "bg-secondary/70", icon: "bg-secondary text-muted-foreground", title: "" },
+};
+
+function StatusStrip({
+	tone,
 	icon,
-	alignTop = false,
-	variant,
-	children,
-}: Readonly<{ icon: ReactNode; alignTop?: boolean; variant: Variant; children: ReactNode }>) {
+	title,
+	reason,
+	lines,
+	aside,
+	asideTone,
+}: Readonly<{
+	tone: Tone;
+	icon: ReactNode;
+	title: string;
+	// Why it was called off, in the reader's words, above the small print.
+	reason?: string | null;
+	lines: (string | null)[];
+	aside: { main: string; sub?: string; label?: string } | null;
+	asideTone?: string;
+}>) {
+	const toneClass = TONES[tone];
+	const small = lines.filter(Boolean);
+
 	return (
-		<div
-			role='status'
-			className={cn(
-				"flex gap-2 text-[13px]",
-				alignTop ? "items-start" : "items-center",
-				variant === "box" && "rounded-lg border bg-card px-3 py-2.5",
-			)}
-		>
-			{icon}
-			{children}
+		<div role='status' className={cn("flex items-center gap-3 rounded-xl px-3.5 py-3", toneClass.strip)}>
+			<span className={cn("flex size-8 shrink-0 items-center justify-center self-start rounded-full", toneClass.icon)}>
+				{icon}
+			</span>
+			<span className='min-w-0 flex-1 leading-snug'>
+				<span className={cn("block truncate text-sm font-semibold", toneClass.title)}>{title}</span>
+				{reason ? <span className='mt-0.5 block text-[13px] text-foreground/85'>{reason}</span> : null}
+				{small.map((line) => (
+					<span key={line} className='block text-xs text-muted-foreground'>
+						{line}
+					</span>
+				))}
+			</span>
+			{aside ? (
+				<span className='shrink-0 self-start text-right leading-tight' aria-label={aside.label}>
+					<span className={cn("block text-sm font-semibold tabular-nums", asideTone)}>{aside.main}</span>
+					{aside.sub ? <span className='block text-[11px] text-muted-foreground'>{aside.sub}</span> : null}
+				</span>
+			) : null}
 		</div>
 	);
 }
@@ -211,21 +236,18 @@ function StatusShell({
 function OpenStatus({
 	deadline,
 	onDeadline,
-	variant,
-}: Readonly<{ deadline: Date; onDeadline?: () => void; variant: Variant }>) {
+}: Readonly<{ deadline: Date; onDeadline?: () => void }>) {
 	const left = useTimeLeft(deadline, onDeadline);
 
 	return (
-		<StatusShell variant={variant} icon={<span className='size-2 shrink-0 rounded-full bg-live' aria-hidden />}>
-			<span className='flex-1'>
-				{left > 0 ? `Open · closes ${describeDeadline(deadline).when}` : "Closing…"}
-			</span>
-			{left > 0 ? (
-				<span className='font-semibold tabular-nums text-live' aria-label='Time left'>
-					{formatLeft(left)}
-				</span>
-			) : null}
-		</StatusShell>
+		<StatusStrip
+			tone='live'
+			icon={<ClockIcon className='size-4' aria-hidden />}
+			title={left > 0 ? "Open for picks" : "Closing…"}
+			lines={left > 0 ? [`Closes ${describeDeadline(deadline).when}`] : []}
+			aside={left > 0 ? { main: formatLeft(left), sub: "left", label: `${formatLeft(left)} left` } : null}
+			asideTone='text-live text-base'
+		/>
 	);
 }
 

@@ -1,3 +1,4 @@
+import { EyeOffIcon } from "lucide-react";
 import type { Bet } from "@/features/predictions/types/bet";
 import type { PredictionStatus } from "@/features/predictions/types/types";
 import {
@@ -33,11 +34,11 @@ export function PicksList({
 }: Readonly<Props>) {
 	const count = bets.length;
 	const heading = (
-		<h2 className='mb-2.5 flex items-baseline justify-between text-xs font-medium uppercase tracking-wider text-muted-foreground'>
+		<h2 className='mb-2.5 flex items-baseline justify-between gap-3 text-sm font-semibold'>
 			{status === "revealed" ? "Payouts" : "Picks"}
-			<span className='normal-case tracking-normal'>
+			<span className='text-xs font-normal text-muted-foreground'>
 				{status === "no_result" || status === "cancelled"
-					? "all refunded"
+					? "All refunded"
 					: `${count} ${count === 1 ? "pick" : "picks"}`}
 			</span>
 		</h2>
@@ -47,10 +48,11 @@ export function PicksList({
 		return (
 			<section>
 				{heading}
-				<p className='text-xs text-muted-foreground'>
+				<p className='flex items-start gap-2.5 rounded-xl border border-dashed border-foreground/15 px-3.5 py-3 text-xs leading-relaxed text-muted-foreground'>
+					<EyeOffIcon className='mt-px size-4 shrink-0' aria-hidden />
 					{count === 0
 						? "No picks yet."
-						: "Who picked what is shown when betting closes, so nobody copies."}
+						: "Who picked what shows when picks close, so nobody copies."}
 				</p>
 			</section>
 		);
@@ -114,7 +116,7 @@ export function PicksList({
 										<span className={cn("size-2 shrink-0 rounded-full", dotClass)} aria-hidden />
 										<span className='truncate'>
 											{tally?.option.label ?? "Unknown"}
-											{settled ? ` · ${formatPoints(bet.amount)} staked` : ""}
+											{settled ? `, ${formatPoints(bet.amount)} staked` : ""}
 										</span>
 									</span>
 								</span>

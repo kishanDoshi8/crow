@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { MessageCircleIcon } from "lucide-react";
+import { EyeOffIcon, MessageCircleIcon } from "lucide-react";
 import { Button, Skeleton } from "@/shared/ui";
 import { usePlayer } from "@/features/home";
 import { PlayerProfileDialog } from "@/features/leaderboard";
@@ -40,9 +40,11 @@ type Props = {
 	onDeadline: () => void;
 };
 
-// One page for a prediction in every state, top to bottom: the question, one
-// status line, your call, the options, who picked what, and one action at
-// the bottom. Discussion will slot in under the picks.
+// One page for a prediction in every state, top to bottom: the question, its
+// status strip and your call, the options, who picked what, Room talk, and
+// one action at the bottom. Each part has its own look: the status tinted in
+// the state's colour, your own stake on a filled panel, options as cards
+// only while you can tap them.
 export function PredictionView({
 	prediction,
 	isLoading,
@@ -228,19 +230,22 @@ function LoadedPrediction({
 					) : myBet ? (
 						<>
 							{sayButton}
-							{/* min-w-0 lets this shrink, so a long option name truncates
-							    instead of pushing "Change" off the screen. */}
-							<span className='min-w-0 flex-1 leading-tight'>
-								<span className='block text-xs text-muted-foreground'>
-									Your pick
+							{/* The same filled panel as Your call. min-w-0 lets it shrink, so
+							    a long option name truncates instead of pushing "Change" off
+							    the screen. */}
+							<span className='flex min-w-0 flex-1 items-center gap-3 rounded-xl bg-secondary px-3 py-1.5 leading-tight'>
+								<span className='min-w-0 flex-1'>
+									<span className='block text-[11px] text-muted-foreground'>
+										Your pick
+									</span>
+									<span
+										className='block truncate text-sm font-semibold'
+										title={labelOf(myBet.option_id)}
+									>
+										{labelOf(myBet.option_id)}
+									</span>
 								</span>
-								<span
-									className='block truncate font-semibold'
-									title={labelOf(myBet.option_id)}
-								>
-									{labelOf(myBet.option_id)}
-								</span>
-								<span className='block text-muted-foreground tabular-nums'>
+								<span className='shrink-0 text-sm font-semibold tabular-nums'>
 									{formatPoints(myBet.amount)} pts
 								</span>
 							</span>
@@ -292,60 +297,70 @@ function LoadedPrediction({
 				<div
 					className={
 						isDesktop
-							? "flex min-w-0 flex-col gap-5"
-							: "mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 pt-4 pb-8"
+							? "flex min-w-0 flex-col gap-7"
+							: "mx-auto flex w-full max-w-md flex-1 flex-col gap-7 px-4 pt-4 pb-8"
 					}
 				>
-					<PredictionHeading
-						prediction={prediction}
-						roomCode={room.code}
-						menu={
-							<PredictionStaffMenu
-								prediction={prediction}
-								roomId={room.id}
-								roomCode={room.code}
-								can={can}
-							/>
-						}
-					/>
-
-					<PredictionStatusLine
-						prediction={prediction}
-						winnerLabel={winnerLabel}
-						resolvedByName={
-							prediction.resolved_by
-								? nameOf(prediction.resolved_by)
-								: null
-						}
-						correctedByName={
-							prediction.corrected_by
-								? nameOf(prediction.corrected_by)
-								: null
-						}
-						onDeadline={onDeadline}
-					/>
-
-					{player && !isBetsLoading ? (
-						<YourCall
+					{/* The question, where it stands, and your stake in it, close together. */}
+					<div className='flex flex-col gap-4'>
+						<PredictionHeading
 							prediction={prediction}
-							bets={bets}
-							myBet={myBet}
-							viewerId={player.id}
-							options={options}
-							roomId={room.id}
-							resultCard={resultCard}
+							roomCode={room.code}
+							menu={
+								<PredictionStaffMenu
+									prediction={prediction}
+									roomId={room.id}
+									roomCode={room.code}
+									can={can}
+								/>
+							}
 						/>
-					) : null}
+
+						<PredictionStatusLine
+							prediction={prediction}
+							winnerLabel={winnerLabel}
+							resolvedByName={
+								prediction.resolved_by
+									? nameOf(prediction.resolved_by)
+									: null
+							}
+							correctedByName={
+								prediction.corrected_by
+									? nameOf(prediction.corrected_by)
+									: null
+							}
+							onDeadline={onDeadline}
+						/>
+
+						{isScheduled ? (
+							<p className='flex items-start gap-2.5 rounded-xl border border-dashed border-foreground/15 px-3.5 py-3 text-xs leading-relaxed text-muted-foreground'>
+								<EyeOffIcon className='mt-px size-4 shrink-0' aria-hidden />
+								Only owners and organizers can see this until it goes live.
+							</p>
+						) : null}
+
+						{player && !isBetsLoading ? (
+							<YourCall
+								prediction={prediction}
+								bets={bets}
+								myBet={myBet}
+								viewerId={player.id}
+								options={options}
+								roomId={room.id}
+								resultCard={resultCard}
+							/>
+						) : null}
+					</div>
 
 					<section>
-						<h2 className='mb-2.5 flex items-baseline justify-between text-xs font-medium uppercase tracking-wider text-muted-foreground'>
+						<h2 className='mb-2.5 flex items-baseline justify-between gap-3 text-sm font-semibold'>
 							{isOpen ? "Make your call" : isScheduled ? "Options" : "The split"}
-							<span className='normal-case tracking-normal tabular-nums'>
+							<span className='text-xs font-normal text-muted-foreground tabular-nums'>
 								{isScheduled
 									? null
 									: status === "revealed"
 									? `${bets.filter((bet) => bet.option_id === prediction.winning_option_id).length} of ${picks} called it`
-									: `${formatPoints(pool)} pts · ${picks} ${picks === 1 ? "pick" : "picks"}`}
+									: `${formatPoints(pool)} pts from ${picks} ${picks === 1 ? "pick" : "picks"}`}
 							</span>
 						</h2>
 						{isBetsLoading ? (

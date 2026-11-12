@@ -72,10 +72,10 @@ export function RoomTalk({ talk, moments, viewerId, onReact, readOnly = false }:
 		<section aria-labelledby='room-talk-heading'>
 			<h2
 				id='room-talk-heading'
-				className='mb-2.5 flex items-baseline justify-between text-xs font-medium uppercase tracking-wider text-muted-foreground'
+				className='mb-2.5 flex items-baseline justify-between gap-3 text-sm font-semibold'
 			>
 				Room talk
-				<span className='normal-case tracking-normal'>{summary}</span>
+				<span className='text-xs font-normal text-muted-foreground'>{summary}</span>
 			</h2>
 
 			<div className='flex gap-1.5' role='group' aria-label='Reactions'>
