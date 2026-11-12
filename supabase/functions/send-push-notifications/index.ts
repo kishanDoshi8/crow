@@ -9,6 +9,7 @@ type NotificationEventType =
 	| "weekly_points_claim"
 	| "result_needed"
 	| "join_request"
+	| "member_joined"
 	| "join_accepted";
 
 const EVENT_TO_COLUMN: Record<NotificationEventType, string> = {
@@ -21,6 +22,7 @@ const EVENT_TO_COLUMN: Record<NotificationEventType, string> = {
 	// Staff alerts share the "Result needed" setting; a "you're in" follows
 	// the room's general new-activity setting.
 	join_request: "result_needed",
+	member_joined: "result_needed",
 	join_accepted: "prediction_live",
 };
 
@@ -42,6 +44,7 @@ const DELIVERY: Record<
 	weekly_points_claim: { ttl: 24 * 3600, urgency: "normal" },
 	result_needed: { ttl: 12 * 3600, urgency: "high" },
 	join_request: { ttl: 24 * 3600, urgency: "normal" },
+	member_joined: { ttl: 24 * 3600, urgency: "normal" },
 	join_accepted: { ttl: 24 * 3600, urgency: "normal" },
 };
 // Keeps .in() filters well under URL length limits in big rooms.

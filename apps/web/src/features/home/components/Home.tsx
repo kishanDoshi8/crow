@@ -119,7 +119,6 @@ export default function Home({
 						rooms={playerRooms}
 						isLoading={isPlayerRoomsLoading}
 						error={playerRoomsError}
-						lastOpenedRoomId={player?.last_visited_room_id}
 						emptyMessage="You're not in a room yet. Join one with a code, or start your own."
 					/>
 					<div className='mt-2 grid grid-cols-2 gap-3'>

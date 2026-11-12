@@ -69,10 +69,11 @@ as $$
   where r.id = p_room_id;
 $$;
 
--- Joins a room by its code. A room whose join policy is "request" records a
--- join request instead (membership: 'requested'), for its owners and
--- organizers to decide. A full room can't be joined; someone the owner
--- removed can't come back until let back in.
+-- Joins a room by its code, and pushes the room's owners and organizers.
+-- A room whose join policy is "request" records a join request instead
+-- (membership: 'requested'), for its owners and organizers to decide. A
+-- full room can't be joined; someone the owner removed can't come back until
+-- let back in.
 create or replace function public.join_room(
   p_room_code text,
   p_ref text default null
@@ -165,6 +166,17 @@ begin
       v_membership := 'requested';
     else
       v_member := private.add_room_member(v_room.id, v_player_id, v_ref);
+
+      -- Owners and organizers hear about it, as they do about a request.
+      perform private.fire_push_notification(
+        'member_joined',
+        null,
+        v_room.id,
+        '👋 New member',
+        v_player.username || ' joined ' || v_room.name,
+        '/rooms/' || v_room.room_code || '/members',
+        jsonb_build_object('roles', jsonb_build_array('owner', 'organizer'))
+      );
     end if;
   end if;
 
