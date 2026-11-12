@@ -376,7 +376,7 @@ type InPlayPredictionsProps = {
 	predictionsOverride?: Prediction[];
 	emptyMessage?: string;
 	showSectionHeader?: boolean;
-	// "grid": every card at once, two across (desktop Home). Default: the
+	// "grid": every card at once, one per row (desktop Home). Default: the
 	// swipe carousel.
 	layout?: "carousel" | "grid";
 };
@@ -599,7 +599,7 @@ function InPlayPredictions({
 				)}
 
 			{layout === "grid" && !isPredictionLoading && predictions.length > 0 ? (
-				<div className={cn("grid gap-4", predictions.length > 1 && "grid-cols-2")}>
+				<div className='grid gap-4'>
 					{predictions.map((prediction) => (
 						<PredictionCard
 							key={prediction.id}

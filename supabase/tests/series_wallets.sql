@@ -185,14 +185,14 @@ select is((pg_temp.wallet('oscars', 'bob')).balance, 850, 'each series pays its 
 select is((pg_temp.wallet('oscars', 'alice')).balance, 50, 'a broke player still gets the top-up');
 
 -- ------------------------------------------------------------
--- 6. Late joiners catch up, but never past a player who skipped weeks
+-- 6. Late joiners catch up on half the top-ups of the most topped-up player
 -- ------------------------------------------------------------
 select pg_temp.login('00000000-0000-0000-0000-00000000ca01');
 set local role authenticated;
 select public.join_room(current_setting('test.room_code'));
 reset role;
 
-select is((pg_temp.wallet('cup', 'carol')).balance, 1000, 'a late joiner matches the active player granted the least (Alice missed a top-up)');
+select is((pg_temp.wallet('cup', 'carol')).balance, 1050, 'a late joiner gets the stack plus half the top-ups Bob was granted');
 
 -- Carol never bets but sits on the top balance, with no profit.
 update public.series_wallets set balance = 1500, granted = 1500

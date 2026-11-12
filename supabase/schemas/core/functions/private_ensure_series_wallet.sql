@@ -1,7 +1,8 @@
 -- Gives a player their wallet for a series if they don't have one yet.
--- A late joiner starts with what the least-topped-up active player has been
--- granted: some catch-up, but never more than a player who skipped weeks.
--- Active means they've bet in the series; with no bettors yet, it's the stack.
+-- A late joiner starts with the starting stack plus half the top-ups the
+-- most topped-up active player has been granted: a fair catch-up that still
+-- leaves them behind anyone who showed up every week. Active means they've
+-- bet in the series; with no bettors yet, it's the stack.
 create or replace function private.ensure_series_wallet(
   p_series_id uuid,
   p_player_id uuid
@@ -16,10 +17,10 @@ as $$
   from public.series s
   cross join lateral (
     select least(
-      greatest(
+      s.starting_stack + round(0.5 * greatest(
         coalesce(
           (
-            select min(w.granted)
+            select max(w.granted)
             from public.series_wallets w
             where w.series_id = s.id
               and exists (
@@ -31,9 +32,9 @@ as $$
               )
           ),
           s.starting_stack
-        ),
-        s.starting_stack
-      ),
+        ) - s.starting_stack,
+        0
+      ))::int,
       s.starting_stack + s.weekly_topup * s.topups_paid
     ) as points
   ) start
