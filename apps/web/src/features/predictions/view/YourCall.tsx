@@ -47,10 +47,11 @@ export function YourCall({
 	if (prediction.status === "locked") {
 		const gain = previewWinnings(bets, viewerId, myBet.option_id, myBet.amount);
 		return (
-			<section className='rounded-xl border bg-card px-4 py-3.5'>
+			<section aria-label='Your call' className='rounded-2xl bg-secondary px-4 py-3.5'>
 				<p className='text-xs text-muted-foreground'>Your call</p>
-				<p className='mt-1 text-[17px] font-semibold'>
-					{label(myBet.option_id)} · <span className='tabular-nums'>{formatPoints(myBet.amount)} pts</span>
+				<p className='mt-1 flex items-baseline justify-between gap-3'>
+					<span className='min-w-0 truncate text-[17px] font-semibold'>{label(myBet.option_id)}</span>
+					<span className='shrink-0 font-semibold tabular-nums'>{formatPoints(myBet.amount)} pts</span>
 				</p>
 				<p className='mt-1 text-xs text-muted-foreground'>
 					{gain > 0 ? (
@@ -67,10 +68,11 @@ export function YourCall({
 	}
 
 	return (
-		<section className='rounded-xl border bg-card px-4 py-3.5'>
+		<section aria-label='Your call' className='rounded-2xl bg-secondary px-4 py-3.5'>
 			<p className='text-xs text-muted-foreground'>Your call</p>
-			<p className='mt-1 text-[17px] font-semibold'>
-				Refunded · <span className='tabular-nums'>{formatPoints(myBet.amount)} pts</span> back
+			<p className='mt-1 flex items-baseline justify-between gap-3'>
+				<span className='text-[17px] font-semibold'>Refunded</span>
+				<span className='shrink-0 font-semibold tabular-nums'>{formatPoints(myBet.amount)} pts back</span>
 			</p>
 			<p className='mt-1 text-xs text-muted-foreground'>
 				Nobody wins or loses points on this one.
