@@ -117,9 +117,9 @@ begin
     end if;
 
     if v_options is null or jsonb_typeof(v_options) <> 'array'
-      or jsonb_array_length(v_options) not between 2 and 6
+      or jsonb_array_length(v_options) not between 2 and 12
     then
-      raise exception '"%" must have between 2 and 6 options', v_title using errcode = 'P0001';
+      raise exception '"%" must have between 2 and 12 options', v_title using errcode = 'P0001';
     end if;
 
     if v_deadline is null or v_deadline <= now() then

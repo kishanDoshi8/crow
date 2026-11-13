@@ -79,8 +79,8 @@ begin
   end if;
 
   if p_options is not null then
-    if coalesce(array_length(p_options, 1), 0) < 2 or array_length(p_options, 1) > 6 then
-      raise exception 'Predictions must have between 2 and 6 options' using errcode = 'P0001';
+    if coalesce(array_length(p_options, 1), 0) < 2 or array_length(p_options, 1) > 12 then
+      raise exception 'Predictions must have between 2 and 12 options' using errcode = 'P0001';
     end if;
 
     v_labels := array(select trim(o) from unnest(p_options) with ordinality as t(o, n) order by n);

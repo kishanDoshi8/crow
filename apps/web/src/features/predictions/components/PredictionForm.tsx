@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import { Spinner } from "@/shared/ui/spinner";
 import { SeriesSelector } from "@/features/series";
 
-const MAX_OPTIONS = 6;
+const MAX_OPTIONS = 12;
 const DEFAULT_PLACEHOLDERS = ["Yes, it will happen", "No, it will not happen"];
 
 export type PredictionFormValues = {

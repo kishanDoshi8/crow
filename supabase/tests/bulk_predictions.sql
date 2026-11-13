@@ -203,7 +203,7 @@ set local role authenticated;
 select throws_ok(
   format($$ select public.create_predictions(%L, %L, '[{"title": "Fine", "options": ["Yes", "No"]}, {"title": "One option", "options": ["Yes"]}]'::jsonb, now() + interval '1 day') $$,
     pg_temp.setting('room_id'), pg_temp.setting('cup')),
-  'P0001', '"One option" must have between 2 and 6 options',
+  'P0001', '"One option" must have between 2 and 12 options',
   'a bad item is refused by name'
 );
 reset role;

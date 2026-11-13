@@ -103,7 +103,13 @@ begin
         )
         from public.prediction_options po2
         where po2.prediction_id = pred.id
-      ) as options
+      ) as options,
+      -- Its tags, in the order they were added, for the card.
+      array(
+        select pt.tag from public.prediction_tags pt
+        where pt.prediction_id = pred.id
+        order by pt.created_at, pt.tag
+      ) as tags
     from public.predictions pred
     left join public.series s on s.id = pred.series_id
     join public.players creator on creator.id = pred.created_by

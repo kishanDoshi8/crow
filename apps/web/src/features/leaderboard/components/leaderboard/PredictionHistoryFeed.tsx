@@ -98,6 +98,19 @@ function PredictionHistoryCard({ entry }: Readonly<CardProps>) {
 				<h3 className='text-base font-semibold leading-snug wrap-anywhere'>
 					{entry.title}
 				</h3>
+				{/* Same chips as the prediction page's tags, for reference. */}
+				{entry.tags?.length ? (
+					<ul aria-label='Tags' className='flex flex-wrap gap-1'>
+						{entry.tags.map((tag) => (
+							<li
+								key={tag}
+								className='rounded-md bg-secondary px-1.5 py-0.5 text-[11px] font-medium leading-none text-secondary-foreground'
+							>
+								{tag}
+							</li>
+						))}
+					</ul>
+				) : null}
 			</div>
 
 			<div className='flex flex-wrap items-center gap-1.5'>
