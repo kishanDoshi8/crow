@@ -26,7 +26,7 @@ create table if not exists public.predictions (
   opens_at timestamptz,
   winning_option_id uuid,
   -- Why it ended with no result (or was cancelled), shown with the outcome.
-  no_result_reason varchar(50),
+  no_result_reason varchar(120),
   affects_rating boolean not null default true,
   created_at timestamptz not null default now(),
   resolved_at timestamptz,

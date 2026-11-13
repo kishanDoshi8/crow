@@ -48,6 +48,7 @@ export type PredictionHistoryOption = {
 export type PredictionHistoryEntry = {
   prediction_id:        string
   title:                string
+  description?:         string | null
   series_id:            string | null
   series_title:         string | null
   series_prediction_number: number | null

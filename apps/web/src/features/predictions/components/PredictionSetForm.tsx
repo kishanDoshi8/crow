@@ -219,7 +219,7 @@ export function PredictionSetForm({
 				roomId={roomId}
 				open={copyInto !== null}
 				onOpenChange={(open) => !open && setCopyInto(null)}
-				description='Fills this question with the same question and options.'
+				description='Fills this question with the same question, options and details.'
 				onPick={(_, item) => {
 					const labels = [...(item.options ?? [])]
 						.sort((a, b) => a.display_order - b.display_order)
@@ -229,6 +229,8 @@ export function PredictionSetForm({
 						update(copyInto, (q) => ({
 							...q,
 							title: item.title,
+							description: item.description ?? "",
+							hasDetails: !!item.description,
 							options: labels.map((text) => ({ ...newOption(), text })),
 						}));
 					}

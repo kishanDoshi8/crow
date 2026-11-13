@@ -66,7 +66,7 @@ export function PredictionStatusRow({
 				{aside ? <span className='shrink-0 text-xs text-muted-foreground'>{aside}</span> : null}
 			</div>
 			{prediction.no_result_reason && (status === "cancelled" || status === "no_result") ? (
-				<p className='text-xs text-muted-foreground'>{prediction.no_result_reason}</p>
+				<p className='line-clamp-2 text-xs text-muted-foreground' title={prediction.no_result_reason}>{prediction.no_result_reason}</p>
 			) : null}
 		</div>
 	);

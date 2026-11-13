@@ -45,6 +45,7 @@ begin
     select
       pred.id             as prediction_id,
       pred.title,
+      pred.description,
       pred.status,
       pred.no_result_reason,
       pred.resolved_at,

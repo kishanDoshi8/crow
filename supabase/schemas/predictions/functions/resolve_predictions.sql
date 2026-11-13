@@ -75,8 +75,8 @@ begin
       raise exception '"%" is still open for picks, so it can only be cancelled', v_item.title using errcode = 'P0001';
     elsif v_item.status not in ('draft', 'locked') then
       raise exception '"%" is already closed', v_item.title using errcode = 'P0006';
-    elsif char_length(btrim(coalesce(v_item.no_result_reason, ''))) > 50 then
-      raise exception 'Keep the reason under 50 characters' using errcode = 'P0001';
+    elsif char_length(btrim(coalesce(v_item.no_result_reason, ''))) > 120 then
+      raise exception 'Keep the reason under 120 characters' using errcode = 'P0001';
     end if;
   end loop;
 
@@ -96,7 +96,7 @@ begin
       p_room_id,
       v_item.outcome,
       v_item.winning_option_id,
-      v_item.no_result_reason::varchar(50),
+      v_item.no_result_reason::varchar(120),
       v_player_id
     );
 
