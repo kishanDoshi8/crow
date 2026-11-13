@@ -1,3 +1,4 @@
+import { NoResultReasonField } from "@/features/predictions/components/NoResultReasonField";
 import { CheckCircle2Icon, InfoIcon } from "lucide-react";
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
@@ -19,7 +20,6 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	Input,
 	Skeleton,
 	Spinner,
 } from "@/shared/ui";
@@ -210,12 +210,11 @@ export default function ResolveSeveral() {
 						<label htmlFor='close-reason' className='px-1 text-xs font-medium text-muted-foreground'>
 							Reason for the ones without a winner (optional)
 						</label>
-						<Input
+						<NoResultReasonField
 							id='close-reason'
 							placeholder='e.g. Match abandoned'
 							value={reason}
-							maxLength={50}
-							onChange={(e) => setReason(e.target.value)}
+							onChange={setReason}
 						/>
 					</div>
 				) : null}

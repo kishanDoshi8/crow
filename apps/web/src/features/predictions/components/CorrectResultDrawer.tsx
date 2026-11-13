@@ -1,3 +1,4 @@
+import { NoResultReasonField } from "@/features/predictions/components/NoResultReasonField";
 import {
 	Alert,
 	AlertDescription,
@@ -20,7 +21,6 @@ import {
 	FieldContent,
 	FieldLabel,
 	FieldTitle,
-	Input,
 	RadioGroup,
 	RadioGroupItem,
 	Spinner,
@@ -179,13 +179,7 @@ export function CorrectResultDrawer({
 						))}
 					</RadioGroup>
 					{selected === NO_RESULT ? (
-						<Input
-							placeholder='Reason (optional)'
-							className='mt-4 w-full'
-							value={reason}
-							maxLength={50}
-							onChange={(e) => setReason(e.target.value)}
-						/>
+						<NoResultReasonField value={reason} onChange={setReason} className='mt-4' />
 					) : null}
 				</div>
 				<DrawerFooter className='gap-3'>

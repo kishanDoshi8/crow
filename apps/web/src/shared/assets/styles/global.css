@@ -79,6 +79,13 @@
     --color-option-3: var(--option-3);
     --color-option-4: var(--option-4);
     --color-option-5: var(--option-5);
+    --color-option-6: var(--option-6);
+    --color-option-7: var(--option-7);
+    --color-option-8: var(--option-8);
+    --color-option-9: var(--option-9);
+    --color-option-10: var(--option-10);
+    --color-option-11: var(--option-11);
+    --color-option-12: var(--option-12);
 }
 
 /* 
@@ -170,6 +177,23 @@
     /* Green-600 */
     --option-5: oklch(0.681 0.162 75.834);
     /* Yellow-600 */
+    /* 6-12 for bigger predictions, ordered so the common 6-8 sit furthest
+       apart; hue neighbours (lime/green, indigo/purple, fuchsia/pink) also
+       differ in lightness. */
+    --option-6: oklch(0.546 0.245 262.881);
+    /* Blue-600 */
+    --option-7: oklch(0.656 0.241 354.308);
+    /* Pink-500 */
+    --option-8: oklch(0.646 0.222 41.116);
+    /* Orange-600 */
+    --option-9: oklch(0.6 0.118 184.704);
+    /* Teal-600 */
+    --option-10: oklch(0.768 0.233 130.85);
+    /* Lime-500 */
+    --option-11: oklch(0.457 0.24 277.023);
+    /* Indigo-700 */
+    --option-12: oklch(0.591 0.293 322.896);
+    /* Fuchsia-600 */
 }
 
 .dark {
@@ -272,6 +296,20 @@
     /* Green-500 */
     --option-5: oklch(0.795 0.184 86.047);
     /* Yellow-500 */
+    --option-6: oklch(0.623 0.214 259.815);
+    /* Blue-500 */
+    --option-7: oklch(0.718 0.202 349.761);
+    /* Pink-400 */
+    --option-8: oklch(0.705 0.213 47.604);
+    /* Orange-500 */
+    --option-9: oklch(0.704 0.14 182.503);
+    /* Teal-500 */
+    --option-10: oklch(0.841 0.238 128.85);
+    /* Lime-400 */
+    --option-11: oklch(0.585 0.233 277.117);
+    /* Indigo-500 */
+    --option-12: oklch(0.667 0.295 322.15);
+    /* Fuchsia-500 */
 }
 
 @layer base {

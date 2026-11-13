@@ -146,15 +146,36 @@ type CardOptionsProps = {
 	myOptionId: string | null;
 };
 
+// A card shows every option up to this many; past it, the first few rows
+// and a "+N more" row, so a long prediction doesn't stretch the card.
+const CARD_OPTIONS_ALL_UP_TO = 5;
+const CARD_OPTIONS_SHOWN = 4;
+
+// The rows a card shows: in list order, always keeping your pick and the
+// winner, which take the place of the last others.
+function cardRows(options: OptionTally[], keep: (string | null)[]) {
+	if (options.length <= CARD_OPTIONS_ALL_UP_TO) return { shown: options, hidden: [] };
+	const kept = options.filter((tally) => keep.includes(tally.option.id));
+	const others = options
+		.filter((tally) => !keep.includes(tally.option.id))
+		.slice(0, Math.max(0, CARD_OPTIONS_SHOWN - kept.length));
+	const shownIds = new Set([...kept, ...others].map((tally) => tally.option.id));
+	return {
+		shown: options.filter((tally) => shownIds.has(tally.option.id)),
+		hidden: options.filter((tally) => !shownIds.has(tally.option.id)),
+	};
+}
+
 // One compact row per option: its colour, label, your pick, and its share of
 // the points. Once revealed the winner turns green and the rest go grey.
 function CardOptions({ status, options, winningOptionId, myOptionId }: Readonly<CardOptionsProps>) {
 	const settled = status === "revealed";
 	const voided = status === "no_result" || status === "cancelled";
+	const { shown, hidden } = cardRows(options, [myOptionId, settled ? winningOptionId : null]);
 
 	return (
 		<ul className='flex flex-col gap-2.5' aria-label='Options'>
-			{options.map(({ option, index, percent }) => {
+			{shown.map(({ option, index, percent }) => {
 				const isWinner = settled && option.id === winningOptionId;
 				const tone = optionTone(index);
 				const muted = (settled && !isWinner) || voided;
@@ -196,6 +217,26 @@ function CardOptions({ status, options, winningOptionId, myOptionId }: Readonly<
 					</li>
 				);
 			})}
+			{hidden.length > 0 ? (
+				// The hidden options' colours, so the key still adds up; the
+				// prediction page lists them all.
+				<li className='flex items-center gap-2 text-xs text-muted-foreground'>
+					<span className='flex shrink-0 -space-x-0.5' aria-hidden>
+						{hidden.slice(0, 4).map(({ option, index }) => (
+							<span
+								key={option.id}
+								className={cn(
+									"size-2 rounded-full ring-2 ring-card",
+									settled || voided ? "bg-muted-foreground/60" : optionTone(index).dot,
+								)}
+							/>
+						))}
+					</span>
+					<span>
+						{hidden.length} more {hidden.length === 1 ? "option" : "options"}
+					</span>
+				</li>
+			) : null}
 		</ul>
 	);
 }

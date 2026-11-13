@@ -7,7 +7,7 @@ create or replace function private.resolve_prediction(
   p_room_id           uuid,
   p_outcome           text,
   p_winning_option_id uuid,
-  p_no_result_reason  varchar(50),
+  p_no_result_reason  varchar(120),
   p_player_id         uuid
 )
 returns json
@@ -118,7 +118,7 @@ create or replace function public.resolve_prediction_v2(
   p_room_id           uuid,
   p_outcome           text,
   p_winning_option_id uuid default null,
-  p_no_result_reason  varchar(50) default null
+  p_no_result_reason  varchar(120) default null
 )
 returns json
 language plpgsql

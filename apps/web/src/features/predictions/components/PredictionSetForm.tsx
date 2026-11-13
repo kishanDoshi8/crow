@@ -1,11 +1,13 @@
-import { CalendarClock, CirclePlus, CircleX, Flame, Trash2Icon } from "lucide-react";
+import { CalendarClock, CirclePlus, CircleX, CopyIcon, Flame, Trash2Icon } from "lucide-react";
 import { useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { Button } from "@/shared/ui/button";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { Spinner } from "@/shared/ui/spinner";
 import { Textarea } from "@/shared/ui/textarea";
 import { TagInput } from "@/features/predictions/components/TagInput";
+import { CopyPredictionSheet } from "@/features/predictions/components/CopyPredictionSheet";
 import {
 	PredictionTimingFields,
 	usePredictionTiming,
@@ -14,7 +16,7 @@ import { SeriesSelector } from "@/features/series";
 import type { PredictionDraft } from "@/shared/lib/api";
 
 const MAX_QUESTIONS = 20;
-const MAX_OPTIONS = 6;
+const MAX_OPTIONS = 12;
 
 type Option = { id: number; text: string };
 type Question = {
@@ -73,6 +75,8 @@ export function PredictionSetForm({
 	const [tags, setTags] = useState<string[]>([]);
 	const [seriesId, setSeriesId] = useState<string | null>(initialSeriesId);
 	const timing = usePredictionTiming(undefined, initialGoLive);
+	// The question a past prediction is being copied into, while the list is open.
+	const [copyInto, setCopyInto] = useState<number | null>(null);
 	// Shown once a submit has been tried, so empty fields aren't red from the start.
 	const [wasSubmitted, setWasSubmitted] = useState(false);
 
@@ -147,6 +151,7 @@ export function PredictionSetForm({
 							canRemove={questions.length > 1}
 							onChange={(change) => update(question.id, change)}
 							onRemove={() => setQuestions((prev) => prev.filter((q) => q.id !== question.id))}
+							onCopyPast={() => setCopyInto(question.id)}
 							newOption={newOption}
 						/>
 					))}
@@ -210,6 +215,29 @@ export function PredictionSetForm({
 					Just one prediction instead
 				</Button>
 			</FieldSet>
+
+			<CopyPredictionSheet
+				roomId={roomId}
+				open={copyInto !== null}
+				onOpenChange={(open) => !open && setCopyInto(null)}
+				description='Fills this question with the same question, options and details.'
+				onPick={(_, item) => {
+					const labels = [...(item.options ?? [])]
+						.sort((a, b) => a.display_order - b.display_order)
+						.map((option) => option.label)
+						.slice(0, MAX_OPTIONS);
+					if (copyInto !== null && labels.length >= 2) {
+						update(copyInto, (q) => ({
+							...q,
+							title: item.title,
+							description: item.description ?? "",
+							hasDetails: !!item.description,
+							options: labels.map((text) => ({ ...newOption(), text })),
+						}));
+					}
+					setCopyInto(null);
+				}}
+			/>
 		</div>
 	);
 }
@@ -221,6 +249,8 @@ type QuestionCardProps = {
 	canRemove: boolean;
 	onChange: (change: (question: Question) => Question) => void;
 	onRemove: () => void;
+	// Opens the room's past predictions to fill this question from.
+	onCopyPast: () => void;
 	newOption: () => Option;
 };
 
@@ -231,6 +261,7 @@ function QuestionCard({
 	canRemove,
 	onChange,
 	onRemove,
+	onCopyPast,
 	newOption,
 }: Readonly<QuestionCardProps>) {
 	const titleId = `question-${question.id}`;
@@ -254,17 +285,29 @@ function QuestionCard({
 				>
 					Question {number}
 				</FieldLabel>
-				{canRemove ? (
+				<div className='flex items-center gap-1'>
 					<Button
 						variant='ghost'
 						size='icon-sm'
-						onClick={onRemove}
-						aria-label={`Remove question ${number}`}
+						onClick={onCopyPast}
+						aria-label={`Copy a past prediction into question ${number}`}
+						title='Copy a past prediction'
 						className='text-muted-foreground'
 					>
-						<Trash2Icon />
+						<CopyIcon />
 					</Button>
-				) : null}
+					{canRemove ? (
+						<Button
+							variant='ghost'
+							size='icon-sm'
+							onClick={onRemove}
+							aria-label={`Remove question ${number}`}
+							className='text-muted-foreground'
+						>
+							<Trash2Icon />
+						</Button>
+					) : null}
+				</div>
 			</div>
 			<Textarea
 				id={titleId}
@@ -277,6 +320,7 @@ function QuestionCard({
 			{question.options.map((option, index) => (
 				<div key={option.id} className='flex items-center gap-2'>
 					<Input
+						id={`question-${question.id}-option-${option.id}`}
 						aria-label={`Question ${number}, option ${index + 1}`}
 						aria-invalid={showErrors && !option.text.trim()}
 						value={option.text}
@@ -305,7 +349,13 @@ function QuestionCard({
 					variant='ghost'
 					size='sm'
 					className='text-primary'
-					onClick={() => onChange((q) => ({ ...q, options: [...q.options, newOption()] }))}
+					onClick={() => {
+						const added = newOption();
+						// Drawn now, then focused while still inside the tap, so phones
+						// open the keyboard on it.
+						flushSync(() => onChange((q) => ({ ...q, options: [...q.options, added] })));
+						document.getElementById(`question-${question.id}-option-${added.id}`)?.focus();
+					}}
 					disabled={question.options.length >= MAX_OPTIONS}
 				>
 					<CirclePlus />

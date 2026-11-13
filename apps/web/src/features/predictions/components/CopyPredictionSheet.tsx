@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { SearchIcon } from "lucide-react";
-import { usePredictionHistory } from "@/features/leaderboard";
+import { usePredictionHistory, type PredictionHistoryEntry } from "@/features/leaderboard";
 import {
 	Button,
 	Drawer,
@@ -12,18 +12,30 @@ import {
 	Skeleton,
 	Spinner,
 } from "@/shared/ui";
-import { formatWhen } from "@/features/predictions/lib/predictionView";
+import { formatWhen, optionTone } from "@/features/predictions/lib/predictionView";
+import { cn } from "@/shared/lib/utils";
+
+// Option chips shown per past prediction before "+N".
+const CHIPS_SHOWN = 4;
 
 type Props = {
 	roomId: string;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	onPick: (predictionId: string) => void;
+	onPick: (predictionId: string, item: PredictionHistoryEntry) => void;
+	// What a copy brings over, under the title.
+	description?: string;
 };
 
 // The room's past predictions, any series, newest first, to start a new one
 // from: same question, options, details and tags. Searchable by question.
-export function CopyPredictionSheet({ roomId, open, onOpenChange, onPick }: Readonly<Props>) {
+export function CopyPredictionSheet({
+	roomId,
+	open,
+	onOpenChange,
+	onPick,
+	description = "Starts a new one with the same question, options, details and tags.",
+}: Readonly<Props>) {
 	const [searchInput, setSearchInput] = useState("");
 	const [search, setSearch] = useState("");
 
@@ -41,9 +53,7 @@ export function CopyPredictionSheet({ roomId, open, onOpenChange, onPick }: Read
 			<DrawerContent className='mx-auto sm:max-w-md'>
 				<DrawerHeader className='text-left group-data-[vaul-drawer-direction=bottom]/drawer-content:text-left'>
 					<DrawerTitle>Copy a past prediction</DrawerTitle>
-					<DrawerDescription>
-						Starts a new one with the same question, options, details and tags.
-					</DrawerDescription>
+					<DrawerDescription>{description}</DrawerDescription>
 				</DrawerHeader>
 				<div className='px-4 pb-3'>
 					<div className='relative'>
@@ -71,7 +81,10 @@ export function CopyPredictionSheet({ roomId, open, onOpenChange, onPick }: Read
 						</li>
 					) : (
 						items.map((item) => {
-							const options = (item.options ?? []).map((option) => option.label).join(" · ");
+							const options = [...(item.options ?? [])].sort(
+								(a, b) => a.display_order - b.display_order,
+							);
+							const extra = options.length - CHIPS_SHOWN;
 							const series = item.series_title
 								? `${item.series_title}${item.series_prediction_number ? ` #${item.series_prediction_number}` : ""}`
 								: null;
@@ -80,15 +93,33 @@ export function CopyPredictionSheet({ roomId, open, onOpenChange, onPick }: Read
 								<li key={item.prediction_id}>
 									<button
 										type='button'
-										onClick={() => onPick(item.prediction_id)}
+										onClick={() => onPick(item.prediction_id, item)}
 										className='flex w-full flex-col gap-0.5 rounded-lg px-2 py-2.5 text-left transition-colors hover:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 									>
 										<span className='line-clamp-2 text-sm font-medium'>{item.title}</span>
-										{options ? (
-											<span className='truncate text-xs text-foreground/80'>{options}</span>
+										{options.length ? (
+											<span className='mt-1 flex flex-wrap items-center gap-1'>
+												{options.slice(0, CHIPS_SHOWN).map((option, index) => (
+													<span
+														key={option.id}
+														className='inline-flex max-w-full items-center gap-1 rounded-full border px-1.5 py-px text-[11px] text-foreground/85'
+													>
+														<span
+															className={cn("size-1.5 shrink-0 rounded-full", optionTone(index).dot)}
+															aria-hidden
+														/>
+														<span className='truncate'>{option.label}</span>
+													</span>
+												))}
+												{extra > 0 ? (
+													<span className='px-0.5 text-[11px] text-muted-foreground'>+{extra}</span>
+												) : null}
+											</span>
 										) : null}
-										<span className='truncate text-xs text-muted-foreground'>
-											{[series, when].filter(Boolean).join(" · ")}
+										{/* Where it sat on the left, when on the right. */}
+										<span className='mt-1 flex items-baseline justify-between gap-3 text-xs text-muted-foreground'>
+											<span className='min-w-0 truncate'>{series}</span>
+											<span className='shrink-0'>{when}</span>
 										</span>
 									</button>
 								</li>

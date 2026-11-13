@@ -1,3 +1,4 @@
+import { NoResultReasonField } from "@/features/predictions/components/NoResultReasonField";
 import {
 	Alert,
 	AlertDescription,
@@ -22,7 +23,6 @@ import {
 	FieldContent,
 	FieldLabel,
 	FieldTitle,
-	Input,
 	RadioGroup,
 	RadioGroupItem,
 	Spinner,
@@ -240,14 +240,7 @@ export function CloseWithoutResultDialog({
 						</AlertDescription>
 					</Alert>
 				</DialogHeader>
-				<Input
-					placeholder='Reason (optional)'
-					className={`w-full`}
-					value={reason}
-					maxLength={50}
-					onChange={(e) => setReason(e.target.value)}
-					autoFocus={false}
-				/>
+				<NoResultReasonField value={reason} onChange={setReason} />
 				<DialogFooter className={`gap-4 mt-4`}>
 					<DialogClose asChild>
 						<Button variant='outline' size='lg' disabled={isPending}>
