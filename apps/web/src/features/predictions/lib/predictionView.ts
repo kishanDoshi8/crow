@@ -2,13 +2,20 @@ import type { Bet } from "@/features/predictions/types/bet";
 import type { Prediction, PredictionOption } from "@/features/predictions/types/types";
 
 // Option colours follow the option's place in the list, so an option keeps
-// its colour on every screen. Complete class names, so Tailwind generates them.
+// its colour on every screen. Twelve, one per option at the most. Complete class names, so Tailwind generates them.
 const OPTION_TONES = [
 	{ dot: "bg-option-1", bar: "bg-option-1" },
 	{ dot: "bg-option-2", bar: "bg-option-2" },
 	{ dot: "bg-option-3", bar: "bg-option-3" },
 	{ dot: "bg-option-4", bar: "bg-option-4" },
 	{ dot: "bg-option-5", bar: "bg-option-5" },
+	{ dot: "bg-option-6", bar: "bg-option-6" },
+	{ dot: "bg-option-7", bar: "bg-option-7" },
+	{ dot: "bg-option-8", bar: "bg-option-8" },
+	{ dot: "bg-option-9", bar: "bg-option-9" },
+	{ dot: "bg-option-10", bar: "bg-option-10" },
+	{ dot: "bg-option-11", bar: "bg-option-11" },
+	{ dot: "bg-option-12", bar: "bg-option-12" },
 ] as const;
 
 export function optionTone(index: number) {

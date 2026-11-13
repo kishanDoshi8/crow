@@ -9,6 +9,7 @@ import {
 	usePredictionTiming,
 } from "@/features/predictions/components/PredictionTiming";
 import { useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 import { Spinner } from "@/shared/ui/spinner";
 import { SeriesSelector } from "@/features/series";
 
@@ -113,7 +114,10 @@ export function PredictionForm({
 				text: "",
 				placeholder: `Option ${options.length + 1}`,
 			};
-			setOptions([...options, newOption]);
+			// Drawn now, then focused while still inside the tap, so phones open
+			// the keyboard on it.
+			flushSync(() => setOptions([...options, newOption]));
+			document.getElementById(`answer-${newOption.id}`)?.focus();
 		}
 	};
 
@@ -300,7 +304,7 @@ export function PredictionForm({
 								disabled={options.length >= MAX_OPTIONS}
 							>
 								<CirclePlus className={`mr-2`} />
-								Add Option
+								Add option
 							</Button>
 						)}
 

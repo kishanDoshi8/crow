@@ -1,5 +1,6 @@
 import { CalendarClock, CirclePlus, CircleX, CopyIcon, Flame, Trash2Icon } from "lucide-react";
 import { useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { Button } from "@/shared/ui/button";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
@@ -319,6 +320,7 @@ function QuestionCard({
 			{question.options.map((option, index) => (
 				<div key={option.id} className='flex items-center gap-2'>
 					<Input
+						id={`question-${question.id}-option-${option.id}`}
 						aria-label={`Question ${number}, option ${index + 1}`}
 						aria-invalid={showErrors && !option.text.trim()}
 						value={option.text}
@@ -347,7 +349,13 @@ function QuestionCard({
 					variant='ghost'
 					size='sm'
 					className='text-primary'
-					onClick={() => onChange((q) => ({ ...q, options: [...q.options, newOption()] }))}
+					onClick={() => {
+						const added = newOption();
+						// Drawn now, then focused while still inside the tap, so phones
+						// open the keyboard on it.
+						flushSync(() => onChange((q) => ({ ...q, options: [...q.options, added] })));
+						document.getElementById(`question-${question.id}-option-${added.id}`)?.focus();
+					}}
 					disabled={question.options.length >= MAX_OPTIONS}
 				>
 					<CirclePlus />
