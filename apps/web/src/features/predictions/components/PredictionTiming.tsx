@@ -150,7 +150,7 @@ export function PredictionTimingFields({
 								className={showGoLiveChoice ? "mt-2" : undefined}
 							/>
 							<p className='text-xs text-muted-foreground'>
-								Only organizers see it until then. Everyone is notified when it goes live.
+								Only hosts see it until then. Everyone is notified when it goes live.
 							</p>
 						</>
 					) : null}
@@ -158,7 +158,7 @@ export function PredictionTimingFields({
 			) : null}
 
 			<FieldLabel htmlFor='deadline' className={`mt-4`}>
-				{opensAt ? "Locks after going live" : "Bidding deadline"}
+				{opensAt ? "Picks close after going live" : "Picks close"}
 			</FieldLabel>
 			<ToggleGroup
 				id='deadline'

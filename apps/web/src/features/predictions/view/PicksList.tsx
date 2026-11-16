@@ -35,10 +35,10 @@ export function PicksList({
 	const count = bets.length;
 	const heading = (
 		<h2 className='mb-2.5 flex items-baseline justify-between gap-3 text-sm font-semibold'>
-			{status === "revealed" ? "Payouts" : "Picks"}
+			{status === "revealed" ? "How the points split" : "Picks"}
 			<span className='text-xs font-normal text-muted-foreground'>
 				{status === "no_result" || status === "cancelled"
-					? "All refunded"
+					? "Everyone got their points back"
 					: `${count} ${count === 1 ? "pick" : "picks"}`}
 			</span>
 		</h2>
@@ -116,7 +116,7 @@ export function PicksList({
 										<span className={cn("size-2 shrink-0 rounded-full", dotClass)} aria-hidden />
 										<span className='truncate'>
 											{tally?.option.label ?? "Unknown"}
-											{settled ? `, ${formatPoints(bet.amount)} staked` : ""}
+											{settled ? `, ${formatPoints(bet.amount)} pts on it` : ""}
 										</span>
 									</span>
 								</span>

@@ -60,7 +60,7 @@ export function YourCall({
 							<span className='font-semibold text-win tabular-nums'>≈ +{formatPoints(gain)} pts</span>
 						</>
 					) : (
-						"Nobody picked against you, so this one can only be refunded."
+						"Nobody picked against you, so you can only get your points back."
 					)}
 				</p>
 			</section>
@@ -71,7 +71,7 @@ export function YourCall({
 		<section aria-label='Your call' className='rounded-2xl bg-secondary px-4 py-3.5'>
 			<p className='text-xs text-muted-foreground'>Your call</p>
 			<p className='mt-1 flex items-baseline justify-between gap-3'>
-				<span className='text-[17px] font-semibold'>Refunded</span>
+				<span className='text-[17px] font-semibold'>Points back</span>
 				<span className='shrink-0 font-semibold tabular-nums'>{formatPoints(myBet.amount)} pts back</span>
 			</p>
 			<p className='mt-1 text-xs text-muted-foreground'>

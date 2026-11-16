@@ -74,13 +74,13 @@ export default function EditPrediction() {
 					},
 					{
 						onSuccess: () => {
-							toast.success("Prediction updated.", {
+							toast.success("Question updated.", {
 								position: "top-center",
 							});
 							back(predictionPath);
 						},
 						onError: (error) => {
-							toast.error("Couldn't update the prediction.", {
+							toast.error("Couldn't update the question. Try again.", {
 								description: error.message,
 								position: "top-center",
 							});

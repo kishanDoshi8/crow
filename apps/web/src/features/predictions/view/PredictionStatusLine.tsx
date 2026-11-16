@@ -43,7 +43,7 @@ export function PredictionStatusRow({
 				Locked
 			</span>
 		);
-		aside = `Closed ${formatAgo(prediction.deadline)}`;
+		aside = `Picks closed ${formatAgo(prediction.deadline)}`;
 	} else if (status === "revealed") {
 		pill = (
 			<span className={cn(PILL, "bg-win/15 text-win")}>
@@ -62,7 +62,7 @@ export function PredictionStatusRow({
 	} else {
 		pill = (
 			<span className={cn(PILL, "bg-muted text-muted-foreground")}>
-				{status === "cancelled" ? "Cancelled" : "No result"}
+				{status === "cancelled" ? "Scrapped" : "No result"}
 			</span>
 		);
 	}
@@ -126,7 +126,7 @@ export function PredictionStatusLine({
 }: Readonly<Props>) {
 	const deadline = new Date(prediction.deadline);
 	const when = prediction.resolved_at ? formatWhen(prediction.resolved_at) : null;
-	const corrected = correctedByName ? `Corrected by ${correctedByName}` : null;
+	const corrected = correctedByName ? `Fixed by ${correctedByName}` : null;
 
 	if (prediction.status === "scheduled") {
 		const opens = prediction.opens_at ? describeDeadline(new Date(prediction.opens_at)) : null;
@@ -179,11 +179,11 @@ export function PredictionStatusLine({
 		<StatusStrip
 			tone='muted'
 			icon={<Icon className='size-4' aria-hidden />}
-			title={cancelled ? "Cancelled" : hadWinner ? `${winnerLabel} won` : "No result"}
+			title={cancelled ? "Scrapped" : hadWinner ? `${winnerLabel} won` : "No result"}
 			reason={prediction.no_result_reason ?? (hadWinner ? "Everyone got their points back." : null)}
 			lines={[
 				resolvedByName
-					? `${cancelled ? "Cancelled" : hadWinner ? "Revealed" : "Marked"} by ${resolvedByName}`
+					? `${cancelled ? "Scrapped" : hadWinner ? "Revealed" : "Ended"} by ${resolvedByName}`
 					: null,
 				corrected,
 			]}

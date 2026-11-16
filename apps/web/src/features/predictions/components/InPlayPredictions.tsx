@@ -104,7 +104,7 @@ function PredictionCard({
 
 				<StatStrip
 					stats={[
-						{ label: "Pool", value: formatPoints(pool) },
+						{ label: "In play", value: formatPoints(pool) },
 						{ label: "Picks", value: picks },
 						...(prediction.status === "draft"
 							? [
@@ -262,7 +262,7 @@ function PredictionCardFooter({ prediction, myBet, optionLabel }: Readonly<Foote
 
 	if (prediction.status === "draft") {
 		value = stake ?? "None yet";
-		action = myBet ? { text: "Change", primary: false } : { text: "Pick a side", primary: true };
+		action = myBet ? { text: "Change", primary: false } : { text: "Call it", primary: true };
 	} else if (prediction.status === "revealed" && myBet) {
 		label = "Your result";
 		if (myBet.option_id === prediction.winning_option_id) {
@@ -275,8 +275,8 @@ function PredictionCardFooter({ prediction, myBet, optionLabel }: Readonly<Foote
 			amount = `−${myBet.amount.toLocaleString()}`;
 		}
 	} else if (prediction.status === "cancelled" || prediction.status === "no_result") {
-		label = "Your stake";
-		value = myBet ? `${pts(myBet.amount)} refunded` : "Nothing staked";
+		label = "Points on it";
+		value = myBet ? `${pts(myBet.amount)} back` : "No pick";
 	}
 
 	return (
@@ -358,7 +358,7 @@ function SectionHeader({
 		return (
 			<div className={`flex items-center justify-between gap-2 my-4`}>
 				<div className={`flex items-center gap-2`}>
-					<h2 className={`text-lg font-semibold whitespace-nowrap`}>What's Hot</h2>
+					<h2 className={`text-lg font-semibold whitespace-nowrap`}>What's hot</h2>
 					<span className='whitespace-nowrap rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-semibold text-primary tabular-nums'>
 						{activeCount} active
 					</span>
@@ -375,7 +375,7 @@ function SectionHeader({
 	if (action) {
 		return (
 			<div className={`flex items-center gap-2 my-4`}>
-				<h2 className={`flex-1 text-lg font-semibold`}>Last Played</h2>
+				<h2 className={`flex-1 text-lg font-semibold`}>Last played</h2>
 				{action}
 			</div>
 		);
@@ -386,7 +386,7 @@ function SectionHeader({
 			<h2
 				className={`my-4 flex items-center gap-2 text-lg font-semibold`}
 			>
-				Last Played
+				Last played
 			</h2>
 		);
 	}
@@ -398,7 +398,7 @@ function SectionHeader({
 				<DotIcon
 					className={`inline-block text-muted-foreground animate-pulse`}
 				/>
-				Cancelled
+				Scrapped
 			</h2>
 		);
 	}
@@ -409,7 +409,7 @@ function SectionHeader({
 			<DotIcon
 				className={`inline-block text-muted-foreground animate-pulse`}
 			/>
-			No Result
+			No result
 		</h2>
 	);
 }
@@ -457,7 +457,7 @@ function InPlayPredictions({
 				>
 					<PlusIcon />
 					{/* Phones: the heading and count need the room. */}
-					New<span className='max-sm:sr-only'> prediction</span>
+					New<span className='max-sm:sr-only'> question</span>
 				</Link>
 			</Button>
 		);
@@ -472,7 +472,7 @@ function InPlayPredictions({
 		);
 	}
 	let defaultEmptyMessage =
-		"No predictions yet. The host will start one soon!";
+		"Nothing to call yet. Your host is cooking something up.";
 	const isSeriesFinished =
 		currentSeries?.status === "completed" ||
 		currentSeries?.status === "archived";
@@ -481,7 +481,7 @@ function InPlayPredictions({
 	);
 	if (!currentSeries) {
 		defaultEmptyMessage = isOrganizer
-			? "Start a series to open the first predictions."
+			? "Start a series to open the first questions."
 			: "No series yet. Your host will start one soon.";
 	} else if (isSeriesFinished) {
 		defaultEmptyMessage = `${currentSeries.title} has finished.`;

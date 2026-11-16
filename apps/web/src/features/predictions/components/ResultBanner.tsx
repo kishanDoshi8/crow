@@ -64,7 +64,7 @@ export function ResultBanner({ roomId, predictionId, data }: Readonly<Props>) {
 				open={isSheetOpen}
 				onOpenChange={setIsSheetOpen}
 				title={call ? "Share your result" : "Share the result"}
-				description='Friends who tap the link can join the room and see this prediction.'
+				description='Friends who tap the link can join the room and see this question.'
 				message={message}
 				link={shareLink(
 					data.roomCode,

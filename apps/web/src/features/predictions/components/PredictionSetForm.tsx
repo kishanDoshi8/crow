@@ -104,7 +104,7 @@ export function PredictionSetForm({
 		});
 	};
 
-	const count = `${questions.length} ${questions.length === 1 ? "prediction" : "predictions"}`;
+	const count = `${questions.length} ${questions.length === 1 ? "question" : "questions"}`;
 
 	return (
 		<div className={`p-4`}>
@@ -122,7 +122,7 @@ export function PredictionSetForm({
 						/>
 						{wasSubmitted && !seriesId ? (
 							<p className={`text-sm text-destructive`}>
-								Choose the series these predictions belong to.
+								Choose the series these questions belong to.
 							</p>
 						) : null}
 					</Field>
@@ -200,7 +200,7 @@ export function PredictionSetForm({
 					)}
 				</Button>
 				<p className='-mt-3 text-center text-xs text-muted-foreground'>
-					Members get one notification for the set.
+					Players get one notification for the set.
 				</p>
 				<Button
 					variant={"outline"}
@@ -212,7 +212,7 @@ export function PredictionSetForm({
 					Cancel
 				</Button>
 				<Button variant='ghost' className='-mt-3 w-full' onClick={onCreateOne} disabled={isSubmitting}>
-					Just one prediction instead
+					Just one question instead
 				</Button>
 			</FieldSet>
 
@@ -290,8 +290,8 @@ function QuestionCard({
 						variant='ghost'
 						size='icon-sm'
 						onClick={onCopyPast}
-						aria-label={`Copy a past prediction into question ${number}`}
-						title='Copy a past prediction'
+						aria-label={`Copy a past question into question ${number}`}
+						title='Copy a past question'
 						className='text-muted-foreground'
 					>
 						<CopyIcon />

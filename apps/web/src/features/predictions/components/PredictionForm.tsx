@@ -161,7 +161,7 @@ export function PredictionForm({
 					<div className='flex items-center gap-3 rounded-xl border bg-card px-3 py-2.5'>
 						<Copy className='size-4 shrink-0 text-muted-foreground' />
 						<p className='min-w-0 flex-1 text-sm text-muted-foreground'>
-							{initial ? "Copied from a past prediction. Pick a new deadline." : "Same kind of question as before?"}
+							{initial ? "Copied from a past question. Set a new deadline." : "Same kind of question as before?"}
 						</p>
 						<Button variant='outline' size='sm' onClick={onCopyPast} className='shrink-0'>
 							{initial ? "Copy another" : "Copy a past one"}
@@ -193,16 +193,16 @@ export function PredictionForm({
 							/>
 							{errors.includes("series") ? (
 								<p className={`text-sm text-destructive`}>
-									Choose the series this prediction belongs to.
+									Choose the series this question belongs to.
 								</p>
 							) : null}
 						</Field>
 					) : null}
 					<Field>
-						<FieldLabel htmlFor='question'>The Question</FieldLabel>
+						<FieldLabel htmlFor='question'>The question</FieldLabel>
 						<Textarea
 							id='question'
-							placeholder='e.g. "Will Bitcoin reach $100k by Sunday Night?"'
+							placeholder='e.g. "Who wins the derby on Sunday?"'
 							value={question}
 							onChange={(e) => setQuestion(e.target.value)}
 							aria-invalid={errors.includes("question")}
@@ -211,7 +211,7 @@ export function PredictionForm({
 						{lockedByBets ? (
 							<p className='flex items-center gap-2 text-xs text-muted-foreground'>
 								<LockIcon className='size-3.5' />
-								The question and details can't change once someone has bet.
+								The question and details can't change once someone has picked.
 							</p>
 						) : null}
 					</Field>
@@ -241,15 +241,15 @@ export function PredictionForm({
 					</Field>
 					<Field>
 						<FieldLabel htmlFor='answer' className={`flex`}>
-							<span className={`flex-1`}>Outcome Options</span>
+							<span className={`flex-1`}>Options</span>
 							<span className={`text-muted-foreground`}>
-								{lockedByBets ? "Locked" : "Min 2 Required"}
+								{lockedByBets ? "Locked" : "At least 2"}
 							</span>
 						</FieldLabel>
 						{lockedByBets ? (
 							<p className='flex items-center gap-2 text-xs text-muted-foreground'>
 								<LockIcon className='size-3.5' />
-								Options can't change once someone has bet.
+								Options can't change once someone has picked.
 							</p>
 						) : null}
 						{options.map((option, i) => (
@@ -331,7 +331,7 @@ export function PredictionForm({
 						</>
 					) : (
 						<>
-							Start Draft <Flame fill='black' />
+							Start it <Flame fill='black' />
 						</>
 					)}
 				</Button>

@@ -64,7 +64,7 @@ export function CopyPredictionSheet({
 		<Drawer open={open} onOpenChange={onOpenChange}>
 			<DrawerContent className='mx-auto sm:max-w-md'>
 				<DrawerHeader className='text-left group-data-[vaul-drawer-direction=bottom]/drawer-content:text-left'>
-					<DrawerTitle>Copy a past prediction</DrawerTitle>
+					<DrawerTitle>Copy a past question</DrawerTitle>
 					<DrawerDescription>{description}</DrawerDescription>
 				</DrawerHeader>
 				<div className='px-4 pb-3'>
@@ -76,7 +76,7 @@ export function CopyPredictionSheet({
 								setSearchInput(event.target.value)
 							}
 							placeholder='Search questions'
-							aria-label='Search past predictions'
+							aria-label='Search past questions'
 							className='pl-9'
 						/>
 					</div>
@@ -96,8 +96,8 @@ export function CopyPredictionSheet({
 					) : items.length === 0 ? (
 						<li className='px-2 py-4 text-sm text-muted-foreground'>
 							{search
-								? "No past predictions match that."
-								: "No past predictions yet."}
+								? "No past questions match that."
+								: "No past questions yet."}
 						</li>
 					) : (
 						items.map((item) => {

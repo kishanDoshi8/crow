@@ -23,14 +23,14 @@ const COPY = {
 		body: "Everyone in the room can see it and pick straight away, and they're notified.",
 		confirm: "Go live now",
 		success: "It's live.",
-		failure: "Couldn't put it live.",
+		failure: "Couldn't put it live. Try again.",
 	},
 	delete: {
-		title: "Delete this prediction?",
+		title: "Delete this question?",
 		body: "Nobody has seen it yet. This can't be undone.",
 		confirm: "Delete",
-		success: "Scheduled prediction deleted.",
-		failure: "Couldn't delete it.",
+		success: "Scheduled question deleted.",
+		failure: "Couldn't delete it. Try again.",
 	},
 } as const;
 

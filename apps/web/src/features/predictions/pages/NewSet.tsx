@@ -48,7 +48,7 @@ export default function PredictionNewSet() {
 					{ roomId: room.id, ...values },
 					{
 						onSuccess: ({ count }) => {
-							const predictions = `${count} ${count === 1 ? "prediction" : "predictions"}`;
+							const predictions = `${count} ${count === 1 ? "question" : "questions"}`;
 							if (values.opensAt) {
 								toast.success(
 									`${predictions} scheduled for ${describeDeadline(values.opensAt).when}`,
@@ -59,14 +59,14 @@ export default function PredictionNewSet() {
 								);
 							} else {
 								toast.success(`${predictions} live`, {
-									description: "Members got one notification for the set.",
+									description: "Players got one notification for the set.",
 									position: "top-center",
 								});
 							}
 							back(`/rooms/${room.code}`);
 						},
 						onError: (error) => {
-							toast.error("Couldn't create the predictions.", {
+							toast.error("Couldn't create the questions. Try again.", {
 								description: error.message,
 								position: "top-center",
 							});
