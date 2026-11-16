@@ -9,11 +9,14 @@ export function PredictionHeading({
 	prediction,
 	roomCode,
 	menu,
+	nav,
 }: Readonly<{
 	prediction: Prediction;
 	roomCode: string;
 	// Staff tools (⋯), when the viewer has any.
 	menu?: ReactNode;
+	// Previous and next, beside where it sits.
+	nav?: ReactNode;
 }>) {
 	const series = prediction.seriesTitle
 		? `${prediction.seriesTitle}${prediction.seriesPredictionNumber ? ` · #${prediction.seriesPredictionNumber}` : ""}`
@@ -32,7 +35,10 @@ export function PredictionHeading({
 				) : (
 					<span />
 				)}
-				{menu}
+				<div className='flex shrink-0 items-center gap-1'>
+					{nav}
+					{menu}
+				</div>
 			</div>
 			<h1 className='mt-1 text-[1.375rem] font-semibold leading-snug tracking-tight wrap-anywhere'>
 				{prediction.title}

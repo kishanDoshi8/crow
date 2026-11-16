@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { cn, ordinal } from "@/shared/lib/utils";
+import { cn, ordinal, initialsOf } from "@/shared/lib/utils";
 import { Reveal, Skeleton } from "@/shared/ui";
 
 // What each podium spot shows; callers decide (series balance or overall profit).
@@ -97,7 +97,7 @@ export function TopThreePodium({
 								isSelf && "ring-primary",
 							)}
 						>
-							{entry.username.slice(0, 2).toUpperCase()}
+							{initialsOf(entry.username)}
 						</span>
 						<span className='flex w-full min-w-0 flex-col items-center'>
 							<span

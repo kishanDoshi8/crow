@@ -18,6 +18,21 @@ export function capitalize(text: string) {
 	return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+// Two letters for an avatar: "John Doe", "john_doe" and "JohnDoe" -> "JD";
+// otherwise the first two letters or digits, "carol" -> "CA".
+export function initialsOf(name: string | null | undefined) {
+	const text = (name ?? "").trim();
+	const words = text.split(/[\s_.-]+/).filter((word) => /[\p{L}\p{N}]/u.test(word));
+	if (words.length > 1) {
+		const first = (word: string) => word.match(/[\p{L}\p{N}]/u)?.[0] ?? "";
+		return (first(words[0]) + first(words[1])).toUpperCase();
+	}
+	// CamelCase: a capital at the start of each hump.
+	const humps = text.match(/(?:^|(?<=\p{Ll}))\p{Lu}/gu) ?? [];
+	if (humps.length > 1) return (humps[0] + humps[1]).toUpperCase();
+	return text.replace(/[^\p{L}\p{N}]/gu, "").slice(0, 2).toUpperCase() || "?";
+}
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }

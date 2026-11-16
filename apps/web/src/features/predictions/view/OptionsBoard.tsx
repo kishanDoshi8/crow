@@ -3,6 +3,7 @@ import type { PredictionStatus } from "@/features/predictions/types/types";
 import {
 	formatPoints,
 	optionTone,
+	shownWinnerId,
 	type OptionTally,
 } from "@/features/predictions/lib/predictionView";
 import { cn } from "@/shared/lib/utils";
@@ -44,7 +45,7 @@ export function OptionsBoard({
 			aria-label='Options'
 		>
 			{options.map(({ option, index, points, percent }) => {
-				const isWinner = settled && option.id === winningOptionId;
+				const isWinner = option.id === shownWinnerId(status, winningOptionId);
 				const isMine = option.id === myOptionId;
 				const isSelected = open && option.id === (selectedOptionId ?? myOptionId);
 				const tone = optionTone(index);

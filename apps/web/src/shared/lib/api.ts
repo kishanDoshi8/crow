@@ -1579,3 +1579,46 @@ export async function markSeriesSuggestionPlayed(suggestionId: string, seriesId:
   if (error) throw error
 }
 // #endregion Series suggestions
+
+export type PredictionNeighbour = {
+  id: string
+  title: string
+  series_prediction_number: number | null
+}
+
+// The predictions either side of this one, for stepping through: in a series
+// by their number, otherwise the room's others outside a series by when they
+// were made. Scheduled ones are left out, as on every list.
+export async function getPredictionNeighbours(params: {
+  roomId: string
+  predictionId: string
+  seriesId: string | null
+  number: number | null
+  createdAt: string | null
+}): Promise<{ previous: PredictionNeighbour | null; next: PredictionNeighbour | null }> {
+  const { roomId, predictionId, seriesId, number, createdAt } = params
+  const side = async (direction: 'previous' | 'next') => {
+    let query = supabase
+      .from('predictions')
+      .select('id, title, series_prediction_number')
+      .eq('room_id', roomId)
+      .neq('id', predictionId)
+      .neq('status', 'scheduled')
+    query = seriesId ? query.eq('series_id', seriesId) : query.is('series_id', null)
+    const before = direction === 'previous'
+    if (number !== null) {
+      query = (before ? query.lt('series_prediction_number', number) : query.gt('series_prediction_number', number))
+        .order('series_prediction_number', { ascending: !before })
+    } else if (createdAt) {
+      query = (before ? query.lt('created_at', createdAt) : query.gt('created_at', createdAt))
+        .order('created_at', { ascending: !before })
+    } else {
+      return null
+    }
+    const { data, error } = await query.limit(1).maybeSingle()
+    if (error) throw error
+    return data as PredictionNeighbour | null
+  }
+  const [previous, next] = await Promise.all([side('previous'), side('next')])
+  return { previous, next }
+}

@@ -22,7 +22,7 @@ import { SeriesPickerPopover, useCurrentSeries } from "@/features/series";
 import { usePlayer } from "@/features/home";
 import { useAppNavigation } from "@/shared/lib/navigation";
 import { useRoomActions } from "@/shared/lib/roomActions";
-import { cn } from "@/shared/lib/utils";
+import { cn, initialsOf } from "@/shared/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 
 // Desktop sidebar widths, shared with the room layout's content offset.
@@ -217,7 +217,7 @@ export function RoomSidebar({ room, collapsed }: Readonly<Props>) {
 						className={cn(ITEM, "px-1.5 text-foreground")}
 					>
 						<span className='flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold'>
-							{player ? player.username.slice(0, 2).toUpperCase() : ""}
+							{player ? initialsOf(player.username) : ""}
 						</span>
 						<span className={cn(label, "leading-tight")}>
 							<span className='block truncate text-sm font-semibold'>{player?.username}</span>

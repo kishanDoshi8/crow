@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback } from "@/shared/ui";
-import { cn } from "@/shared/lib/utils";
+import { cn, initialsOf } from "@/shared/lib/utils";
 
 type ActivityPlayerIdentityProps = {
 	username: string;
@@ -27,5 +27,5 @@ export function ActivityPlayerIdentity({
 }
 
 function getInitials(username: string) {
-	return username.slice(0, 2).toUpperCase();
+	return initialsOf(username);
 }

@@ -33,6 +33,7 @@ import { YourCall } from "./YourCall";
 import { PicksList } from "./PicksList";
 import { BetSheet } from "./BetSheet";
 import { PredictionStaffMenu } from "./PredictionStaffMenu";
+import { PredictionStepper } from "./PredictionStepper";
 
 type Props = {
 	prediction: Prediction | null | undefined;
@@ -59,7 +60,8 @@ export function PredictionView({
 			</p>
 		);
 	}
-	return <LoadedPrediction prediction={prediction} onDeadline={onDeadline} />;
+	// Keyed, so stepping to another prediction starts with nothing open.
+	return <LoadedPrediction key={prediction.id} prediction={prediction} onDeadline={onDeadline} />;
 }
 
 function LoadedPrediction({
@@ -306,6 +308,13 @@ function LoadedPrediction({
 						<PredictionHeading
 							prediction={prediction}
 							roomCode={room.code}
+							nav={
+								<PredictionStepper
+									prediction={prediction}
+									roomId={room.id}
+									roomCode={room.code}
+								/>
+							}
 							menu={
 								<PredictionStaffMenu
 									prediction={prediction}
