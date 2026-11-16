@@ -276,6 +276,17 @@ sudo systemctl reload nginx
 Until the first deploy, `https://playcrow.app` answers `404`: nginx is up,
 the folder is just empty.
 
+Then have systemd retry nginx if it ever fails to start (for example after a
+reboot, before the network is fully up), instead of leaving the site down:
+
+```bash
+sudo mkdir -p /etc/systemd/system/nginx.service.d && printf '[Unit]\nStartLimitIntervalSec=0\n\n[Service]\nRestart=on-failure\nRestartSec=10s\n' | sudo tee /etc/systemd/system/nginx.service.d/restart.conf
+```
+
+```bash
+sudo systemctl daemon-reload
+```
+
 ### 9. Point GitHub at the droplet
 
 **Repository variables** (Settings → Secrets and variables → Actions →

@@ -121,7 +121,15 @@ server {
 
         # Crawlers: /i/F4C36D -> /functions/v1/invite-preview/F4C36D
         rewrite ^/i/(.*)$ /functions/v1/invite-preview/$1 break;
-        proxy_pass https://kizogptkryjjxzlixtqp.supabase.co;
+        # Looked up per request (resolver + a variable), not once at startup:
+        # a fixed hostname that can't be resolved when nginx starts (DNS not
+        # up yet after a reboot) stops nginx from starting at all, taking the
+        # whole site down. This way a DNS hiccup only affects invite previews.
+        # 127.0.0.53 is the droplet's own resolver (systemd-resolved).
+        resolver 127.0.0.53 valid=300s ipv6=off;
+        resolver_timeout 5s;
+        set $supabase_upstream https://kizogptkryjjxzlixtqp.supabase.co;
+        proxy_pass $supabase_upstream;
         proxy_ssl_server_name on;
         proxy_set_header Host kizogptkryjjxzlixtqp.supabase.co;
 
