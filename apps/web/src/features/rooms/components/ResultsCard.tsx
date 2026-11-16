@@ -19,7 +19,7 @@ function outcomeOf(result: UnseenResult) {
 			Icon: CircleSlashIcon,
 			tone: "text-muted-foreground",
 			ring: "bg-muted",
-			value: "Refunded",
+			value: "Points back",
 		};
 	}
 	const won = result.net > 0;
@@ -81,7 +81,7 @@ export function ResultsCard() {
 
 			{results.length === 0 ? (
 				<p className='mt-1 text-sm text-muted-foreground'>
-					You're all caught up. New results show up here.
+					All caught up. Results land here.
 				</p>
 			) : (
 				<ul className='mt-1.5 flex flex-col'>

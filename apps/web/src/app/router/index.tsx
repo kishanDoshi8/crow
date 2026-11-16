@@ -217,7 +217,7 @@ export const router = createBrowserRouter([
 												handle: {
 													header: {
 														leftAction: "back",
-														title: "New prediction",
+														title: "New question",
 													},
 												},
 											},
@@ -227,7 +227,7 @@ export const router = createBrowserRouter([
 												handle: {
 													header: {
 														leftAction: "back",
-														title: "New predictions",
+														title: "New questions",
 													},
 												},
 											},
@@ -237,7 +237,7 @@ export const router = createBrowserRouter([
 												handle: {
 													header: {
 														leftAction: "back",
-														title: "Edit prediction",
+														title: "Edit question",
 														parent: "predictions/:predictionId",
 													},
 												},
@@ -267,7 +267,7 @@ export const router = createBrowserRouter([
 												handle: {
 													header: {
 														leftAction: "back",
-														title: "Close several",
+														title: "Reveal several",
 														parent: "manage",
 													},
 												},
@@ -278,7 +278,7 @@ export const router = createBrowserRouter([
 												handle: {
 													header: {
 														leftAction: "back",
-														title: "Members",
+														title: "Players",
 													},
 												},
 											},

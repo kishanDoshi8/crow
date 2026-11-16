@@ -22,7 +22,7 @@ export function PredictionLockedCard({
 			typeLabel='Locked'
 			tone='warning'
 			title={metadata.title}
-			summary={`${metadata.totalBets} bets · ${formatPoints(metadata.totalWagered)} pts wagered`}
+			summary={`${metadata.totalBets} ${metadata.totalBets === 1 ? "pick" : "picks"} · ${formatPoints(metadata.totalWagered)} pts in play`}
 			contextLabel={showSeries ? formatPredictionSeries(metadata) : undefined}
 			timestamp={formatActivityTimestamp(activity.createdAt)}
 			href={resolveActivityHref(activity, roomCode)}

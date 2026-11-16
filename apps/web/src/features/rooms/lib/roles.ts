@@ -10,18 +10,18 @@ const RANK: Record<RoomRole, number> = {
 export const ROLE_INFO: Record<RoomRole, { label: string; description: string }> = {
 	owner: {
 		label: "Owner",
-		description: "Runs the room: settings, roles, and everything organizers do.",
+		description: "Runs the room: settings, roles, and everything hosts do.",
 	},
 	organizer: {
-		label: "Organizer",
-		description: "Creates and edits predictions and series, and reveals results.",
+		label: "Host",
+		description: "Creates and edits questions and series, and reveals results.",
 	},
 	resolver: {
-		label: "Resolver",
-		description: "Reveals results, marks no result, and cancels predictions.",
+		label: "Ref",
+		description: "Reveals results, ends questions with no result, and scraps questions.",
 	},
 	member: {
-		label: "Member",
+		label: "Player",
 		description: "Plays: picks, standings, history.",
 	},
 };

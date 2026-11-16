@@ -19,7 +19,7 @@ export function AchievementStreakMilestoneCard({
 			<div className='relative flex items-start justify-between gap-3'>
 				<div className='inline-flex items-center gap-1.5 rounded-full border border-accent/35 bg-accent/12 px-2.5 py-1 text-[11px] font-semibold text-accent-foreground'>
 					<FlameIcon className='size-3 text-accent' />
-					Streak Milestone
+					Streak milestone
 				</div>
 				<span className='shrink-0 text-xs font-medium text-muted-foreground'>
 					{formatActivityTimestamp(activity.createdAt)}
@@ -41,7 +41,7 @@ export function AchievementStreakMilestoneCard({
 					</p>
 				</div>
 				<p className='text-base font-semibold leading-snug text-foreground text-wrap-balance'>
-					🔥 {metadata.member.username} is on a {streak} game streak
+					🔥 {metadata.member.username} has called {streak} in a row
 				</p>
 			</div>
 		</div>

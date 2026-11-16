@@ -131,7 +131,7 @@ export function SeriesHeroCard() {
 			<div className='mt-4 flex flex-col gap-1.5'>
 				<div
 					role='img'
-					aria-label={`${wallet.available.toLocaleString()} points to spend, ${wallet.escrow.toLocaleString()} in play`}
+					aria-label={`${wallet.available.toLocaleString()} free to use, ${wallet.escrow.toLocaleString()} on open picks`}
 					className='flex h-1.5 gap-0.5 overflow-hidden rounded-full bg-secondary'
 				>
 					<span className='rounded-full bg-foreground' style={{ width: `${spendShare}%` }} />
@@ -140,10 +140,10 @@ export function SeriesHeroCard() {
 				<div className='flex items-center justify-between gap-3 text-xs tabular-nums'>
 					<p>
 						<span className='font-semibold'>{wallet.available.toLocaleString()}</span>{" "}
-						<span className='text-muted-foreground'>to spend</span>
+						<span className='text-muted-foreground'>free to use</span>
 					</p>
 					<p>
-						<span className='text-muted-foreground'>in play</span>{" "}
+						<span className='text-muted-foreground'>on open picks</span>{" "}
 						<span className={cn("font-semibold", wallet.escrow > 0 && "text-accent")}>
 							{wallet.escrow.toLocaleString()}
 						</span>

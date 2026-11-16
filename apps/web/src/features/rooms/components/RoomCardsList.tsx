@@ -110,7 +110,7 @@ export function RoomCardsList({
 												<span className={`text-sm`}>
 													{room.active_prediction_count}
 												</span>
-												<span>live</span>
+												<span>open</span>
 											</div>
 										)}
 								</div>

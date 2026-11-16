@@ -46,7 +46,7 @@ export function SignupPage() {
 			setError(
 				err instanceof Error
 					? err.message
-					: "Failed to create account.",
+					: "Couldn't create your account. Try again.",
 			);
 		} finally {
 			setIsLoading(false);

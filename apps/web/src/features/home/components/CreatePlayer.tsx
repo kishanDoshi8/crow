@@ -51,7 +51,7 @@ function CreatePlayer() {
 
 		createPlayer(trimmed, {
 			onSuccess: (data) => {
-				toast.success(`Welcome ${data.username}!`, {
+				toast.success(`Welcome to the flock, ${data.username}.`, {
 					position: "top-center",
 				});
 				leave();
@@ -79,7 +79,7 @@ function CreatePlayer() {
 					</label>
 					<Input
 						id='username'
-						placeholder='e.g. Kishan'
+						placeholder='e.g. Sam'
 						value={username}
 						onChange={(e) => setUsername(e.target.value)}
 						autoComplete='nickname'

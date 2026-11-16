@@ -35,7 +35,7 @@ export function ReactionSummary({ topReactions, myReaction, postCount, className
 			{posts > 0 ? (
 				<span className='inline-flex items-center gap-1 text-xs text-muted-foreground tabular-nums'>
 					<MessageCircleIcon className='size-3.5' aria-hidden />
-					<span className='sr-only'>Phrases:</span>
+					<span className='sr-only'>Squawks:</span>
 					{posts}
 				</span>
 			) : null}

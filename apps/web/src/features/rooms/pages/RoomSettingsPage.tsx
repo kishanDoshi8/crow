@@ -137,7 +137,7 @@ export default function RoomSettingsPage() {
 						/>
 						<FieldDescription>
 							{reminderError ||
-								"Staff get a push when a result is still missing this long after picks close."}
+								"Hosts get a push when a result is still missing this long after picks close."}
 						</FieldDescription>
 					</Field>
 				</FieldGroup>
@@ -189,7 +189,7 @@ export default function RoomSettingsPage() {
 								<span>
 									<span className='block'>Request to join</span>
 									<span className='block text-xs text-muted-foreground'>
-										You or an organizer lets each person in, from Members &amp;
+										You or a host lets each person in, from Players &amp;
 										roles.
 									</span>
 								</span>
@@ -197,7 +197,7 @@ export default function RoomSettingsPage() {
 						</RadioGroup>
 					</fieldset>
 					<p className='flex justify-between px-1 text-sm text-muted-foreground'>
-						<span>Members</span>
+						<span>Players</span>
 						<span className='tabular-nums'>
 							<span className='font-semibold text-foreground'>{memberCount}</span>
 							{room.member_limit ? ` / ${room.member_limit}` : ""}

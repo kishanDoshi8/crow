@@ -44,7 +44,7 @@ export function RoomTalk({ talk, moments, viewerId, onReact, readOnly = false }:
 			!!moments.resolvedAt &&
 			Date.parse(moments.resolvedAt) < Date.parse(moments.deadline);
 		if (moments.status !== "draft" && !cancelledEarly) {
-			entries.push({ type: "moment", at: moments.deadline, kind: "closed", label: "Betting closed" });
+			entries.push({ type: "moment", at: moments.deadline, kind: "closed", label: "Picks locked" });
 		}
 		if (moments.resolvedAt && moments.status !== "draft" && moments.status !== "locked") {
 			const kind = moments.status === "revealed" ? "revealed" : moments.status;
@@ -52,7 +52,7 @@ export function RoomTalk({ talk, moments, viewerId, onReact, readOnly = false }:
 				moments.status === "revealed"
 					? `${moments.winnerLabel ?? "Result"} won`
 					: moments.status === "cancelled"
-						? "Cancelled"
+						? "Scrapped"
 						: "No result";
 			entries.push({ type: "moment", at: moments.resolvedAt, kind, label });
 		}
@@ -62,7 +62,7 @@ export function RoomTalk({ talk, moments, viewerId, onReact, readOnly = false }:
 	const hidden = entries.length - visible.length;
 
 	const summary = [
-		posts.length ? `${posts.length} ${posts.length === 1 ? "phrase" : "phrases"}` : null,
+		posts.length ? `${posts.length} ${posts.length === 1 ? "squawk" : "squawks"}` : null,
 		totalReactions ? `${totalReactions} ${totalReactions === 1 ? "reaction" : "reactions"}` : null,
 	]
 		.filter(Boolean)
@@ -105,7 +105,7 @@ export function RoomTalk({ talk, moments, viewerId, onReact, readOnly = false }:
 			</div>
 
 			{entries.length === 0 ? (
-				<p className='mt-3 text-xs text-muted-foreground'>Nobody has said anything yet.</p>
+				<p className='mt-3 text-xs text-muted-foreground'>Quiet in here. Someone say something bold.</p>
 			) : (
 				<ol className='mt-4 flex flex-col gap-3'>
 					{visible.map((entry) =>

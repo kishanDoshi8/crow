@@ -88,7 +88,7 @@ export default function RoomActivitiesPage() {
 			<div>
 				<h2 className='text-lg font-semibold'>Activity</h2>
 				<p className='mt-1 text-sm text-muted-foreground'>
-					New predictions, results and who joined.
+					New questions, results and who joined.
 				</p>
 			</div>
 

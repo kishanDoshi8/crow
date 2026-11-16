@@ -20,7 +20,7 @@ export function SmallRoomInviteCard() {
 			</div>
 			<p className='min-w-0 flex-1 text-sm text-muted-foreground'>
 				{memberCount === 1
-					? "It's just you so far. Predictions are better with friends."
+					? "Just you so far. Calling it alone is no fun."
 					: "Two's a start. Bring a few more friends in."}
 			</p>
 			<Button size='sm' variant='outline' onClick={openInvite}>

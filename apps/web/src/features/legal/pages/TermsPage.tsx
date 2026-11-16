@@ -58,16 +58,16 @@ export default function TermsPage() {
 				</p>
 			</LegalSection>
 
-			<LegalSection id='rooms' title='4. Rooms, predictions and results'>
+			<LegalSection id='rooms' title='4. Rooms, questions and results'>
 				<p>
-					Rooms are private and run by their members. The owner and the staff
-					they appoint create predictions, reveal results and can correct a result
-					that went out wrong while its series is running. Owners can remove
-					members.
+					Rooms are private and run by their players. The owner and the hosts
+					and refs they appoint create questions, reveal results and can fix a
+					result that went out wrong while its series is running. Owners can
+					remove players.
 				</p>
 				<p>
-					We don't check whether predictions or results are accurate and we don't
-					settle disagreements inside a room; that's between its members. We may
+					We don't check whether questions or results are accurate and we don't
+					settle disagreements inside a room; that's between its players. We may
 					adjust points, results or standings to fix bugs or undo cheating.
 				</p>
 			</LegalSection>
@@ -79,7 +79,7 @@ export default function TermsPage() {
 					<li>harass, threaten, bully or impersonate anyone;</li>
 					<li>
 						post hateful, sexually explicit, violent or otherwise offensive
-						content, including in usernames, room names and predictions;
+						content, including in usernames, room names and questions;
 					</li>
 					<li>share someone else's personal information without their permission;</li>
 					<li>
@@ -100,8 +100,8 @@ export default function TermsPage() {
 			<LegalSection id='content' title='6. What you post'>
 				<p>
 					You keep ownership of what you post in Crow, like room names,
-					predictions, series ideas and your username. You give us permission to
-					store and show it to the members of your rooms, and to use it to run
+					questions, series ideas and your username. You give us permission to
+					store and show it to the players in your rooms, and to use it to run
 					Crow. We can remove anything that breaks these terms. Past game records
 					stay after you leave a room or delete your account, as explained in the{" "}
 					<Link to='/privacy'>Privacy Policy</Link>.

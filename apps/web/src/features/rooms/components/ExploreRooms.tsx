@@ -105,7 +105,7 @@ function ExploreFacts({ room }: Readonly<{ room: ExploreRoom }>) {
 				</span>
 			) : null}
 			<span className={FACT}>
-				<span className={FACT_LABEL}>Members</span>
+				<span className={FACT_LABEL}>Players</span>
 				<span className={FACT_VALUE}>
 					{room.member_count} of {room.member_limit}
 				</span>
