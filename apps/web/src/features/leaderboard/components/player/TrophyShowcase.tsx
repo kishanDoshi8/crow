@@ -204,7 +204,7 @@ export function TrophyShowcase({
 	if (trophies.length === 0) {
 		return (
 			<p className='rounded-xl border border-dashed border-border/80 px-4 py-5 text-center text-sm text-muted-foreground'>
-				No trophies yet. Finish top 3 in a series to earn one.
+				Shelf's empty. Finish top 3 in a series to fill it.
 			</p>
 		);
 	}

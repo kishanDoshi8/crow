@@ -60,7 +60,7 @@ export function SeriesListView({
 					)}
 				</div>
 				<p className='mt-1 text-sm text-muted-foreground'>
-					Each series has its own points, table and title.
+					Each series has its own points, standings and title.
 				</p>
 			</div>
 

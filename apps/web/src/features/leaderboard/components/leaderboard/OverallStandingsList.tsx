@@ -34,14 +34,14 @@ export function OverallStandingsList({
 	if (entries.length === 0) {
 		return (
 			<p className='py-12 text-center text-sm text-muted-foreground'>
-				No results yet. They appear once a prediction is settled.
+				No results yet. They appear once the first result is in.
 			</p>
 		);
 	}
 
 	return (
 		<div className={cn(STANDINGS_TABLE, attachTop && "rounded-t-none")}>
-			<StandingsHeading right='Profit' />
+			<StandingsHeading right='Net points' />
 			<ol>
 				{entries.map((entry) => (
 					<li key={entry.player_id}>

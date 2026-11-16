@@ -68,13 +68,13 @@ export function LeaderboardPage() {
 
 	let subtitle = "Standings appear once a series starts.";
 	if (scope === "all") {
-		subtitle = "Total profit across every series, with titles won.";
+		subtitle = "Net points across every series, with titles won.";
 	} else if (currentSeries?.status === "active") {
 		const requiredBets = leaderboard[0]?.required_bets ?? 0;
 		subtitle =
 			requiredBets > 0
-				? `Top balance among players with ${requiredBets}+ bets wins the title.`
-				: "Top balance when the series closes wins the title.";
+				? `Most points among players with ${requiredBets}+ picks takes the title.`
+				: "Most points when the series ends takes the title.";
 	} else if (currentSeries) {
 		subtitle = "Final standings.";
 	}

@@ -89,7 +89,7 @@ function saveSeriesEdit({
 	}
 
 	if (expectedGames === null) {
-		toast("Expected games must be a whole number of at least 1.");
+		toast("Expected questions must be a whole number of at least 1.");
 		return;
 	}
 
@@ -217,7 +217,7 @@ export default function SeriesPage() {
 				back(`/rooms/${room.code}/series`);
 			},
 			onError: (error) => {
-				toast("Failed to archive series.", {
+				toast("Couldn't archive the series. Try again.", {
 					description: error.message,
 				});
 			},
@@ -230,7 +230,7 @@ export default function SeriesPage() {
 				toast("Series closed.");
 			},
 			onError: (error) => {
-				toast("Failed to close series.", {
+				toast("Couldn't close the series. Try again.", {
 					description: error.message,
 				});
 			},
@@ -271,7 +271,7 @@ export default function SeriesPage() {
 				resetEditor();
 			},
 			onError: (error) => {
-				toast("Failed to update series.", {
+				toast("Couldn't update the series. Try again.", {
 					description: error.message,
 				});
 			},

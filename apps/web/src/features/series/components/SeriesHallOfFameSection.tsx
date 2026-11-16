@@ -1,6 +1,7 @@
 import type { Series } from "@/features/series/types/series";
 import type { SeriesAward, SeriesPlacement } from "@/shared/lib/api";
 import {
+	getSeriesAwardDescription,
 	getSeriesAwardLabel,
 	getSeriesAwardValue,
 	getSeriesPlacementLabel,
@@ -63,7 +64,7 @@ export function SeriesHallOfFameSection({
 	if (isSeriesPlacementsLoading) {
 		hallOfChampionsContent = (
 			<div className='rounded-2xl border border-border/60 bg-card p-6 text-sm text-muted-foreground'>
-				Loading champions...
+				Loading champions…
 			</div>
 		);
 	} else if (champion) {
@@ -75,7 +76,7 @@ export function SeriesHallOfFameSection({
 					<div className='flex items-stretch justify-between gap-4'>
 						<div className='space-y-2'>
 							<p className='text-sm font-medium text-rank-1'>
-								Series Champion
+								Series champion
 							</p>
 							<p className='text-2xl font-semibold md:text-3xl'>
 								{champion.username}
@@ -137,7 +138,7 @@ export function SeriesHallOfFameSection({
 	} else {
 		hallOfChampionsContent = (
 			<div className='rounded-2xl border border-border/60 bg-card p-6 text-sm text-muted-foreground'>
-				No placements available yet.
+				No champion yet.
 			</div>
 		);
 	}
@@ -145,7 +146,7 @@ export function SeriesHallOfFameSection({
 	if (isSeriesAwardsLoading) {
 		seriesAwardsContent = (
 			<div className='rounded-2xl border border-border/60 bg-card p-5 text-sm text-muted-foreground'>
-				Loading awards...
+				Loading awards…
 			</div>
 		);
 	} else if (seriesAwards.length > 0) {
@@ -188,7 +189,7 @@ export function SeriesHallOfFameSection({
 									) : null}
 								</p>
 								<p className={`text-xs text-muted-foreground`}>
-									{award.description}
+									{getSeriesAwardDescription(award.award_type, award.description)}
 								</p>
 								<p className='font-semibold'>
 									{award.username}
@@ -202,7 +203,7 @@ export function SeriesHallOfFameSection({
 	} else {
 		seriesAwardsContent = (
 			<div className='rounded-2xl border border-border/60 bg-card p-5 text-sm text-muted-foreground'>
-				No awards available yet.
+				No awards yet.
 			</div>
 		);
 	}
@@ -210,12 +211,12 @@ export function SeriesHallOfFameSection({
 	return (
 		<div className='flex flex-col gap-6'>
 			<section className='space-y-4'>
-				<h3 className='text-lg font-semibold'>Hall of Champions</h3>
+				<h3 className='text-lg font-semibold'>Hall of Fame</h3>
 				{hallOfChampionsContent}
 			</section>
 
 			<section className='space-y-3'>
-				<h3 className='text-lg font-semibold'>Special Awards</h3>
+				<h3 className='text-lg font-semibold'>Awards</h3>
 				{seriesAwardsContent}
 			</section>
 		</div>

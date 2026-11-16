@@ -82,7 +82,7 @@ export function SeriesEditDialog({
 						openEnded={formState.openEnded}
 						expectedGames={formState.expectedGames}
 						disabled={isUpdatePending}
-						hint={`${resolvedGames} already resolved.`}
+						hint={`${resolvedGames} already finished.`}
 						onOpenEndedChange={(openEnded) =>
 							onFormStateChange({
 								...formState,
@@ -128,13 +128,13 @@ export function SeriesEditDialog({
 					</div>
 					{pointsLocked ? (
 						<p className='text-xs text-muted-foreground'>
-							Points settings are locked once anyone has placed a
-							bet.
+							Points settings are locked once anyone has made a
+							pick.
 						</p>
 					) : null}
 					<label className='block space-y-1 text-sm'>
 						<span className='text-muted-foreground'>
-							Minimum bets to be ranked
+							Picks to rank
 						</span>
 						<Input
 							type='number'
@@ -146,7 +146,7 @@ export function SeriesEditDialog({
 							disabled={isUpdatePending || rankingLocked}
 						/>
 						<span className='block text-xs text-muted-foreground'>
-							Players who bet on fewer settled predictions don't
+							Players with fewer picks on finished questions don't
 							appear in the standings or win the title. You can
 							change this while the series runs.
 						</span>

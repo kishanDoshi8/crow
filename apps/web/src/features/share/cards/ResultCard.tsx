@@ -83,7 +83,7 @@ export function ResultCard({
 					gap: 32,
 				}}
 			>
-				<Pill tone='win'>✓ Resolved</Pill>
+				<Pill tone='win'>✓ Result in</Pill>
 				<span
 					style={{
 						fontSize: 56,

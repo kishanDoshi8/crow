@@ -136,10 +136,10 @@ export function SeriesDetailView({
 				/>
 			) : (
 				<section className='space-y-3'>
-					<h3 className='text-lg font-semibold'>Open predictions</h3>
+					<h3 className='text-lg font-semibold'>Open questions</h3>
 					<InPlayPredictions
 						predictionsOverride={seriesOpenPredictions}
-						emptyMessage='No open predictions in this series yet.'
+						emptyMessage='No open questions in this series yet.'
 						showSectionHeader={false}
 					/>
 				</section>
@@ -170,12 +170,12 @@ export function SeriesDetailView({
 
 			<section className='space-y-3 mt-8'>
 				<h3 className={`text-lg font-semibold`}>
-					Completed predictions
+					Finished questions
 				</h3>
 				<PredictionHistoryFeed
 					entries={seriesCompletedPredictions}
 					isLoading={isCompletedPredictionsLoading}
-					emptyMessage='Completed predictions for this series will appear here soon.'
+					emptyMessage='Finished questions for this series land here.'
 				/>
 			</section>
 
@@ -194,7 +194,7 @@ export function SeriesDetailView({
 						size='icon-lg'
 						className='rounded-full shadow-lg'
 						onClick={onNewPrediction}
-						aria-label='New prediction'
+						aria-label='New question'
 					>
 						<RocketIcon />
 					</Button>

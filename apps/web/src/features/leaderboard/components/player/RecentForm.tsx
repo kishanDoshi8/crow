@@ -40,7 +40,7 @@ export function RecentForm({ predictions, isLoading }: Readonly<Props>) {
 	if (predictions.length === 0) {
 		return (
 			<p className='text-sm text-muted-foreground'>
-				No resolved predictions yet.
+				No results yet.
 			</p>
 		);
 	}

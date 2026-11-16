@@ -127,9 +127,9 @@ export const STYLE_TITLE_ORDER: StyleTitle[] = [
 
 export const STYLE_TITLE_LABEL: Record<StyleTitle, string> = {
 	SHARPSHOOTER: "Sharpshooter",
-	GIANT_KILLER: "Giant Killer",
-	HIGH_ROLLER: "High Roller",
-	EVER_PRESENT: "Ever-Present",
+	GIANT_KILLER: "Giant killer",
+	HIGH_ROLLER: "Fearless",
+	EVER_PRESENT: "Ever-present",
 };
 
 export type IdentityTitle = {
@@ -161,14 +161,14 @@ export function getIdentityTitle({
 		latestCompletedSeriesId &&
 		titles.some((t) => t.seriesId === latestCompletedSeriesId)
 	) {
-		return { label: "Reigning Champion", tone: "champion" };
+		return { label: "Reigning champion", tone: "champion" };
 	}
 	if (titles.length >= 2) {
-		return { label: `${titles.length}× Champion`, tone: "champion" };
+		return { label: `${titles.length}× champion`, tone: "champion" };
 	}
 	if (titles.length === 1) return { label: "Champion", tone: "champion" };
 	if (placements.length >= PODIUM_FINISHER_MIN) {
-		return { label: "Podium Finisher", tone: "podium" };
+		return { label: "Podium finisher", tone: "podium" };
 	}
 	const style = STYLE_TITLE_ORDER.find((title) => styleTitles.includes(title));
 	if (style) {

@@ -165,7 +165,7 @@ export function SeriesOrganizerActionsMenu({
 									<PencilIcon className='size-5 text-muted-foreground' />
 								}
 								label='Edit details'
-								description='Title, description, games, points and ranking'
+								description='Title, description, questions, points and ranking'
 								disabled={disableEditableRows}
 								onClick={onEdit}
 							/>
@@ -236,7 +236,7 @@ export function SeriesOrganizerActionsMenu({
 									It no longer appears in the series list or
 									picker.
 								</li>
-								<li>Its predictions stay in History.</li>
+								<li>Its questions stay in History.</li>
 							</ul>
 						</div>
 						<FieldLabel>
@@ -300,7 +300,7 @@ export function SeriesOrganizerActionsMenu({
 							<ul className='mt-2 list-none space-y-1 text-sm text-muted-foreground'>
 								<li>
 									<TrophyIcon className='size-4 inline-block mr-2 text-accent' />
-									The top 3 and special awards go into the
+									The top 3 and awards go into the
 									Hall of Fame.
 								</li>
 								<li>
@@ -309,14 +309,14 @@ export function SeriesOrganizerActionsMenu({
 								</li>
 								<li>
 									<LockIcon className='size-4 inline-block mr-2 text-accent' />
-									Predictions and settings become read-only.
+									Questions and settings become read-only.
 								</li>
 								{scheduledCount > 0 ? (
 									<li className='text-destructive'>
 										<Trash2Icon className='size-4 inline-block mr-2' />
 										{scheduledCount === 1
-											? "1 scheduled prediction will be deleted."
-											: `${scheduledCount} scheduled predictions will be deleted.`}
+											? "1 scheduled question will be deleted."
+											: `${scheduledCount} scheduled questions will be deleted.`}
 									</li>
 								) : null}
 							</ul>
