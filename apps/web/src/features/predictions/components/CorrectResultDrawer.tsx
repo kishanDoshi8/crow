@@ -141,7 +141,9 @@ export function CorrectResultDrawer({
 						</span>
 					</DrawerDescription>
 				</DrawerHeader>
-				<div className='px-4'>
+				{/* Choices scroll on their own, so with many options the buttons
+				    below stay in reach. */}
+				<div className='min-h-0 flex-1 overflow-y-auto overscroll-contain px-4'>
 					<RadioGroup
 						className='w-full'
 						value={selected}
@@ -182,7 +184,7 @@ export function CorrectResultDrawer({
 						<NoResultReasonField value={reason} onChange={setReason} className='mt-4' />
 					) : null}
 				</div>
-				<DrawerFooter className='gap-3'>
+				<DrawerFooter className='gap-3 border-t'>
 					<Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
 						<Button
 							variant='linear'
