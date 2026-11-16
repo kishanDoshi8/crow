@@ -25,8 +25,8 @@ begin
     perform private.push_for_predictions(
       'deadline_1h',
       v_ids,
-      '⏰ 1 Hour Left to Bet!',
-      '⏰ 1 hour left on %s predictions'
+      '⏰ 1 hour left to pick',
+      '⏰ 1 hour left on %s questions'
     );
   end if;
 end;

@@ -188,8 +188,8 @@ begin
     perform private.push_for_predictions(
       'prediction_live',
       v_ids,
-      '🎯 New Prediction',
-      '🎯 %s new predictions'
+      '🎯 New question',
+      '🎯 %s new questions'
     );
   end if;
 

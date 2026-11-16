@@ -53,8 +53,8 @@ begin
   perform private.push_for_predictions(
     'prediction_live',
     v_published,
-    '🎯 New Prediction',
-    '🎯 %s new predictions'
+    '🎯 New question',
+    '🎯 %s new questions'
   );
 
   return coalesce(array_length(v_published, 1), 0);

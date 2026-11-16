@@ -4,8 +4,8 @@ How Crow talks, and which word means what. Read with `PRODUCT.md` (brand
 personality, Crow voice) before writing any user-facing copy: UI strings, push
 notifications, share text, error messages, meta tags.
 
-Status: **DRAFT**. The proposed terms are marked ⚑ until they're agreed. Once
-they are, apply the change list in the appendix and delete it.
+Status: all five ⚑ decisions in §3 are **agreed as recommended** (question,
+"How sure are you?", Owner/Host/Ref/Player, squawks, Scrap vs No result).
 
 ---
 

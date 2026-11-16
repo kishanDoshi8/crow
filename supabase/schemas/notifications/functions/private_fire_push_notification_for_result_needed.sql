@@ -38,7 +38,7 @@ begin
         'result_needed',
         v_rec.id,
         v_rec.room_id,
-        '⚑ Result needed',
+        '⏳ Result needed',
         coalesce(v_rec.room_name, 'Your room') || ' · ' || v_rec.title,
         '/rooms/' || v_rec.room_code || '/predictions/' || v_rec.id::text,
         jsonb_build_object(

@@ -275,7 +275,7 @@ select is(
 select is(
   (select row(count(*), max(prediction_id::text), max(payload->'payload'->>'title'), max(payload->'payload'->>'url'))::text
    from private.notification_dispatch_log where event_type = 'prediction_live'),
-  row(1::bigint, null::text, '🎯 2 new predictions', 'https://crow.test/rooms/' || current_setting('test.room_code'))::text,
+  row(1::bigint, null::text, '🎯 2 new questions', 'https://crow.test/rooms/' || current_setting('test.room_code'))::text,
   'several going live at once send one push to the room'
 );
 select is(private.publish_scheduled_predictions(), 0, 'running it again does nothing');
