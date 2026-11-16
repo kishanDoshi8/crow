@@ -30,7 +30,7 @@ import {
 	type StyleTitle,
 } from "@/shared/lib/trophyPrestige";
 import { EASE_OUT } from "@/shared/lib/motion";
-import { cn } from "@/shared/lib/utils";
+import { cn, initialsOf } from "@/shared/lib/utils";
 import { AnimatePresence, m } from "framer-motion";
 import {
 	CalendarCheckIcon,
@@ -211,7 +211,7 @@ export function PlayerProfileDialog({
 						)}
 					>
 						<AvatarFallback className='bg-muted/70 text-lg font-semibold text-foreground/85'>
-							{username ? username.slice(0, 2).toUpperCase() : ""}
+							{username ? initialsOf(username) : ""}
 						</AvatarFallback>
 					</Avatar>
 					<TitleComponent className='text-2xl'>

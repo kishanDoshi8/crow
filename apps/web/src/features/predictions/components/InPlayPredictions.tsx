@@ -32,6 +32,7 @@ import { PredictionStatusRow } from "@/features/predictions/view/PredictionStatu
 import {
 	formatPoints,
 	optionTone,
+	shownWinnerId,
 	tallyOptions,
 	type OptionTally,
 } from "@/features/predictions/lib/predictionView";
@@ -171,12 +172,12 @@ function cardRows(options: OptionTally[], keep: (string | null)[]) {
 function CardOptions({ status, options, winningOptionId, myOptionId }: Readonly<CardOptionsProps>) {
 	const settled = status === "revealed";
 	const voided = status === "no_result" || status === "cancelled";
-	const { shown, hidden } = cardRows(options, [myOptionId, settled ? winningOptionId : null]);
+	const { shown, hidden } = cardRows(options, [myOptionId, shownWinnerId(status, winningOptionId)]);
 
 	return (
 		<ul className='flex flex-col gap-2.5' aria-label='Options'>
 			{shown.map(({ option, index, percent }) => {
-				const isWinner = settled && option.id === winningOptionId;
+				const isWinner = option.id === shownWinnerId(status, winningOptionId);
 				const tone = optionTone(index);
 				const muted = (settled && !isWinner) || voided;
 				return (
@@ -199,7 +200,7 @@ function CardOptions({ status, options, winningOptionId, myOptionId }: Readonly<
 							<span
 								className={cn(
 									"ml-auto shrink-0 font-semibold tabular-nums",
-									isWinner && "text-win",
+									isWinner && settled && "text-win",
 								)}
 							>
 								{percent}%
@@ -209,7 +210,7 @@ function CardOptions({ status, options, winningOptionId, myOptionId }: Readonly<
 							<span
 								className={cn(
 									"block h-full rounded-full transition-[width] duration-500",
-									isWinner ? "bg-win" : muted ? "bg-muted-foreground/60" : tone.bar,
+									isWinner && settled ? "bg-win" : muted ? "bg-muted-foreground/60" : tone.bar,
 								)}
 								style={{ width: `${percent}%` }}
 							/>

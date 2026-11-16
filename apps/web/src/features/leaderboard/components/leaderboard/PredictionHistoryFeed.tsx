@@ -114,8 +114,13 @@ function PredictionHistoryCard({ entry }: Readonly<CardProps>) {
 			</div>
 
 			<div className='flex flex-wrap items-center gap-1.5'>
-				{revealed && winner ? (
-					<FactTag label='Winner' className='border-win/40 [&>span:last-child]:text-win'>
+				{winner && entry.status !== "cancelled" ? (
+					// A no-result can still have had a winner: nobody picked it, or
+					// only one side had bets, so everyone was refunded.
+					<FactTag
+						label='Winner'
+						className={cn(revealed && "border-win/40 [&>span:last-child]:text-win")}
+					>
 						{winner.label}
 					</FactTag>
 				) : (

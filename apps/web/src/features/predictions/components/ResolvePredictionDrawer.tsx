@@ -75,33 +75,37 @@ export function ResolvePredictionDrawer({
 						<span className='block mt-1'>
 							Choose the winning option.
 						</span>
-						<RadioGroup
-							className={`w-full mt-4`}
-							value={selectedOption}
-							onValueChange={setSelectedOption}
-						>
-							{prediction.prediction_options.map((option) => (
-								<FieldLabel
-									key={option.id}
-									className={`flex items-center gap-2 cursor-pointer`}
-								>
-									<Field orientation={"horizontal"}>
-										<RadioGroupItem
-											value={option.id}
-											id={option.id}
-										/>
-										<FieldContent>
-											<FieldTitle>
-												<span>{option.label}</span>
-											</FieldTitle>
-										</FieldContent>
-									</Field>
-								</FieldLabel>
-							))}
-						</RadioGroup>
 					</DrawerDescription>
 				</DrawerHeader>
-				<DrawerFooter className={`gap-3`}>
+				{/* Options scroll on their own, so with many of them the buttons
+				    below stay in reach. */}
+				<div className='min-h-0 flex-1 overflow-y-auto overscroll-contain px-4'>
+					<RadioGroup
+						className='w-full'
+						value={selectedOption}
+						onValueChange={setSelectedOption}
+					>
+						{prediction.prediction_options.map((option) => (
+							<FieldLabel
+								key={option.id}
+								className={`flex items-center gap-2 cursor-pointer`}
+							>
+								<Field orientation={"horizontal"}>
+									<RadioGroupItem
+										value={option.id}
+										id={option.id}
+									/>
+									<FieldContent>
+										<FieldTitle>
+											<span>{option.label}</span>
+										</FieldTitle>
+									</FieldContent>
+								</Field>
+							</FieldLabel>
+						))}
+					</RadioGroup>
+				</div>
+				<DrawerFooter className='gap-3 border-t'>
 					<RevealResults
 						predictionId={prediction.id}
 						roomId={roomId}

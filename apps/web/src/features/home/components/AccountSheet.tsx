@@ -16,7 +16,7 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from "@/shared/ui";
-import { cn } from "@/shared/lib/utils";
+import { cn, initialsOf } from "@/shared/lib/utils";
 
 type Props = {
 	open: boolean;
@@ -94,5 +94,5 @@ export function AccountSheet({ open, onOpenChange, onHowToPlay }: Readonly<Props
 }
 
 export function accountInitials(username: string | undefined) {
-	return username ? username.slice(0, 2).toUpperCase() : "";
+	return username ? initialsOf(username) : "";
 }

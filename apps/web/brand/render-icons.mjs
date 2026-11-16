@@ -93,6 +93,7 @@ await png(tile, 192, "pwa-192x192.png");
 await png(tile, 512, "pwa-512x512.png");
 await png(apple, 180, "apple-touch-icon.png");
 await png(maskable, 512, "pwa-maskable-512x512.png");
+await png(maskable, 192, "pwa-maskable-192x192.png");
 await png(badge, 96, "notification-badge-96.png");
 await browser.close();
 console.log("wrote favicon.svg");

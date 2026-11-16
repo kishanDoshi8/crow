@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CheckIcon, LockIcon, MinusCircleIcon } from "lucide-react";
-import { cn } from "@/shared/lib/utils";
+import { cn, initialsOf } from "@/shared/lib/utils";
 import { REACTIONS, type ReactionKey } from "../reactions";
 import type { PredictionTalk, TalkPost } from "../types";
 
@@ -136,7 +136,7 @@ function PostRow({ post, isMe }: Readonly<{ post: TalkPost; isMe: boolean }>) {
 	return (
 		<li className='flex items-start gap-2.5'>
 			<span className='flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary text-[10px] font-semibold'>
-				{post.username.slice(0, 2).toUpperCase()}
+				{initialsOf(post.username)}
 			</span>
 			<div className='min-w-0'>
 				<p className='text-xs text-muted-foreground'>

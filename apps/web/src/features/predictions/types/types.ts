@@ -36,7 +36,7 @@ export interface Prediction {
   // When it goes live (scheduled) or went live; null on older predictions.
   opens_at?:         string | null
   winning_option_id: string | null
-  // created_at:        string
+  created_at?:       string
   resolved_at:       string | null
   // Staff member who revealed, marked no result, or cancelled it.
   resolved_by?:      string | null

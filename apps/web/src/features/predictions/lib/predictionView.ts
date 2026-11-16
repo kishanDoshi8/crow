@@ -1,3 +1,4 @@
+import { initialsOf } from "@/shared/lib/utils";
 import type { Bet } from "@/features/predictions/types/bet";
 import type { Prediction, PredictionOption } from "@/features/predictions/types/types";
 
@@ -54,7 +55,7 @@ export function tallyOptions(
 }
 
 export function initials(name: string) {
-	return name.replace(/[^\p{L}\p{N}]/gu, "").slice(0, 2).toUpperCase() || "?";
+	return initialsOf(name);
 }
 
 export function formatPoints(points: number) {
@@ -76,6 +77,13 @@ export function formatAgo(iso: string, now = Date.now()) {
 	const hours = Math.floor(minutes / 60);
 	if (hours < 24) return `${hours}h ago`;
 	return `${Math.floor(hours / 24)}d ago`;
+}
+
+// The option to mark as the winner, when there is one: a reveal, or a
+// no-result that still had a winner (nobody picked it, or only one side had
+// bets, so everyone got their points back).
+export function shownWinnerId(status: Prediction["status"], winningOptionId: string | null | undefined) {
+	return status === "revealed" || status === "no_result" ? (winningOptionId ?? null) : null;
 }
 
 // "8:42 PM" today, "Sat 8:42 PM" this week, "Nov 2" before that.

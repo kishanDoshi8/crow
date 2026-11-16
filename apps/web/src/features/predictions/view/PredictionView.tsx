@@ -19,6 +19,7 @@ import {
 import { useRoomContext } from "@/shared/lib/roomContext";
 import { useOnline } from "@/shared/lib/offline";
 import { useIsDesktop } from "@/shared/lib/useMediaQuery";
+import { cn } from "@/shared/lib/utils";
 import { useBets } from "@/features/predictions/hooks/bet";
 import { ResolvePredictionDrawer } from "@/features/predictions/components/ResolvePredictionDrawer";
 import type { Prediction } from "@/features/predictions/types/types";
@@ -33,6 +34,7 @@ import { YourCall } from "./YourCall";
 import { PicksList } from "./PicksList";
 import { BetSheet } from "./BetSheet";
 import { PredictionStaffMenu } from "./PredictionStaffMenu";
+import { PredictionStepper } from "./PredictionStepper";
 
 type Props = {
 	prediction: Prediction | null | undefined;
@@ -59,7 +61,8 @@ export function PredictionView({
 			</p>
 		);
 	}
-	return <LoadedPrediction prediction={prediction} onDeadline={onDeadline} />;
+	// Keyed, so stepping to another prediction starts with nothing open.
+	return <LoadedPrediction key={prediction.id} prediction={prediction} onDeadline={onDeadline} />;
 }
 
 function LoadedPrediction({
@@ -306,6 +309,13 @@ function LoadedPrediction({
 						<PredictionHeading
 							prediction={prediction}
 							roomCode={room.code}
+							nav={
+								<PredictionStepper
+									prediction={prediction}
+									roomId={room.id}
+									roomCode={room.code}
+								/>
+							}
 							menu={
 								<PredictionStaffMenu
 									prediction={prediction}
@@ -379,6 +389,7 @@ function LoadedPrediction({
 						)}
 					</section>
 
+					{isBetsLoading && !isScheduled ? <PicksSkeleton /> : null}
 					{!isBetsLoading && !isScheduled ? (
 						<PicksList
 							status={status}
@@ -449,30 +460,95 @@ function LoadedPrediction({
 	);
 }
 
+// Placeholders the size of what replaces them, so nothing jumps on load.
+// An option card: label row, bar and points, inside py-3 and a border.
 function OptionsSkeleton({ count }: Readonly<{ count: number }>) {
 	return (
 		<div className='flex flex-col gap-2'>
 			{Array.from({ length: count }, (_, index) => (
-				<Skeleton key={index} className='h-[84px] w-full rounded-xl' />
+				<Skeleton key={index} className='h-[5.5rem] w-full rounded-xl' />
 			))}
 		</div>
 	);
 }
 
-function PredictionViewSkeleton() {
+// A section heading: the title on the left, its count on the right.
+function SectionHeadingSkeleton({ title }: Readonly<{ title: string }>) {
 	return (
-		<div
-			className='mx-auto flex w-full max-w-md flex-col gap-5 px-4 pt-4'
-			aria-busy='true'
-		>
-			<div className='space-y-2'>
-				<Skeleton className='h-3 w-32' />
-				<Skeleton className='h-6 w-full' />
-				<Skeleton className='h-6 w-2/3' />
+		<div className='mb-2.5 flex h-5 items-center justify-between gap-3'>
+			<Skeleton className={cn("h-3.5", title)} />
+			<Skeleton className='h-3 w-28' />
+		</div>
+	);
+}
+
+// Picks while the bets load: the heading and one short panel.
+function PicksSkeleton() {
+	return (
+		<div aria-hidden>
+			<SectionHeadingSkeleton title='w-12' />
+			<Skeleton className='h-16 w-full rounded-xl' />
+		</div>
+	);
+}
+
+// The whole page before the prediction arrives, laid out like it: the same
+// shell, columns and gaps, the bottom bar on phones and Room talk beside it
+// on desktop.
+function PredictionViewSkeleton() {
+	const isDesktop = useIsDesktop();
+
+	const main = (
+		<>
+			<div className='flex flex-col gap-4'>
+				<div>
+					<div className='flex min-h-6 items-center justify-between gap-2'>
+						<Skeleton className='h-3 w-36' />
+						<Skeleton className='h-6 w-16 rounded-full' />
+					</div>
+					{/* Two lines of the 22px question at its line height. */}
+					<div className='mt-1'>
+						<div className='flex h-[1.9rem] items-center'>
+							<Skeleton className='h-5 w-full' />
+						</div>
+						<div className='flex h-[1.9rem] items-center'>
+							<Skeleton className='h-5 w-3/5' />
+						</div>
+					</div>
+				</div>
+				{/* The status strip: icon, two lines and the time. */}
+				<Skeleton className='h-15 w-full rounded-xl' />
 			</div>
-			<Skeleton className='h-11 w-full rounded-lg' />
-			<OptionsSkeleton count={2} />
-			<Skeleton className='h-4 w-24' />
+			<div>
+				<SectionHeadingSkeleton title='w-28' />
+				<OptionsSkeleton count={2} />
+			</div>
+			<PicksSkeleton />
+		</>
+	);
+
+	return (
+		<div className='flex min-h-[calc(100dvh-3.5rem)] flex-col' aria-busy='true' aria-label='Loading prediction'>
+			{isDesktop ? (
+				<div className='mx-auto grid w-full max-w-260 grid-cols-[minmax(0,1fr)_22rem] items-start gap-8 px-8 pt-6 pb-8'>
+					<div className='flex min-w-0 flex-col gap-7' aria-hidden>
+						{main}
+					</div>
+					<Skeleton className='h-64 rounded-2xl' />
+				</div>
+			) : (
+				<>
+					<div className='mx-auto flex w-full max-w-md flex-1 flex-col gap-7 px-4 pt-4 pb-8' aria-hidden>
+						{main}
+					</div>
+					<div className='sticky bottom-0 border-t bg-background' aria-hidden>
+						<div className='mx-auto flex w-full max-w-md items-center gap-3 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]'>
+							<Skeleton className='size-12 shrink-0 rounded-full' />
+							<Skeleton className='h-12 flex-1 rounded-full' />
+						</div>
+					</div>
+				</>
+			)}
 		</div>
 	);
 }

@@ -6,7 +6,7 @@ import {
 	type ReactNode,
 } from "react";
 import { app, CARD_SIZE, STORY_PADDING, type CardFormat } from "@/features/share/tokens";
-import { twColor } from "@/shared/lib/utils";
+import { twColor, initialsOf } from "@/shared/lib/utils";
 import { CrowGlyph } from "@/shared/ui";
 
 const columnStyle = (gap: number): CSSProperties => ({
@@ -256,9 +256,7 @@ export function CardFooter({
 	);
 }
 
-// "carol" -> "CA", "Nadia Newbie" -> "NN".
+// "carol" -> "CA", "Nadia Newbie" -> "NN", "JohnDoe" -> "JD".
 export function initials(name: string) {
-	const words = name.trim().split(/\s+/).filter(Boolean);
-	const letters = words.length > 1 ? words[0][0] + words[1][0] : name.slice(0, 2);
-	return letters.toUpperCase();
+	return initialsOf(name);
 }

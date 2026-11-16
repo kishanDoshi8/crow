@@ -1,6 +1,7 @@
-import { correctPredictionResult, createPrediction, createPredictions, deleteScheduledPrediction, getActivePrediction, getActivePredictions, getPrediction, getRoomTags, publishPredictionNow, resolvePrediction, resolvePredictions, setPredictionDetails, updatePrediction, type PredictionDraft, type PredictionResult } from "@/shared/lib/api";
+import { correctPredictionResult, createPrediction, createPredictions, deleteScheduledPrediction, getActivePrediction, getActivePredictions, getPrediction, getPredictionNeighbours, getRoomTags, publishPredictionNow, resolvePrediction, resolvePredictions, setPredictionDetails, updatePrediction, type PredictionDraft, type PredictionResult } from "@/shared/lib/api";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { roomKeys } from "@/shared/constants/queryKeys";
+import type { Prediction } from "@/features/predictions/types/types";
 import { invalidateRoomResults } from "@/shared/lib/roomCache";
 
 export const useActivePrediction = (roomId?: string) => {
@@ -164,6 +165,23 @@ export const usePrediction = (roomId?: string, predictionId?: string) => {
         queryKey: roomKeys.prediction(roomId ?? "", predictionId ?? ""),
         queryFn: () => getPrediction(predictionId ?? ""),
         enabled: !!predictionId && !!roomId,
+    });
+}
+
+// The predictions before and after this one, for the arrows on its page.
+export const usePredictionNeighbours = (roomId: string, prediction: Prediction | null | undefined) => {
+    return useQuery({
+        queryKey: [...roomKeys.prediction(roomId, prediction?.id ?? ""), "neighbours"],
+        queryFn: () =>
+            getPredictionNeighbours({
+                roomId,
+                predictionId: prediction?.id ?? "",
+                seriesId: prediction?.seriesId ?? prediction?.series_id ?? null,
+                number: prediction?.seriesPredictionNumber ?? prediction?.series_prediction_number ?? null,
+                createdAt: prediction?.created_at ?? null,
+            }),
+        enabled: !!prediction,
+        staleTime: 60_000,
     });
 }
 

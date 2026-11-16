@@ -51,6 +51,14 @@ export function PredictionStatusRow({
 				<span className='truncate'>{winnerLabel ?? "Result"} won</span>
 			</span>
 		);
+	} else if (status === "no_result" && winnerLabel) {
+		// It had a winner; nobody was paid, so it stays grey.
+		pill = (
+			<span className={cn(PILL, "bg-muted text-muted-foreground")}>
+				<CheckIcon className='size-3 shrink-0' strokeWidth={3} aria-hidden />
+				<span className='truncate'>{winnerLabel} won</span>
+			</span>
+		);
 	} else {
 		pill = (
 			<span className={cn(PILL, "bg-muted text-muted-foreground")}>
@@ -162,16 +170,21 @@ export function PredictionStatusLine({
 	}
 
 	const cancelled = prediction.status === "cancelled";
-	const Icon = cancelled ? XCircleIcon : MinusCircleIcon;
+	// A no-result can still have a winner (nobody picked it, or only one side
+	// had bets): say who won, then why everyone was refunded.
+	const hadWinner = !cancelled && !!prediction.winning_option_id && !!winnerLabel;
+	const Icon = cancelled ? XCircleIcon : hadWinner ? CheckIcon : MinusCircleIcon;
 
 	return (
 		<StatusStrip
 			tone='muted'
 			icon={<Icon className='size-4' aria-hidden />}
-			title={cancelled ? "Cancelled" : "No result"}
-			reason={prediction.no_result_reason}
+			title={cancelled ? "Cancelled" : hadWinner ? `${winnerLabel} won` : "No result"}
+			reason={prediction.no_result_reason ?? (hadWinner ? "Everyone got their points back." : null)}
 			lines={[
-				resolvedByName ? `${cancelled ? "Cancelled" : "Marked"} by ${resolvedByName}` : null,
+				resolvedByName
+					? `${cancelled ? "Cancelled" : hadWinner ? "Revealed" : "Marked"} by ${resolvedByName}`
+					: null,
 				corrected,
 			]}
 			aside={when ? { main: when } : null}
