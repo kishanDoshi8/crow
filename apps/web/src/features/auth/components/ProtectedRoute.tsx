@@ -16,6 +16,10 @@ export function ProtectedRoute() {
 	}
 
 	if (!user) {
+		// Visitors at the bare address get the landing page, not a sign-in form.
+		if (location.pathname === "/" && !location.search) {
+			return <Navigate to='/welcome' replace />;
+		}
 		// Remember the page (e.g. an invite link) through signup and Google sign-in.
 		savePostAuthRedirect(location.pathname + location.search);
 		return <Navigate to='/login' state={{ from: location }} replace />;

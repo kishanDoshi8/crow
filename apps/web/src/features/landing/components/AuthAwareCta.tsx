@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { useAuth } from "@/features/auth";
 import { savePostAuthRedirect } from "@/shared/lib/postAuthRedirect";
 import { cn } from "@/shared/lib/utils";
@@ -52,15 +54,39 @@ function Swap({
 }
 
 export function HeaderCta() {
-	const { user, isLoading } = useAuth();
+	const { user, isLoading, signOut } = useAuth();
 	const flow = useStartFlow();
+	const [isSigningOut, setIsSigningOut] = useState(false);
+
+	// Signing out keeps you here; the buttons switch back to the visitor ones.
+	const handleSignOut = async () => {
+		setIsSigningOut(true);
+		try {
+			await signOut();
+			toast.success("Signed out.", { position: "top-center" });
+		} catch {
+			toast.error("Couldn't sign out. Try again.", { position: "top-center" });
+		} finally {
+			setIsSigningOut(false);
+		}
+	};
 
 	return (
 		<Swap loading={isLoading} placeholder={<Skeleton className='h-8 w-24' />}>
 			{user ? (
-				<Button size='sm' onClick={flow.openRooms}>
-					Open Crow
-				</Button>
+				<div className='flex items-center gap-1 sm:gap-2'>
+					<Button
+						size='sm'
+						variant='ghost'
+						onClick={() => void handleSignOut()}
+						disabled={isSigningOut}
+					>
+						Sign out
+					</Button>
+					<Button size='sm' onClick={flow.openRooms}>
+						Open Crow
+					</Button>
+				</div>
 			) : (
 				<Button size='sm' variant='ghost' onClick={flow.signIn}>
 					Sign in

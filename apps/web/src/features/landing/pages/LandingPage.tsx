@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { RankChange } from "@/features/leaderboard";
 import { CrowTile } from "@/shared/ui";
 import { DemoQuestion } from "@/features/landing/components/DemoQuestion";
 import {
@@ -7,27 +8,28 @@ import {
 	HeroCta,
 } from "@/features/landing/components/AuthAwareCta";
 
-// A real sequence, so it gets day markers: how one week plays in a room.
+// One example week, framed as an example: the host sets the questions and
+// the timing, only the order (ask, pick, lock, reveal) is fixed.
 const WEEK = [
 	{
 		day: "Mon",
-		title: "Everyone tops up",
-		body: "Played last week? You get your weekly top-up. Everyone started on the same points, so nobody runs away with it.",
+		title: "Points top up",
+		body: "If your series has a weekly top-up, everyone who played last week gets it. You choose the amount, or none.",
 	},
 	{
 		day: "Thu",
-		title: "Your host asks",
-		body: "The weekend's questions go up. Who wins? Both teams to score? Anything your group argues about.",
+		title: "You ask",
+		body: "Post the weekend's questions, or schedule them ahead. Who wins? Both teams to score? Anything your group argues about.",
 	},
 	{
 		day: "Sat",
 		title: "Picks lock",
-		body: "Make your call and put points on it. Who picked what stays hidden until picks lock, so nobody copies.",
+		body: "Everyone makes their call before the deadline you set. Who picked what stays hidden until then, so nobody copies.",
 	},
 	{
 		day: "Sun",
 		title: "Result's in",
-		body: "The host reveals it, points move and the standings update. Somebody's top crow. Somebody eats crow.",
+		body: "You reveal the result, points move and the standings update. Somebody's top crow. Somebody eats crow.",
 	},
 ] as const;
 
@@ -39,10 +41,10 @@ const FAIR_PLAY = [
 ] as const;
 
 const STANDINGS = [
-	{ rank: 1, name: "Priya", points: 1640, note: "Top crow" },
-	{ rank: 2, name: "Sam", points: 1410, note: "" },
-	{ rank: 3, name: "Jordan", points: 1185, note: "" },
-	{ rank: 4, name: "You", points: 1020, note: "Up 2" },
+	{ rank: 1, name: "Priya", points: 1640, note: "Top crow", change: 0 },
+	{ rank: 2, name: "Sam", points: 1410, note: "", change: -1 },
+	{ rank: 3, name: "Jordan", points: 1185, note: "", change: -1 },
+	{ rank: 4, name: "You", points: 1020, note: "", change: 2 },
 ] as const;
 
 const RANK_COLOR: Record<number, string> = {
@@ -92,8 +94,12 @@ export default function LandingPage() {
 				<section className='border-t border-border'>
 					<div className='mx-auto w-full max-w-6xl px-4 py-16 md:px-8 lg:py-24'>
 						<h2 className='max-w-xl text-3xl font-bold tracking-tight md:text-4xl'>
-							One week in a room
+							Your room, your rules
 						</h2>
+						<p className='mt-4 max-w-xl text-base leading-relaxed text-pretty text-muted-foreground'>
+							You decide what to ask and when picks close: one question a
+							month or ten a weekend. Here's how a football weekend might go.
+						</p>
 						<ol className='mt-10 grid gap-0 lg:grid-cols-4 lg:gap-8'>
 							{WEEK.map((step, index) => (
 								<li
@@ -169,19 +175,14 @@ export default function LandingPage() {
 										>
 											{row.rank}
 										</span>
-										<span className='flex-1 text-sm font-medium'>
+										<span className='flex flex-1 items-center gap-2 text-sm font-medium'>
 											{row.name}
 											{row.note ? (
-												<span
-													className={
-														row.rank === 1
-															? "ml-2 text-xs font-normal text-rank-1"
-															: "ml-2 text-xs font-normal text-win"
-													}
-												>
+												<span className='text-xs font-normal text-rank-1'>
 													{row.note}
 												</span>
 											) : null}
+											<RankChange change={row.change} pill />
 										</span>
 										<span className='text-sm tabular-nums text-muted-foreground'>
 											{row.points.toLocaleString()} pts
