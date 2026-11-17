@@ -20,6 +20,11 @@ import { PredictionPage } from "@/features/predictions/pages/PredictionPage";
 import { LeaderboardPage } from "@/features/leaderboard/pages/LeaderboardPage";
 
 const UpNextPage = lazy(roomPageLoaders.upNext);
+const LandingPage = lazy(() =>
+	import("@/features/landing").then((module) => ({
+		default: module.LandingPage,
+	})),
+);
 const PrivacyPage = lazy(() => import("@/features/legal/pages/PrivacyPage"));
 const TermsPage = lazy(() => import("@/features/legal/pages/TermsPage"));
 const DeleteAccountPage = lazy(
@@ -76,6 +81,12 @@ export const router = createBrowserRouter([
 		// Public, signed in or not: Google's consent screen links here.
 		path: "/privacy",
 		element: withSuspense(<PrivacyPage />),
+		errorElement: <RouteErrorBoundary />,
+	},
+	{
+		// Public landing page (mockup). Signed in or not; the buttons adapt.
+		path: "/welcome",
+		element: withSuspense(<LandingPage />),
 		errorElement: <RouteErrorBoundary />,
 	},
 	{
