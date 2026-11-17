@@ -94,7 +94,7 @@ export function RoomSidebar({ room, collapsed }: Readonly<Props>) {
 						<span className={cn(label, "leading-tight")}>
 							<span className='block truncate font-bold'>{room.name}</span>
 							<span className='block text-xs text-muted-foreground'>
-								{memberCount} {memberCount === 1 ? "member" : "members"}
+								{memberCount} {memberCount === 1 ? "player" : "players"}
 							</span>
 						</span>
 						<ChevronsUpDownIcon className={cn("size-4 shrink-0 text-muted-foreground", label, "flex-none")} />
@@ -155,7 +155,7 @@ export function RoomSidebar({ room, collapsed }: Readonly<Props>) {
 							"flex-none px-3.25 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground",
 						)}
 					>
-						Staff
+						Hosts
 					</p>
 					<RailTip label={toResolve > 0 ? `Needs you · ${toResolve}` : "Needs you"} collapsed={collapsed}>
 						<NavLink
@@ -176,18 +176,18 @@ export function RoomSidebar({ room, collapsed }: Readonly<Props>) {
 						</NavLink>
 					</RailTip>
 					{can.organize && currentSeries?.status === "active" ? (
-						<RailTip label='New prediction' collapsed={collapsed}>
+						<RailTip label='New question' collapsed={collapsed}>
 							<Link
 								to={`${base}/predictions/new`}
 								state={{ seriesId: currentSeries.id }}
-								aria-label={collapsed ? "New prediction" : undefined}
+								aria-label={collapsed ? "New question" : undefined}
 								className={cn(
 									ITEM,
 									"mt-1 bg-linear-to-r from-primary to-accent font-semibold text-primary-foreground hover:bg-transparent hover:text-primary-foreground hover:brightness-110",
 								)}
 							>
 								<PlusIcon className={ICON} aria-hidden='true' />
-								<span className={label}>New prediction</span>
+								<span className={label}>New question</span>
 							</Link>
 						</RailTip>
 					) : null}

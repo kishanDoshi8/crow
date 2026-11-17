@@ -24,19 +24,19 @@ const SLIDES = [
 		emoji: "🪙",
 		title: "Everyone starts level",
 		description:
-			"Each series, every player gets the same points. Bet during the week and you get a top-up on Monday. Nobody carries a head start from last time.",
+			"Each series, every player gets the same points. Make a pick during the week and you get a top-up on Monday. Nobody carries a head start from last time.",
 	},
 	{
-		emoji: "💰",
-		title: "Place your bet",
+		emoji: "📣",
+		title: "Make your call",
 		description:
-			"When a prediction is open, pick a side and put points on it. The more you risk, the more you can win.",
+			"When a question is open, pick an option and put points on it. The surer you are, the more you put on, and the more you can win.",
 	},
 	{
 		emoji: "🏆",
 		title: "Win the series",
 		description:
-			"Once the organizer calls a result, winners get paid. Bet on enough predictions to be ranked: when the series closes, the top ranked balance takes the title.",
+			"Once the host reveals the result, the winners collect points. Make enough picks to be ranked: when the series ends, the most points takes the title.",
 	},
 ] as const;
 
@@ -75,7 +75,7 @@ export default function HowToPlayModal({ open, onClose }: Readonly<Props>) {
 			<DialogContent showCloseButton={false} className={`bg-card`}>
 				<DialogHeader>
 					<DialogTitle className='text-center text-xl'>
-						How to Play 🎮
+						How to play
 					</DialogTitle>
 				</DialogHeader>
 
@@ -140,7 +140,7 @@ export default function HowToPlayModal({ open, onClose }: Readonly<Props>) {
 							}
 						}}
 					>
-						{isLastSlide ? "Let's play! 🎉" : "Next"}
+						{isLastSlide ? "Let's play" : "Next"}
 					</Button>
 				</div>
 			</DialogContent>

@@ -22,7 +22,7 @@ export function PredictionNoResultCard({
 			typeLabel='No result'
 			tone='warning'
 			title={metadata.title}
-			summary={metadata.noResultReason ?? "All bets were refunded."}
+			summary={metadata.noResultReason ?? "Everyone got their points back."}
 			contextLabel={showSeries ? formatPredictionSeries(metadata) : undefined}
 			timestamp={formatActivityTimestamp(activity.createdAt)}
 			href={resolveActivityHref(activity, roomCode)}

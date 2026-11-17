@@ -78,7 +78,7 @@ export default function SeriesCreatePage() {
 	);
 	const expectedGamesError =
 		expectedGames === null
-			? "Expected games must be a whole number of at least 1."
+			? "Expected questions must be a whole number of at least 1."
 			: "";
 
 	const pointsError = getSeriesPointsError(
@@ -99,7 +99,7 @@ export default function SeriesCreatePage() {
 		event.preventDefault();
 
 		if (!isOrganizer) {
-			toast("Only room organizers can create a series.");
+			toast("Only hosts can create a series.");
 			return;
 		}
 
@@ -144,7 +144,7 @@ export default function SeriesCreatePage() {
 					back(`/rooms/${room.code}/series`);
 				},
 				onError: (error) => {
-					toast("Failed to create series.", {
+					toast("Couldn't create the series. Try again.", {
 						description: error.message,
 					});
 				},
@@ -157,8 +157,8 @@ export default function SeriesCreatePage() {
 			<div>
 				<h2 className='text-lg font-semibold'>New series</h2>
 				<p className='mt-1 text-sm text-muted-foreground'>
-					Everyone starts the series with the same points. Top
-					balance when it closes wins the title.
+					Everyone starts the series with the same points. Most
+					points when it ends takes the title.
 				</p>
 			</div>
 
@@ -183,7 +183,7 @@ export default function SeriesCreatePage() {
 							required
 						/>
 						<FieldDescription>
-							Use a short, clear name members can recognize
+							Use a short, clear name players can recognize
 							quickly.
 						</FieldDescription>
 					</Field>
@@ -266,13 +266,13 @@ export default function SeriesCreatePage() {
 						</Field>
 					</div>
 					<FieldDescription>
-						Every member gets the starting points. The top-up is
-						added each Monday for players who bet that week. Locked
-						once anyone bets.
+						Every player gets the starting points. The top-up is
+						added each Monday for players who picked that week.
+						Locked once anyone picks.
 					</FieldDescription>
 					<Field>
 						<FieldLabel htmlFor='series-min-bets'>
-							Minimum bets to be ranked
+							Picks to rank
 						</FieldLabel>
 						<Input
 							id='series-min-bets'
@@ -290,7 +290,7 @@ export default function SeriesCreatePage() {
 							disabled={isPending}
 						/>
 						<FieldDescription>
-							Players who bet on fewer settled predictions don't
+							Players with fewer picks on finished questions don't
 							appear in the standings or win the title. You can
 							change this while the series runs.
 						</FieldDescription>
@@ -307,14 +307,14 @@ export default function SeriesCreatePage() {
 						Cancel
 					</Button>
 					<Button type='submit' disabled={!canSubmit}>
-						{isPending ? "Creating..." : "Create series"}
+						{isPending ? "Creating…" : "Create series"}
 					</Button>
 				</div>
 			</form>
 
 			{!isOrganizer ? (
 				<p className='text-sm text-muted-foreground'>
-					Only room organizers can create a series.
+					Only hosts can create a series.
 				</p>
 			) : null}
 		</div>

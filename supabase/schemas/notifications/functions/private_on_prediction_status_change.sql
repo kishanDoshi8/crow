@@ -38,7 +38,7 @@ begin
       'prediction_live',
       NEW.id,
       NEW.room_id,
-      '🎯 New Prediction',
+      '🎯 New question',
       coalesce(v_room_name, 'Your room') || ' · ' || NEW.title,
       '/rooms/' || v_room_code || '/predictions/' || NEW.id::text,
       v_extra_payload
@@ -56,7 +56,7 @@ begin
       'result_revealed',
       NEW.id,
       NEW.room_id,
-      '🏆 Result Is In',
+      '🏆 Result''s in',
       coalesce(v_room_name, 'Your room') || ' · ' || NEW.title,
       '/rooms/' || v_room_code || '/predictions/' || NEW.id::text,
       v_extra_payload
@@ -87,8 +87,8 @@ begin
     perform private.push_for_predictions(
       'prediction_locked',
       v_ids,
-      '🔒 Betting Closed',
-      '🔒 Betting closed on %s predictions'
+      '🔒 Picks locked',
+      '🔒 Picks locked on %s questions'
     );
   end if;
 

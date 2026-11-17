@@ -172,7 +172,7 @@ begin
         'member_joined',
         null,
         v_room.id,
-        '👋 New member',
+        '👋 New player',
         v_player.username || ' joined ' || v_room.name,
         '/rooms/' || v_room.room_code || '/members',
         jsonb_build_object('roles', jsonb_build_array('owner', 'organizer'))

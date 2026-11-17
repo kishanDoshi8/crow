@@ -112,12 +112,12 @@ export function CorrectResultDrawer({
 				onSuccess: () => {
 					setConfirmOpen(false);
 					handleOpenChange(false);
-					toast.success("Result corrected. Points are updated.", {
+					toast.success("Result fixed. Points are updated.", {
 						position: "top-center",
 					});
 				},
 				onError: (error) => {
-					toast.error("Couldn't correct the result.", {
+					toast.error("Couldn't fix the result. Try again.", {
 						description: error.message,
 						duration: Infinity,
 						dismissible: true,
@@ -132,12 +132,12 @@ export function CorrectResultDrawer({
 		<Drawer open={open} onOpenChange={handleOpenChange}>
 			<DrawerContent className='sm:max-w-md mx-auto'>
 				<DrawerHeader>
-					<DrawerTitle>Correct result</DrawerTitle>
+					<DrawerTitle>Fix result</DrawerTitle>
 					<DrawerDescription>
 						<span className='block'>{prediction.title}</span>
 						<span className='block mt-1'>
 							Pick the right result. Points, ratings and streaks are
-							worked out again for everyone who bet.
+							worked out again for everyone who picked.
 						</span>
 					</DrawerDescription>
 				</DrawerHeader>
@@ -154,7 +154,7 @@ export function CorrectResultDrawer({
 								id: option.id,
 								label: option.label,
 							})),
-							{ id: NO_RESULT, label: "No result (refund everyone)" },
+							{ id: NO_RESULT, label: "No result (everyone gets points back)" },
 						].map((choice) => (
 							<FieldLabel
 								key={choice.id}
@@ -193,7 +193,7 @@ export function CorrectResultDrawer({
 							disabled={!selected}
 							onClick={() => setConfirmOpen(true)}
 						>
-							Correct result
+							Fix result
 						</Button>
 						<DialogContent className='sm:max-w-md mx-auto'>
 							<DialogHeader>
@@ -207,8 +207,8 @@ export function CorrectResultDrawer({
 									<Alert className='mt-4'>
 										<InfoIcon />
 										<AlertDescription>
-											Everyone who bet sees their points change,
-											and the room feed shows the correction.
+											Everyone who picked sees their points change,
+											and Activity shows the fix.
 										</AlertDescription>
 									</Alert>
 								</DialogDescription>
@@ -221,7 +221,7 @@ export function CorrectResultDrawer({
 								</DialogClose>
 								<Button size='lg' onClick={handleConfirm} disabled={isPending}>
 									{isPending && <Spinner />}
-									Confirm
+									Fix result
 								</Button>
 							</DialogFooter>
 						</DialogContent>

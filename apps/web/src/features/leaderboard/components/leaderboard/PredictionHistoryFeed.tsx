@@ -20,7 +20,7 @@ function myResult(entry: PredictionHistoryEntry) {
 		return { label: "Sat out", spoken: "You sat this one out", tone: quiet, border: "" };
 	}
 	if (entry.status !== "revealed") {
-		return { label: "Refunded", spoken: "Your points were refunded", tone: quiet, border: "" };
+		return { label: "Points back", spoken: "You got your points back", tone: quiet, border: "" };
 	}
 	const net = (entry.my_payout ?? 0) - entry.my_bet_amount;
 	if (net > 0) {
@@ -63,7 +63,7 @@ function PredictionHistoryCard({ entry }: Readonly<CardProps>) {
 	// The organizer's reason, closed with a full stop so the next sentence reads on.
 	const reason = entry.no_result_reason
 		? entry.no_result_reason.replace(/[.!?]*$/, ".")
-		: "No payout.";
+		: "No points won.";
 
 	return (
 		<Link
@@ -125,7 +125,7 @@ function PredictionHistoryCard({ entry }: Readonly<CardProps>) {
 					</FactTag>
 				) : (
 					<span className='rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground'>
-						{entry.status === "cancelled" ? "Cancelled" : "No result"}
+						{entry.status === "cancelled" ? "Scrapped" : "No result"}
 					</span>
 				)}
 				{entry.selected_option_label ? (
@@ -194,7 +194,7 @@ function PredictionHistoryCard({ entry }: Readonly<CardProps>) {
 					) : null}
 					<StatStrip
 						stats={[
-							{ label: "Pool", value: total.toLocaleString() },
+							{ label: "In play", value: total.toLocaleString() },
 							{
 								label: "Called it",
 								value: participants > 0 ? `${entry.winner_count} of ${participants}` : "Nobody",
@@ -306,7 +306,7 @@ export function PredictionHistoryFeed({
 			<div className='flex flex-col items-center gap-2 py-12 text-center'>
 				<p className='text-muted-foreground text-sm'>
 					{emptyMessage ??
-						"No resolved predictions yet. Check back after the next one wraps up."}
+						"No results yet. Check back after the first one's in."}
 				</p>
 			</div>
 		);

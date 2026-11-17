@@ -141,7 +141,7 @@ export function ShareSheet({
 				},
 			);
 		} catch (error) {
-			toast.error("Couldn't share the image.", {
+			toast.error("Couldn't share the image. Try again.", {
 				description: error instanceof Error ? error.message : undefined,
 				position: "top-center",
 			});

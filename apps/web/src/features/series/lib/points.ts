@@ -18,7 +18,7 @@ export function getSeriesPointsError(startingStack: string, weeklyTopup: string)
 export function getMinBetsError(minBetsToRank: string) {
 	const value = Number(minBetsToRank);
 	if (minBetsToRank.trim() === "" || !Number.isInteger(value) || value < 0 || value > 50) {
-		return "Minimum bets must be a whole number from 0 to 50.";
+		return "Picks to rank must be a whole number from 0 to 50.";
 	}
 	return "";
 }

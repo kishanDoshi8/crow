@@ -7,7 +7,8 @@ Predikt), live at playcrow.app. npm workspaces monorepo:
   (Radix / Base UI), TanStack Query, React Router
 - `supabase/`: Postgres schema (`schemas/`), migrations, edge functions, SQL tests
 
-Read `apps/web/PRODUCT.md` and `apps/web/DESIGN.md` before UI work.
+Read `apps/web/PRODUCT.md` and `apps/web/DESIGN.md` before UI work, and
+`apps/web/VOICE.md` before writing any user-facing copy (no betting words).
 The app is mobile first: phone styles are the unprefixed classes, and
 tablet/desktop only add `md:`/`lg:` overrides (DESIGN.md, Layout and
 Breakpoints). Never change the phone view for a bigger screen.

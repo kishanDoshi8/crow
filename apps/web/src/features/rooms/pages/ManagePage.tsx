@@ -88,7 +88,7 @@ export default function ManagePage() {
 					<LinkRow
 						to={`/rooms/${room.code}/manage/close`}
 						icon={<ListChecksIcon className='size-4' />}
-						label='Close several at once'
+						label='Reveal several at once'
 					/>
 				) : null}
 			</Section>
@@ -97,7 +97,7 @@ export default function ManagePage() {
 				{isPending ? (
 					<QueueSkeleton />
 				) : open.length === 0 ? (
-					<EmptyRow>No predictions are open right now.</EmptyRow>
+					<EmptyRow>No questions are open right now.</EmptyRow>
 				) : (
 					open.map((item) => (
 						<QueueRow
@@ -130,7 +130,7 @@ export default function ManagePage() {
 									size='sm'
 									className='text-destructive'
 								>
-									Cancel
+									Scrap
 								</Button>
 							</CloseWithoutResultDialog>
 						</QueueRow>
@@ -144,7 +144,7 @@ export default function ManagePage() {
 						<QueueSkeleton />
 					) : scheduled.length === 0 ? (
 						<EmptyRow>
-							Nothing scheduled. Write predictions ahead and pick when they go live.
+							Nothing scheduled. Write questions ahead and pick when they go live.
 						</EmptyRow>
 					) : (
 						scheduled.map((item) => (
@@ -155,7 +155,7 @@ export default function ManagePage() {
 						to={`/rooms/${room.code}/predictions/new`}
 						state={{ goLive: "later" }}
 						icon={<PlusIcon className='size-4' />}
-						label='Schedule a prediction'
+						label='Schedule a question'
 					/>
 					<LinkRow
 						to={`/rooms/${room.code}/predictions/new/set`}
@@ -170,7 +170,7 @@ export default function ManagePage() {
 				<LinkRow
 					to={`/rooms/${room.code}/members`}
 					icon={<UsersIcon className='size-4' />}
-					label='Members & roles'
+					label='Players & roles'
 				/>
 				{can.own ? (
 					<LinkRow

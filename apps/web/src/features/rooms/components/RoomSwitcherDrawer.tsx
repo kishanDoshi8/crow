@@ -39,7 +39,7 @@ export function RoomSwitcherDrawer({
 				<Drawer open={open} onOpenChange={onOpenChange} direction='left'>
 					<DrawerContent className='h-dvh'>
 						<DrawerHeader>
-							<DrawerTitle>Your Rooms</DrawerTitle>
+							<DrawerTitle>Your rooms</DrawerTitle>
 							{playerRooms ? (
 								<p className='text-sm text-muted-foreground'>
 									{playerRooms.length} rooms
@@ -129,7 +129,7 @@ function RoomSwitcher({
 				onClick={() => handleOpenTab("create")}
 			>
 				<PlusIcon />
-				Create Room
+				Create room
 			</Button>
 			<Button
 				variant='ghost'
@@ -137,7 +137,7 @@ function RoomSwitcher({
 				onClick={() => handleOpenTab("join")}
 			>
 				<UsersIcon />
-				Join Room
+				Join room
 			</Button>
 			<Button
 				variant='ghost'
@@ -145,7 +145,7 @@ function RoomSwitcher({
 				onClick={handleHowToPlay}
 			>
 				<CircleQuestionMarkIcon />
-				How To Play
+				How to play
 			</Button>
 		</>
 	);

@@ -87,7 +87,7 @@ function ManageShortcut({
 		<div className='mt-3 w-full max-w-md mx-auto flex items-center gap-2 rounded-2xl border border-border bg-card p-1.5 pr-2'>
 			<Link
 				to={`/rooms/${roomCode}/manage`}
-				aria-label={`Manage: ${open} open ${open === 1 ? "prediction" : "predictions"}`}
+				aria-label={`Manage: ${open} open ${open === 1 ? "question" : "questions"}`}
 				className='flex min-w-0 flex-1 items-center gap-3 rounded-xl p-1.5 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 			>
 				<span className='flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary'>

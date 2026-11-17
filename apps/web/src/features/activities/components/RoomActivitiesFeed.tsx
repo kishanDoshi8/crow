@@ -32,10 +32,10 @@ export function RoomActivitiesFeed({
 			<div className='rounded-2xl border border-destructive/30 bg-destructive/5 p-4'>
 				<p className='flex items-center gap-2 text-sm font-medium text-destructive'>
 					<AlertCircleIcon className='size-4' />
-					Could not load activities
+					Couldn't load activity
 				</p>
 				<p className='mt-1 text-sm text-muted-foreground'>
-					{errorMessage ?? "Please try again in a moment."}
+					{errorMessage ?? "Try again in a moment."}
 				</p>
 			</div>
 		);
@@ -46,7 +46,7 @@ export function RoomActivitiesFeed({
 			<div className='rounded-2xl border border-dashed p-8 text-center'>
 				<p className='text-3xl'>🗒️</p>
 				<p className='mt-2 text-sm text-muted-foreground'>
-					{emptyMessage ?? "No room activities yet."}
+					{emptyMessage ?? "No activity yet."}
 				</p>
 			</div>
 		);

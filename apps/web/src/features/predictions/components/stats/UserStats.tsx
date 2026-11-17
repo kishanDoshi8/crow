@@ -33,7 +33,7 @@ type UserStatsProps = {
 
 function UserStats({
 	title = "Standings",
-	subtitle = "Top balance when the series closes wins the title",
+	subtitle = "Most points when the series ends takes the title",
 	leaderboardEntriesOverride,
 	isLeaderboardLoadingOverride,
 	showSeeAllLink = true,

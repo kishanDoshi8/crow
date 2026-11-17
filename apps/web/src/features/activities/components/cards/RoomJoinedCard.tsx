@@ -14,7 +14,7 @@ export function RoomJoinedCard({
 			<div className='flex items-start justify-between gap-3'>
 				<div className='flex min-w-0 items-center gap-2 text-xs font-medium text-muted-foreground'>
 					<UserPlusIcon className='size-3.5 text-activity' />
-					New member
+					New player
 				</div>
 				<span className='shrink-0 text-xs font-medium text-muted-foreground'>
 					{formatActivityTimestamp(activity.createdAt)}

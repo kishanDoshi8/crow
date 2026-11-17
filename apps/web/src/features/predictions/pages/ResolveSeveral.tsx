@@ -83,7 +83,7 @@ export default function ResolveSeveral() {
 	const summary = [
 		winners ? `${winners} ${winners === 1 ? "winner" : "winners"}` : null,
 		noResults ? `${noResults} no result` : null,
-		cancelled ? `${cancelled} cancelled` : null,
+		cancelled ? `${cancelled} scrapped` : null,
 	]
 		.filter(Boolean)
 		.join(" · ");
@@ -126,15 +126,15 @@ export default function ResolveSeveral() {
 			{
 				onSuccess: ({ resolved }) => {
 					setIsConfirmOpen(false);
-					toast.success(`${resolved} ${resolved === 1 ? "prediction" : "predictions"} closed`, {
-						description: "Members got one notification.",
+					toast.success(`${resolved} ${resolved === 1 ? "result" : "results"} revealed`, {
+						description: "Players got one notification.",
 						position: "top-center",
 					});
 					back(`/rooms/${room.code}/manage`);
 				},
 				onError: (error) => {
 					setIsConfirmOpen(false);
-					toast.error("Nothing was closed.", {
+					toast.error("Couldn't reveal the results. Nothing changed.", {
 						description: error.message,
 						duration: 7000,
 						position: "top-center",
@@ -148,7 +148,7 @@ export default function ResolveSeveral() {
 		<div className='flex flex-1 flex-col'>
 			<div className='mx-auto w-full max-w-md flex-1 space-y-6 p-4 lg:max-w-2xl lg:pt-6'>
 				<p className='px-1 text-sm text-muted-foreground'>
-					Pick an outcome for each prediction you want to close. Anything you leave
+					Choose a result for each question you want to finish. Anything you leave
 					alone stays as it is.
 				</p>
 
@@ -170,7 +170,7 @@ export default function ResolveSeveral() {
 							<div className='flex flex-wrap items-center gap-x-1 px-1'>
 								{/* The name gets its own line; a match's name is the point of the group. */}
 								<h2 className='w-full text-xs font-semibold uppercase tracking-wide text-muted-foreground wrap-anywhere'>
-									{group.title ?? (groups.length > 1 ? "Other predictions" : "Predictions")}
+									{group.title ?? (groups.length > 1 ? "Other questions" : "Questions")}
 								</h2>
 								{group.items.some((item) => item.status === "locked") ? (
 									<Button variant='ghost' size='xs' className='-ml-2' onClick={() => chooseAll(group, NO_RESULT)}>
@@ -183,7 +183,7 @@ export default function ResolveSeveral() {
 									className={group.items.some((item) => item.status === "locked") ? undefined : "-ml-2"}
 									onClick={() => chooseAll(group, CANCEL)}
 								>
-									Cancel all
+									Scrap all
 								</Button>
 								{group.items.some((item) => choices[item.id]) ? (
 									<Button variant='ghost' size='xs' onClick={() => chooseAll(group, null)}>
@@ -223,7 +223,7 @@ export default function ResolveSeveral() {
 			<div className='sticky bottom-0 z-10 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
 				<div className='mx-auto flex w-full max-w-md items-center gap-3 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] lg:max-w-2xl'>
 					<p className='min-w-0 flex-1 text-xs text-muted-foreground' aria-live='polite'>
-						{chosen.length === 0 ? "Nothing picked yet" : summary}
+						{chosen.length === 0 ? "Nothing chosen yet" : summary}
 					</p>
 					<Button
 						variant='linear'
@@ -231,7 +231,7 @@ export default function ResolveSeveral() {
 						disabled={chosen.length === 0}
 						onClick={() => setIsConfirmOpen(true)}
 					>
-						Close {chosen.length || ""} {chosen.length === 1 ? "prediction" : "predictions"}
+						Reveal {chosen.length || ""} {chosen.length === 1 ? "result" : "results"}
 					</Button>
 				</div>
 			</div>
@@ -240,10 +240,10 @@ export default function ResolveSeveral() {
 				<DialogContent className='mx-auto sm:max-w-md'>
 					<DialogHeader>
 						<DialogTitle>
-							Close {chosen.length} {chosen.length === 1 ? "prediction" : "predictions"}?
+							Reveal {chosen.length} {chosen.length === 1 ? "result" : "results"}?
 						</DialogTitle>
 						<DialogDescription>
-							Points move straight away and members get one notification. This
+							Points move straight away and players get one notification. This
 							can't be undone here.
 						</DialogDescription>
 					</DialogHeader>
@@ -255,7 +255,7 @@ export default function ResolveSeveral() {
 									{choices[item.id] === NO_RESULT
 										? "No result"
 										: choices[item.id] === CANCEL
-											? "Cancelled"
+											? "Scrapped"
 											: (item.options.find((o) => o.id === choices[item.id])?.label ?? "")}
 								</span>
 							</li>
@@ -265,7 +265,7 @@ export default function ResolveSeveral() {
 						<Alert>
 							<InfoIcon />
 							<AlertDescription>
-								Without a winner, every pick is returned and no one wins or loses points.
+								Without a winner, everyone gets their points back and nobody wins or loses.
 							</AlertDescription>
 						</Alert>
 					) : null}
@@ -362,7 +362,7 @@ function PredictionRow({
 							: CHIP_IDLE,
 					)}
 				>
-					Cancel
+					Scrap
 				</button>
 			</div>
 		</div>

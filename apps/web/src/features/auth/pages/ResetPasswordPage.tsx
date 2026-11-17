@@ -37,7 +37,7 @@ export function ResetPasswordPage() {
 			setError(
 				err instanceof Error
 					? err.message
-					: "Failed to update password.",
+					: "Couldn't update your password. Try again.",
 			);
 		} finally {
 			setIsLoading(false);

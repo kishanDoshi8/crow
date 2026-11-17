@@ -128,14 +128,14 @@ export function InviteCard({
 						color: app.muted,
 					}}
 				>
-					The next prediction drops soon.
+					The next question drops soon.
 				</div>
 			)}
 
 			<span style={{ fontSize: 26, color: app.muted, lineHeight: 1.5 }}>
 				{data.series
-					? `Everyone starts with ${data.series.startingStack.toLocaleString()} pts. Top balance takes the title.`
-					: "Same points for everyone. Top balance when the series ends takes the title."}
+					? `Everyone starts with ${data.series.startingStack.toLocaleString()} pts. Most points takes the title.`
+					: "Same points for everyone. Most points when the series ends takes the title."}
 			</span>
 
 			<div style={{ display: "flex", flexDirection: "column", gap: 18 }}>

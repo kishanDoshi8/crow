@@ -69,7 +69,7 @@ export function PredictionStaffMenu({ prediction, roomId, roomCode, can }: Reado
 				variant='ghost'
 				size='icon'
 				className='-mr-2 size-11 shrink-0'
-				aria-label='Manage prediction'
+				aria-label='Manage question'
 				onClick={() => setOpen(true)}
 			>
 				<MoreHorizontalIcon />
@@ -77,7 +77,7 @@ export function PredictionStaffMenu({ prediction, roomId, roomCode, can }: Reado
 			<Drawer open={open} onOpenChange={setOpen}>
 				<DrawerContent className='mx-auto sm:max-w-md'>
 					<DrawerHeader className='text-left group-data-[vaul-drawer-direction=bottom]/drawer-content:text-left'>
-						<DrawerTitle>Manage prediction</DrawerTitle>
+						<DrawerTitle>Manage question</DrawerTitle>
 						<DrawerDescription className='line-clamp-2'>{prediction.title}</DrawerDescription>
 					</DrawerHeader>
 					<div className='flex flex-col gap-1 px-2 pb-6'>
@@ -135,7 +135,7 @@ export function PredictionStaffMenu({ prediction, roomId, roomCode, can }: Reado
 								}}
 							>
 								<PencilLineIcon className='size-5 text-muted-foreground' />
-								Correct result
+								Fix result
 							</Button>
 						) : null}
 						{canNoResult ? (
@@ -160,7 +160,7 @@ export function PredictionStaffMenu({ prediction, roomId, roomCode, can }: Reado
 							>
 								<Button variant='ghost' className={`${ITEM} text-destructive`}>
 									<BanIcon className='size-5' />
-									Cancel prediction
+									Scrap question
 								</Button>
 							</CloseWithoutResultDialog>
 						) : null}

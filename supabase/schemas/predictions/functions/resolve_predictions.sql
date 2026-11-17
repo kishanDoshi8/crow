@@ -114,10 +114,10 @@ begin
   perform private.push_for_predictions(
     'result_revealed',
     v_closed,
-    '🏆 Result Is In',
+    '🏆 Result''s in',
     case
       when v_revealed > 0 then '🏆 %s results are in'
-      else '↩️ %s predictions called off · points returned'
+      else '↩️ %s questions called off · points back'
     end
   );
 

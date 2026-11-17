@@ -74,7 +74,7 @@ export function SeriesTile({
 				<div className='flex flex-col gap-1.5'>
 					<div
 						role='img'
-						aria-label={`${progress.resolved} of ${progress.expected} games played`}
+						aria-label={`${progress.resolved} of ${progress.expected} questions done`}
 						className='h-1.5 overflow-hidden rounded-full bg-secondary'
 					>
 						<span
@@ -85,7 +85,7 @@ export function SeriesTile({
 					<div className='flex items-center justify-between gap-3 text-xs tabular-nums'>
 						<p>
 							<span className='font-semibold'>{progress.resolved}</span>{" "}
-							<span className='text-muted-foreground'>of {progress.expected} played</span>
+							<span className='text-muted-foreground'>of {progress.expected} done</span>
 						</p>
 						<p>
 							<span className='font-semibold'>{progress.remaining}</span>{" "}
@@ -96,7 +96,7 @@ export function SeriesTile({
 			)}
 			<StatStrip
 				stats={[
-					...(progress.isOpenEnded ? [{ label: "Settled", value: progress.resolved }] : []),
+					...(progress.isOpenEnded ? [{ label: "Finished", value: progress.resolved }] : []),
 					{ label: "Open now", value: progress.open },
 					...(wallet
 						? [
@@ -145,7 +145,7 @@ export function FinishedSeriesRow({
 			<span className='flex min-w-0 flex-col'>
 				<span className='truncate text-sm font-semibold'>{series.title}</span>
 				<span className='truncate text-xs text-muted-foreground'>
-					{games} {games === 1 ? "game" : "games"}
+					{games} {games === 1 ? "question" : "questions"}
 					{ended ? `, ended ${ended}` : ""}
 				</span>
 			</span>

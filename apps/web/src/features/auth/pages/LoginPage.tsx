@@ -28,7 +28,7 @@ export function LoginPage() {
 			await signIn(email, password);
 			navigate(takePostAuthRedirect(from), { replace: true });
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Failed to sign in.");
+			setError(err instanceof Error ? err.message : "Couldn't sign you in. Try again.");
 		} finally {
 			setIsLoading(false);
 		}

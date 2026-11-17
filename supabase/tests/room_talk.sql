@@ -98,11 +98,11 @@ select throws_ok(
 );
 
 select lives_ok(
-  format($$ select public.post_prediction_phrase(%L, %s::smallint) $$, pg_temp.setting('pred'), pg_temp.phrase('open', 'Easy money')),
+  format($$ select public.post_prediction_phrase(%L, %s::smallint) $$, pg_temp.setting('pred'), pg_temp.phrase('open', 'Easy call')),
   'a member posts a phrase'
 );
 select throws_ok(
-  format($$ select public.post_prediction_phrase(%L, %s::smallint) $$, pg_temp.setting('pred'), pg_temp.phrase('open', 'Easy money')),
+  format($$ select public.post_prediction_phrase(%L, %s::smallint) $$, pg_temp.setting('pred'), pg_temp.phrase('open', 'Easy call')),
   'P0001', 'You''ve already said that one',
   'each phrase once'
 );
@@ -163,7 +163,7 @@ select public.resolve_prediction_v2(pg_temp.setting('pred'), pg_temp.setting('ro
 set local role authenticated;
 select is(
   (select array_agg(p->>'text' order by ord) from json_array_elements(public.get_prediction_talk(pg_temp.setting('pred'))->'phrases') with ordinality as t(p, ord)),
-  array['Called it', 'Never in doubt', 'Pay up', 'Told you so', 'Unreal', 'Well played', 'Robbed', 'Next one''s mine'],
+  array['Called it', 'Never in doubt', 'Eat crow', 'Told you so', 'Unreal', 'Well played', 'Robbed', 'Next one''s mine'],
   'the winner sees their phrases first, then everyone''s'
 );
 reset role;

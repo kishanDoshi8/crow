@@ -39,7 +39,7 @@ export function PhraseSheet({ open, onOpenChange, roomId, predictionId, talk }: 
 		post(phrase.id, {
 			onSuccess: () => onOpenChange(false),
 			onError: (error) => {
-				toast.error("Couldn't post that.", {
+				toast.error("Couldn't squawk that. Try again.", {
 					description: error.message,
 					position: "top-center",
 				});
@@ -54,10 +54,10 @@ export function PhraseSheet({ open, onOpenChange, roomId, predictionId, talk }: 
 					<DrawerTitle>Say something</DrawerTitle>
 					<DrawerDescription>
 						{!online
-							? "You're offline. Phrases can be posted once you're back."
+							? "You're offline. You can squawk once you're back."
 							: left > 0
-								? "Tap one to post it to Room talk."
-								: "You've used your 3 phrases on this prediction."}
+								? "Tap one to squawk it in Room talk."
+								: "You've used your 3 squawks on this question."}
 					</DrawerDescription>
 				</DrawerHeader>
 				<div className='flex flex-col gap-4 px-4 pb-2'>
@@ -95,11 +95,11 @@ export function PhraseSheet({ open, onOpenChange, roomId, predictionId, talk }: 
 						</section>
 					))}
 					{groups.length === 0 ? (
-						<p className='text-sm text-muted-foreground'>No phrases for this stage yet.</p>
+						<p className='text-sm text-muted-foreground'>No squawks for this stage yet.</p>
 					) : null}
 				</div>
 				<p className='px-4 pt-2 pb-6 text-xs text-muted-foreground'>
-					{left} of {talk?.post_limit ?? 3} left on this prediction
+					{left} of {talk?.post_limit ?? 3} left on this question
 				</p>
 			</DrawerContent>
 		</Drawer>

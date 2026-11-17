@@ -19,10 +19,10 @@ export function PredictionCancelledCard({
 			tier={activity.activityTier}
 			actorLabel={activity.createdBy?.username}
 			icon={<BanIcon className='size-4' />}
-			typeLabel='Cancelled'
+			typeLabel='Scrapped'
 			tone='danger'
 			title={metadata.title}
-			summary={metadata.noResultReason ?? "All bets were refunded."}
+			summary={metadata.noResultReason ?? "Everyone got their points back."}
 			contextLabel={showSeries ? formatPredictionSeries(metadata) : undefined}
 			timestamp={formatActivityTimestamp(activity.createdAt)}
 			href={resolveActivityHref(activity, roomCode)}

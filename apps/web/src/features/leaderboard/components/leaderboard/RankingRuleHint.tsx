@@ -3,13 +3,13 @@ export function RankingRuleHint({ requiredBets }: Readonly<{ requiredBets: numbe
 	return (
 		<>
 			<p>
-				Bet on {requiredBets > 0 ? requiredBets : "a few"} settled{" "}
-				{requiredBets === 1 ? "prediction" : "predictions"} in this series
-				to be ranked.
+				Make {requiredBets > 0 ? requiredBets : "a few"}{" "}
+				{requiredBets === 1 ? "pick" : "picks"} on questions with results in
+				this series to be ranked.
 			</p>
 			<p className='mt-2 text-muted-foreground'>
 				Only ranked players can win the series or its awards, so nobody
-				tops the table just by sitting on their starting points.
+				tops the standings just by sitting on their starting points.
 			</p>
 		</>
 	);

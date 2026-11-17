@@ -44,7 +44,7 @@ export default function UpNextPage() {
 				);
 			},
 			onError: (error) => {
-				toast.error(error.message || "Couldn't add your idea.", {
+				toast.error(error.message || "Couldn't add your idea. Try again.", {
 					position: "top-center",
 				});
 			},
@@ -54,7 +54,7 @@ export default function UpNextPage() {
 	const handleRemove = (suggestion: SeriesSuggestion) => {
 		remove(suggestion.id, {
 			onError: (error) => {
-				toast.error(error.message || "Couldn't remove that idea.", {
+				toast.error(error.message || "Couldn't remove that idea. Try again.", {
 					position: "top-center",
 				});
 			},

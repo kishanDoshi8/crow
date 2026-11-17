@@ -49,8 +49,8 @@ export function ShareOpenPredictionsButton({ roomName, roomCode, predictions }: 
 			variant='outline'
 			size='icon-sm'
 			onClick={() => void handleShare()}
-			aria-label='Share open predictions'
-			title='Share open predictions'
+			aria-label='Share open questions'
+			title='Share open questions'
 		>
 			<Share2Icon />
 		</Button>
@@ -66,13 +66,13 @@ export function openPredictionsMessage(roomName: string, open: Prediction[], lin
 	const left = timeLeft(Date.parse(next.deadline) - Date.now());
 	if (open.length === 1) {
 		return [
-			`🐦 A prediction is open in ${roomName}!`,
+			`🐦 A new question is open in ${roomName}!`,
 			`${next.title} (${left} left)`,
 			`Get your pick in: ${link}`,
 		].join("\n");
 	}
 	return [
-		`🐦 ${open.length} predictions are open in ${roomName}!`,
+		`🐦 ${open.length} questions are open in ${roomName}!`,
 		`Next to close: ${next.title} (${left} left)`,
 		`Get your picks in: ${link}`,
 	].join("\n");

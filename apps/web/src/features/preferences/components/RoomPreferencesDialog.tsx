@@ -49,13 +49,13 @@ const SETTING_ROW =
 	"flex items-center justify-between gap-4 border rounded-md p-3";
 
 const notificationLabels: Record<NotificationPreferenceKey, string> = {
-	prediction_live: "Prediction goes live",
-	prediction_locked: "Prediction locked",
-	deadline_1h: "Betting deadline (1h)",
+	prediction_live: "Question goes live",
+	prediction_locked: "Question locked",
+	deadline_1h: "Picks close in 1 hour",
 	result_revealed: "Result revealed",
 	// One Monday push: the weekly standings and any top-up.
 	weekly_points_claim: "Weekly recap",
-	result_needed: "Result needed (staff)",
+	result_needed: "Result needed (hosts)",
 };
 
 const notificationKeys: NotificationPreferenceKey[] = [
@@ -123,7 +123,7 @@ export function RoomPreferencesDialog({
 
 		updateGlobal(nextGlobal, {
 			onError: (error) => {
-				toast.error("Failed to update global preference.", {
+				toast.error("Couldn't update your default. Try again.", {
 					description: getErrorMessage(error),
 					duration: 6000,
 					position: "top-center",
@@ -142,7 +142,7 @@ export function RoomPreferencesDialog({
 
 		updateRoom(nextOverrides, {
 			onError: (error) => {
-				toast.error("Failed to update room override.", {
+				toast.error("Couldn't update this room's setting. Try again.", {
 					description: getErrorMessage(error),
 					duration: 6000,
 					position: "top-center",
@@ -154,7 +154,7 @@ export function RoomPreferencesDialog({
 	const handleResetRoom = () => {
 		resetRoom(undefined, {
 			onError: (error) => {
-				toast.error("Failed to reset room overrides.", {
+				toast.error("Couldn't reset room overrides. Try again.", {
 					description: getErrorMessage(error),
 					duration: 6000,
 					position: "top-center",
@@ -291,7 +291,7 @@ export function RoomPreferencesDialog({
 					// Same scroll area, headings and toggle rows, so the
 					// dialog doesn't resize when settings arrive.
 					<div aria-hidden='true' className={SETTINGS_SCROLL}>
-						{["Defaults", "This Room"].map((title) => (
+						{["Defaults", "This room"].map((title) => (
 							<section key={title} className='space-y-3'>
 								<h3 className='font-semibold'>{title}</h3>
 								<SkeletonList
@@ -342,7 +342,7 @@ export function RoomPreferencesDialog({
 						</section>
 
 						<section className='space-y-3'>
-							<h3 className='font-semibold'>This Room</h3>
+							<h3 className='font-semibold'>This room</h3>
 							<div className='space-y-2'>
 								{visibleKeys.map((key) => (
 									<div

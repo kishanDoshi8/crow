@@ -10,8 +10,8 @@ type Props = {
 // Header points chip; tapping explains where the number comes from.
 export function WalletPopover({ wallet }: Readonly<Props>) {
 	const rows: Array<[string, string, string?]> = [
-		["Available to bet", wallet.available.toLocaleString()],
-		["In open bets", wallet.escrow.toLocaleString()],
+		["Free to use", wallet.available.toLocaleString()],
+		["On open picks", wallet.escrow.toLocaleString()],
 		[
 			"Net this series",
 			formatSignedPoints(wallet.net_profit),
@@ -73,7 +73,7 @@ function topupStatus(wallet: SeriesWallet) {
 
 	if (wallet.bet_this_week) {
 		return {
-			message: `${amount} lands Monday. You've bet this week.`,
+			message: `${amount} lands Monday. You've picked this week.`,
 			tone: "bg-win/10 text-win",
 		};
 	}
@@ -84,7 +84,7 @@ function topupStatus(wallet: SeriesWallet) {
 		};
 	}
 	return {
-		message: `Place a bet before Monday to get ${amount}.`,
+		message: `Make a pick before Monday to get ${amount}.`,
 		tone: "bg-accent/10 text-foreground",
 	};
 }

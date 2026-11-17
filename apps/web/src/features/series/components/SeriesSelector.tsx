@@ -105,7 +105,7 @@ export function SeriesSelector({
 				disabled={disabled || isPending}
 			>
 				<SelectValue
-					placeholder={isPending ? "Loading series..." : placeholder}
+					placeholder={isPending ? "Loading series…" : placeholder}
 				/>
 			</SelectTrigger>
 			<SelectContent>

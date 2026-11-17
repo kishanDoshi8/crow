@@ -64,22 +64,22 @@ export function CareerStats({ stats, isLoading }: Readonly<Props>) {
 				index={0}
 				label='Win rate'
 				value={winRate}
-				detail={rated > 0 ? `${wins} of ${rated} settled` : undefined}
+				detail={rated > 0 ? `${wins} of ${rated} called` : undefined}
 			/>
 			<StatTile
 				index={1}
-				label='Predictions'
+				label='Picks'
 				value={(stats.total_predictions ?? 0).toLocaleString()}
 			/>
 			<StatTile
 				index={2}
-				label='Lifetime winnings'
+				label='All-time points'
 				value={`${(stats.current_points ?? 0).toLocaleString()}`}
 				detail='pts'
 			/>
 			<StatTile
 				index={3}
-				label='Best return'
+				label='Best call'
 				value={
 					hasBestWin
 						? `×${(stats.largest_win_multiplier ?? 0).toFixed(1)}`
@@ -87,7 +87,7 @@ export function CareerStats({ stats, isLoading }: Readonly<Props>) {
 				}
 				detail={
 					hasBestWin
-						? `${stats.largest_win_payout.toLocaleString()} pts on ${stats.largest_win_bet.toLocaleString()}`
+						? `${stats.largest_win_payout.toLocaleString()} pts from ${stats.largest_win_bet.toLocaleString()}`
 						: undefined
 				}
 			/>

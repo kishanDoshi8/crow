@@ -150,7 +150,7 @@ export default function Home({
 						<span>
 							<span className='block font-semibold'>No code?</span>
 							<span className='block text-xs text-muted-foreground'>
-								Browse rooms anyone can join
+								Explore rooms anyone can join
 							</span>
 						</span>
 						<ChevronRightIcon className='size-4 text-muted-foreground' aria-hidden='true' />
@@ -348,7 +348,7 @@ function CreateRoom() {
 					{[
 						"You get a 6-character code and a link to share.",
 						"Start a series, so everyone gets points to play with.",
-						"Post your first prediction and let friends pick a side.",
+						"Post your first question and let friends make their picks.",
 					].map((step, index) => (
 						<li key={step} className='grid grid-cols-[1.5rem_minmax(0,1fr)] items-baseline gap-x-2.5'>
 							<span className='font-bold text-muted-foreground tabular-nums'>{index + 1}</span>

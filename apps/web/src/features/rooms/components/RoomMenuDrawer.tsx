@@ -177,7 +177,7 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 				]
 			: []),
 		{
-			label: can.own ? "Members & roles" : "Members",
+			label: can.own ? "Players & roles" : "Players",
 			icon: UsersIcon,
 			onClick: close(() => navigate(`/rooms/${room.code}/members`)),
 		},
@@ -185,7 +185,7 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 			? [
 					{
 						label: "Room settings",
-						detail: "Name, open predictions limit, result reminders",
+						detail: "Name, open questions limit, result reminders",
 						icon: SettingsIcon,
 						onClick: close(() =>
 							navigate(`/rooms/${room.code}/settings`),
@@ -199,7 +199,7 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 			: [
 					{
 						label: "Leave room",
-						detail: "Open bets come back to you",
+						detail: "Points on open picks come back to you",
 						icon: DoorOpenIcon,
 						onClick: close(() => setIsLeaveOpen(true)),
 					},
@@ -334,8 +334,8 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 					<DialogHeader>
 						<DialogTitle>Leave {room.name}?</DialogTitle>
 						<DialogDescription>
-							Bets on open predictions come back to you. Locked ones still
-							settle. Your past results stay, and if you rejoin with the
+							Points on open picks come back to you. Locked ones still
+							get their result. Your past results stay, and if you rejoin with the
 							code you pick up where you left off.
 						</DialogDescription>
 					</DialogHeader>

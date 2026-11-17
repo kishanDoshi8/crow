@@ -19,7 +19,7 @@ export default function PrivacyPage() {
 						and what you do in your rooms.
 					</li>
 					<li>
-						Your username, picks and points are visible to members of the rooms you
+						Your username, picks and points are visible to players in the rooms you
 						join. Nothing is public.
 					</li>
 					<li>No ads, no tracking, no selling or sharing your data for marketing.</li>
@@ -51,9 +51,9 @@ export default function PrivacyPage() {
 				</p>
 				<p>
 					<strong>Game activity.</strong> Rooms you create or join and your role in
-					them; predictions you create; your picks, stakes, points, results,
+					them; questions you create; your picks, points on picks, points, results,
 					ratings, streaks, trophies and milestones; series ideas and votes; and
-					results you reveal or correct as room staff.
+					results you reveal or fix as a host or ref.
 				</p>
 				<p>
 					<strong>Notifications.</strong> If you turn on push notifications, the
@@ -84,7 +84,7 @@ export default function PrivacyPage() {
 
 			<LegalSection id='use' title='3. How we use it'>
 				<ul>
-					<li>To run Crow: sign you in, run rooms, settle predictions and keep standings.</li>
+					<li>To run Crow: sign you in, run rooms, reveal results and keep standings.</li>
 					<li>To send the notifications you've turned on.</li>
 					<li>To keep the game fair and safe, and enforce our <Link to='/terms'>Terms</Link>.</li>
 					<li>To find and fix bugs, and to see which features (like share cards) get used so we can improve them.</li>
@@ -104,10 +104,10 @@ export default function PrivacyPage() {
 
 			<LegalSection id='see' title='4. Who can see it'>
 				<p>
-					<strong>Members of your rooms</strong> see your username, role, picks,
-					stakes, points, results and other game activity in that room. Anyone you
+					<strong>Players in your rooms</strong> see your username, role, picks,
+					points on picks, points, results and other game activity in that room. Anyone you
 					give an invite code or link to can see the room's name, owner and how
-					many members it has before joining.
+					many players it has before joining.
 				</p>
 				<p>
 					<strong>Service providers</strong> process information for us, only to
@@ -162,7 +162,7 @@ export default function PrivacyPage() {
 				</p>
 				<ul>
 					<li>delete your login, email address, notification subscriptions and settings;</li>
-					<li>refund your bets on predictions that are still open and remove you from your rooms;</li>
+					<li>return the points on your open picks and remove you from your rooms;</li>
 					<li>
 						keep your past game records, renamed “Ghost crow” and no longer
 						connected to you, so the other players' points and standings stay

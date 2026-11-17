@@ -138,14 +138,14 @@ Deno.serve(async (request) => {
 
 	let destination = `${origin}/`;
 	let title = "You're invited to Crow";
-	let description = "Join your friends' prediction series. Same points for everyone, top balance wins.";
+	let description = "The prediction game for your group chat. Same points for everyone, most points wins.";
 
 	if (preview) {
 		destination = joinUrl(origin, preview.room_code, ref, next);
 		title = `Join ${preview.name} on Crow`;
 		const parts = [
 			plural(preview.member_count, "friend playing", "friends playing"),
-			plural(preview.active_prediction_count, "prediction live", "predictions live"),
+			plural(preview.active_prediction_count, "question open", "questions open"),
 		];
 		if (preview.series_title) parts.push(preview.series_title);
 		description = parts.join(" · ");

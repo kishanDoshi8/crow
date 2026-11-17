@@ -15,16 +15,16 @@ export function PredictionRevealedCard({
 	showSeries,
 }: Readonly<ActivityCardComponentProps<PredictionRevealedActivity>>) {
 	const metadata = activity.metadata;
-	const winnerLabel = metadata.winningOptionLabel ?? "Winner decided";
+	const winnerLabel = metadata.winningOptionLabel ?? "Result revealed";
 	return (
 		<ActivityCard
 			tier={activity.activityTier}
 			actorLabel={activity.createdBy?.username}
 			icon={<TrophyIcon className='size-4' />}
-			typeLabel='Resolved'
+			typeLabel="Result's in"
 			tone='success'
 			title={metadata.title}
-			summary={`${winnerLabel} · ${formatPoints(metadata.totalWagered)} pts pool`}
+			summary={`${winnerLabel} · ${formatPoints(metadata.totalWagered)} pts in play`}
 			contextLabel={showSeries ? formatPredictionSeries(metadata) : undefined}
 			timestamp={formatActivityTimestamp(activity.createdAt)}
 			href={resolveActivityHref(activity, roomCode)}

@@ -150,7 +150,7 @@ select is(
 );
 select is(
   pg_temp.pushes('prediction_live'),
-  row(1::bigint, false, '🎯 3 new predictions', 'Cricket Fever · India vs Australia', current_setting('test.room_url'))::text,
+  row(1::bigint, false, '🎯 3 new questions', 'Cricket Fever · India vs Australia', current_setting('test.room_url'))::text,
   'members get one push for the set, naming the event'
 );
 
@@ -165,7 +165,7 @@ select lives_ok(
 reset role;
 select is(
   pg_temp.pushes('prediction_live'),
-  row(1::bigint, true, '🎯 New Prediction', 'Cricket Fever · Solo',
+  row(1::bigint, true, '🎯 New question', 'Cricket Fever · Solo',
     current_setting('test.room_url') || '/predictions/' || pg_temp.prediction('Solo'))::text,
   'one prediction gets the usual push'
 );
@@ -263,7 +263,7 @@ select is(
 );
 select is(
   pg_temp.pushes('prediction_live'),
-  row(1::bigint, false, '🎯 2 new predictions', 'Cricket Fever · Final', current_setting('test.room_url'))::text,
+  row(1::bigint, false, '🎯 2 new questions', 'Cricket Fever · Final', current_setting('test.room_url'))::text,
   'with one push when they do'
 );
 
@@ -276,7 +276,7 @@ where id in (pg_temp.prediction('Who wins?'), pg_temp.prediction('Toss winner?')
 select private.fire_push_notification_for_deadline_1h();
 select is(
   pg_temp.pushes('deadline_1h'),
-  row(1::bigint, false, '⏰ 1 hour left on 3 predictions', 'Cricket Fever · India vs Australia', current_setting('test.room_url'))::text,
+  row(1::bigint, false, '⏰ 1 hour left on 3 questions', 'Cricket Fever · India vs Australia', current_setting('test.room_url'))::text,
   'three closing within the hour are one reminder'
 );
 select private.fire_push_notification_for_deadline_1h();
@@ -304,7 +304,7 @@ where id in (pg_temp.prediction('Who wins?'), pg_temp.prediction('Toss winner?')
 update public.predictions set status = 'locked' where status = 'draft' and deadline <= now();
 select is(
   pg_temp.pushes('prediction_locked'),
-  row(1::bigint, false, '🔒 Betting closed on 3 predictions', 'Cricket Fever · India vs Australia', current_setting('test.room_url'))::text,
+  row(1::bigint, false, '🔒 Picks locked on 3 questions', 'Cricket Fever · India vs Australia', current_setting('test.room_url'))::text,
   'three locking together are one push'
 );
 
@@ -313,7 +313,7 @@ select pg_temp.login('00000000-0000-0000-0000-00000000a11c');
 select public.lock_prediction(pg_temp.prediction('Solo'));
 select is(
   pg_temp.pushes('prediction_locked'),
-  row(1::bigint, true, '🔒 Betting Closed', 'Cricket Fever · Solo',
+  row(1::bigint, true, '🔒 Picks locked', 'Cricket Fever · Solo',
     current_setting('test.room_url') || '/predictions/' || pg_temp.prediction('Solo'))::text,
   'one locking on its own gets the usual push'
 );
@@ -442,7 +442,7 @@ select is(
 reset role;
 select is(
   pg_temp.pushes('result_revealed'),
-  row(1::bigint, false, '↩️ 2 predictions called off · points returned', 'Cricket Fever · Final', current_setting('test.room_url'))::text,
+  row(1::bigint, false, '↩️ 2 questions called off · points back', 'Cricket Fever · Final', current_setting('test.room_url'))::text,
   'with one push saying they''re off'
 );
 
@@ -460,7 +460,7 @@ select is(
 reset role;
 select is(
   pg_temp.pushes('result_revealed'),
-  row(1::bigint, true, '🏆 Result Is In', 'Cricket Fever · Solo',
+  row(1::bigint, true, '🏆 Result''s in', 'Cricket Fever · Solo',
     current_setting('test.room_url') || '/predictions/' || pg_temp.prediction('Solo'))::text,
   'and gets the usual push'
 );

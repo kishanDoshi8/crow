@@ -1,7 +1,7 @@
 {
 	"name": "Crow",
 	"short_name": "Crow",
-	"description": "Prediction series for friends. Call it, then crow about it.",
+	"description": "The prediction game for your group chat. Call it, then crow about it.",
 	"start_url": "/",
 	"scope": "/",
 	"display": "standalone",

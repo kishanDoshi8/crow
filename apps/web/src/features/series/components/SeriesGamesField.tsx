@@ -44,7 +44,7 @@ export function SeriesGamesField({
 					<FieldContent>
 						<FieldTitle>Open-ended</FieldTitle>
 						<FieldDescription>
-							No set number of games. Good for league seasons
+							No set number of questions. Good for league seasons
 							where you pick matches as you go.
 						</FieldDescription>
 					</FieldContent>
@@ -54,7 +54,7 @@ export function SeriesGamesField({
 			{openEnded ? null : (
 				<Field>
 					<FieldLabel htmlFor={`${id}-expected-games`}>
-						Expected games
+						Expected questions
 					</FieldLabel>
 					<Input
 						id={`${id}-expected-games`}
@@ -68,7 +68,7 @@ export function SeriesGamesField({
 						disabled={disabled}
 					/>
 					<FieldDescription>
-						{hint ?? "How many predictions are planned in this series."}
+						{hint ?? "How many questions are planned in this series."}
 					</FieldDescription>
 				</Field>
 			)}

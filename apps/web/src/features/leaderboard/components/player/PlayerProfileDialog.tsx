@@ -252,7 +252,7 @@ export function PlayerProfileDialog({
 				{loadError ? (
 					<p className='px-4 text-sm text-destructive'>
 						{loadError.message ||
-							"Something went wrong loading this player."}
+							"Couldn't load this player. Try again."}
 					</p>
 				) : null}
 

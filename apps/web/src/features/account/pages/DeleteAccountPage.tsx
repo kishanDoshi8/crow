@@ -124,8 +124,8 @@ export default function DeleteAccountPage() {
 							<ul className='list-disc space-y-1.5 pl-5'>
 								<li>Your login, email and settings are removed.</li>
 								<li>
-									You leave every room. Bets on open predictions are
-									refunded; rooms you own pass to another member.
+									You leave every room. Points on open picks are
+									returned; rooms you own pass to another player.
 								</li>
 								<li>
 									Your past results stay so everyone else's points still add

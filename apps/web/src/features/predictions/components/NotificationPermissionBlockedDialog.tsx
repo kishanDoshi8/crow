@@ -21,12 +21,12 @@ export function NotificationPermissionBlockedDialog({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Notifications Disabled</DialogTitle>
+					<DialogTitle>Notifications disabled</DialogTitle>
 					<DialogDescription>
 						Notifications are blocked in your browser.
 						<br />
 						<br />
-						To receive prediction updates and reminders, enable
+						To get updates and reminders about your questions, enable
 						notifications from your browser settings and then return
 						to the app.
 					</DialogDescription>

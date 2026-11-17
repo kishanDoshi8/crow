@@ -27,7 +27,7 @@ const FILTERS: Array<{
 	{ label: "All", value: "all", count: "all" },
 	{ label: "Won", value: "wins", count: "wins", dot: "bg-win" },
 	{ label: "Lost", value: "losses", count: "losses", dot: "bg-loss" },
-	{ label: "My bets", value: "my_bets", count: "my_bets" },
+	{ label: "My picks", value: "my_bets", count: "my_bets" },
 ];
 
 function emptyStateMessage(
@@ -36,7 +36,7 @@ function emptyStateMessage(
 	scope: SeriesScope,
 ) {
 	if (search.trim().length > 0) {
-		return "No predictions match your search.";
+		return "No questions match your search.";
 	}
 
 	const where = scope === "series" ? " in this series" : "";
@@ -46,9 +46,9 @@ function emptyStateMessage(
 		case "losses":
 			return `No losses${where} yet.`;
 		case "my_bets":
-			return `You haven't placed any bets${where} yet.`;
+			return `You haven't made any picks${where} yet.`;
 		default:
-			return `No finished predictions${where} yet.`;
+			return `No finished questions${where} yet.`;
 	}
 }
 
@@ -123,7 +123,7 @@ function HistoryFeed() {
 			<div>
 				<h2 className='text-lg font-semibold'>History</h2>
 				<p className='text-sm text-muted-foreground'>
-					Finished predictions and who called them.
+					Finished questions and who called them.
 				</p>
 			</div>
 
@@ -135,10 +135,10 @@ function HistoryFeed() {
 				/>
 				<label className='flex h-11 items-center gap-2 rounded-lg border px-3 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50'>
 					<SearchIcon className='size-4 shrink-0 text-muted-foreground' aria-hidden='true' />
-					<span className='sr-only'>Search prediction titles</span>
+					<span className='sr-only'>Search questions</span>
 					<input
 						type='search'
-						placeholder='Search prediction titles'
+						placeholder='Search questions'
 						value={searchInput}
 						onChange={(event) => setSearchInput(event.target.value)}
 						className='min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground md:text-sm'

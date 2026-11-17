@@ -31,13 +31,13 @@ export function SeriesOverviewCard({
 	const progress = getSeriesProgress(series);
 	const stats = progress.isOpenEnded
 		? [
-				{ label: "Resolved", value: progress.resolved },
+				{ label: "Finished", value: progress.resolved },
 				{ label: "Open", value: progress.open },
-				{ label: "Cancelled", value: series.cancelledPredictions },
+				{ label: "Scrapped", value: series.cancelledPredictions },
 			]
 		: [
 				{ label: "Expected", value: progress.expected },
-				{ label: "Completed", value: progress.resolved },
+				{ label: "Finished", value: progress.resolved },
 				{ label: "Remaining", value: progress.remaining },
 			];
 
@@ -69,7 +69,7 @@ export function SeriesOverviewCard({
 			<div className={PROGRESS_PANEL}>
 				{progress.isOpenEnded ? (
 					<p className='text-xs text-muted-foreground'>
-						Open-ended: no set number of games.
+						Open-ended: no set number of questions.
 					</p>
 				) : (
 					<Field>

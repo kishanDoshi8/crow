@@ -82,14 +82,14 @@ export function JoinRoomPage() {
 						});
 						return;
 					}
-					toast.success("Joined room successfully.");
+					toast.success("You're in.");
 					navigate(
 						joinedRoom.code === room.code ? destination : `/rooms/${joinedRoom.code}`,
 						{ replace: true },
 					);
 				},
 				onError: (error) => {
-					toast.error("Failed to join room.", {
+					toast.error("Couldn't join the room. Try again.", {
 						description: error.message,
 					});
 				},
@@ -157,7 +157,7 @@ export function JoinRoomPage() {
 						</Badge>
 						<Badge className='rounded-full bg-primary/15 px-3 py-1 text-primary'>
 							<span aria-hidden='true'>●</span>
-							{predictionCount} live
+							{predictionCount} open
 						</Badge>
 					</div>
 				</div>
@@ -168,7 +168,7 @@ export function JoinRoomPage() {
 
 				<dl className='grid gap-3 rounded-2xl border bg-card p-4 text-sm'>
 					<div className='flex justify-between gap-4'>
-						<dt className='text-muted-foreground'>Organized by</dt>
+						<dt className='text-muted-foreground'>Hosted by</dt>
 						<dd className='truncate font-medium'>{organizerName}</dd>
 					</div>
 					<div className='flex justify-between gap-4'>
@@ -178,7 +178,7 @@ export function JoinRoomPage() {
 				</dl>
 
 				<p className='text-sm text-muted-foreground'>
-					Same points for everyone. Top balance when the series ends takes the
+					Same points for everyone. Most points when the series ends takes the
 					title.
 				</p>
 			</main>
@@ -206,7 +206,7 @@ export function JoinRoomPage() {
 						</div>
 					) : room.is_full ? (
 						<p className='text-center text-sm text-muted-foreground'>
-							This room is full. Try another room, or ask a member for an
+							This room is full. Try another room, or ask someone in it for an
 							invite once a place opens.
 						</p>
 					) : (
@@ -223,7 +223,7 @@ export function JoinRoomPage() {
 							</Button>
 							{needsRequest ? (
 								<p className='text-center text-xs text-muted-foreground'>
-									The room's owner or an organizer lets you in.
+									The owner or a host lets you in.
 								</p>
 							) : null}
 						</div>

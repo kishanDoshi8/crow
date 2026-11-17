@@ -31,7 +31,7 @@ export function PredictionCorrectedCard({
 			tier={activity.activityTier}
 			actorLabel={activity.createdBy?.username}
 			icon={<PencilLineIcon className='size-4' />}
-			typeLabel='Result corrected'
+			typeLabel='Result fixed'
 			tone='warning'
 			title={metadata.title}
 			summary={`Now ${now} (was ${was}). Points are updated.`}

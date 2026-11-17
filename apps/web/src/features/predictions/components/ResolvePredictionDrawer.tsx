@@ -69,7 +69,7 @@ export function ResolvePredictionDrawer({
 		<Drawer open={open} onOpenChange={handleOpenChange}>
 			<DrawerContent className={`sm:max-w-md mx-auto`}>
 				<DrawerHeader>
-					<DrawerTitle>Reveal Results</DrawerTitle>
+					<DrawerTitle>Reveal result</DrawerTitle>
 					<DrawerDescription>
 						<span className='block'>{prediction.title}</span>
 						<span className='block mt-1'>
@@ -123,7 +123,7 @@ export function ResolvePredictionDrawer({
 							onSuccess={handleClosed}
 						>
 							<Button variant='secondary' size='lg'>
-								No Result
+								No result
 							</Button>
 						</CloseWithoutResultDialog>
 						<CloseWithoutResultDialog
@@ -133,7 +133,7 @@ export function ResolvePredictionDrawer({
 							onSuccess={handleClosed}
 						>
 							<Button variant='outline' size='lg'>
-								Cancel prediction
+								Scrap question
 							</Button>
 						</CloseWithoutResultDialog>
 					</div>
@@ -151,17 +151,17 @@ export function ResolvePredictionDrawer({
 const CLOSE_COPY = {
 	no_result: {
 		title: "End with no result?",
-		body: "Use this when the event happened but can't be settled, e.g. a washed-out match.",
-		confirm: "Confirm No Result",
-		success: "Prediction ended with no result.",
-		failure: "Failed to end prediction with no result.",
+		body: "Use this when the event happened but can't be decided, e.g. a washed-out match.",
+		confirm: "End with no result",
+		success: "Question ended with no result. Everyone's points are back.",
+		failure: "Couldn't end the question with no result. Try again.",
 	},
 	cancel: {
-		title: "Cancel this prediction?",
+		title: "Scrap this question?",
 		body: "Use this for a mistake or an event that won't happen. It's removed from play.",
-		confirm: "Cancel prediction",
-		success: "Prediction cancelled. Everyone's points are back.",
-		failure: "Failed to cancel the prediction.",
+		confirm: "Scrap question",
+		success: "Question scrapped. Everyone's points are back.",
+		failure: "Couldn't scrap the question. Try again.",
 	},
 } as const;
 
@@ -239,8 +239,8 @@ export function CloseWithoutResultDialog({
 					<Alert className={`mt-2`}>
 						<InfoIcon />
 						<AlertDescription>
-							All bets are returned and no one wins or loses
-							points.
+							Everyone gets their points back, and nobody wins or
+							loses.
 						</AlertDescription>
 					</Alert>
 				</DialogHeader>
@@ -298,7 +298,7 @@ function RevealResults({
 			},
 			{
 				onError: (error) => {
-					toast.error("Failed to reveal results.", {
+					toast.error("Couldn't reveal the result. Try again.", {
 						description: error.message,
 						dismissible: true,
 						duration: 7000,
@@ -306,7 +306,7 @@ function RevealResults({
 					});
 				},
 				onSuccess: () => {
-					toast.success("Results revealed successfully!", {
+					toast.success("Result revealed.", {
 						dismissible: true,
 						duration: 5000,
 						position: "top-center",
@@ -327,18 +327,17 @@ function RevealResults({
 					size='lg'
 					disabled={!selectedOption}
 				>
-					Reveal Results
+					Reveal result
 				</Button>
 			</DialogTrigger>
 			<DialogContent className={`sm:max-w-md mx-auto`}>
 				<DialogHeader>
-					<DialogTitle>Are you sure?</DialogTitle>
+					<DialogTitle>Reveal this result?</DialogTitle>
 					<DialogDescription>
-						Are you sure you want to reveal the results? This action
-						cannot be undone.
+						Points move straight away.
 						<Alert className={`mt-4`}>
 							<InfoIcon />
-							<AlertTitle>Selected Option: {selectedLabel}</AlertTitle>
+							<AlertTitle>Winner: {selectedLabel}</AlertTitle>
 						</Alert>
 					</DialogDescription>
 				</DialogHeader>
@@ -350,7 +349,7 @@ function RevealResults({
 					</DialogClose>
 					<Button size='lg' onClick={handleReveal} disabled={isPending}>
 						{isPending && <Spinner />}
-						Confirm
+						Reveal result
 					</Button>
 				</DialogFooter>
 			</DialogContent>

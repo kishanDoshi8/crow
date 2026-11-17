@@ -50,8 +50,8 @@ export default function PredictionNew() {
 				>
 					<h3 className={`text-xl font-bold`}>Start a series first</h3>
 					<p className={`text-sm text-muted-foreground`}>
-						Every prediction is part of a series, and points live in
-						the series. Start one, then add predictions to it.
+						Every question is part of a series, and points live in
+						the series. Start one, then add questions to it.
 					</p>
 					<Button variant='linear' asChild>
 						<Link to={`/rooms/${room.code}/series/new`}>
@@ -133,7 +133,7 @@ export default function PredictionNew() {
 								back(`/rooms/${room.code}`);
 							},
 							onError: (error) => {
-								toast("Failed to create prediction.", {
+								toast.error("Couldn't create the question. Try again.", {
 									description: error.message,
 								});
 							},

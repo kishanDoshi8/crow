@@ -47,7 +47,7 @@ const getAuthErrorMessage = (error: unknown) => {
   if (isRateLimited) {
     return "Too many signup attempts right now. Please wait a bit and try again, or sign in if you already created an account.";
   }
-  return error instanceof Error ? error.message : "Authentication failed.";
+  return error instanceof Error ? error.message : "Couldn't sign you in. Try again.";
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {

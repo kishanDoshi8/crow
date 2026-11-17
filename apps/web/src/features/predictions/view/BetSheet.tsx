@@ -87,7 +87,7 @@ export function BetSheet({
 					if (!myBet) offerNotifications(openNotifications);
 				},
 				onError: (error) => {
-					toast.error("Couldn't place the bet.", {
+					toast.error("Couldn't lock in your pick. Try again.", {
 						position: "top-center",
 						description: error.message,
 					});
@@ -102,10 +102,10 @@ export function BetSheet({
 			{
 				onSuccess: () => {
 					close();
-					toast.success("Bet cancelled. Your points are back.", { position: "top-center" });
+					toast.success("Pick taken back. Your points are back.", { position: "top-center" });
 				},
 				onError: (error) => {
-					toast.error("Couldn't cancel the bet.", {
+					toast.error("Couldn't take back your pick. Try again.", {
 						position: "top-center",
 						description: error instanceof Error ? error.message : undefined,
 					});
@@ -114,26 +114,26 @@ export function BetSheet({
 		);
 	};
 
-	let primaryLabel = `Place bet · ${formatPoints(amount)} pts`;
+	let primaryLabel = `Lock in pick · ${formatPoints(amount)} pts`;
 	if (isSwitching) primaryLabel = `Switch to ${optionLabel}`;
-	else if (myBet) primaryLabel = "Update bet";
+	else if (myBet) primaryLabel = "Change pick";
 
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange}>
 			<DrawerContent className='mx-auto sm:max-w-md'>
 				<DrawerHeader className='text-left group-data-[vaul-drawer-direction=bottom]/drawer-content:text-left'>
-					<DrawerTitle className='sr-only'>Your bet on {optionLabel}</DrawerTitle>
+					<DrawerTitle className='sr-only'>Your pick: {optionLabel}</DrawerTitle>
 					<div className='flex items-end justify-between gap-3'>
 						<div>
 							<DrawerDescription>
 								{isSwitching ? (
 									<>
-										Move your bet from {myBetLabel} to{" "}
+										Switch your pick from {myBetLabel} to{" "}
 										<span className='font-semibold text-foreground'>{optionLabel}</span>
 									</>
 								) : (
 									<>
-										Your bet on{" "}
+										Your pick{" "}
 										<span className='font-semibold text-foreground'>{optionLabel}</span>
 									</>
 								)}
@@ -144,7 +144,7 @@ export function BetSheet({
 							</p>
 						</div>
 						<p className='text-right text-xs text-muted-foreground'>
-							Balance
+							Your points
 							<span className='block text-[15px] font-semibold text-foreground tabular-nums'>
 								{formatPoints(balance)} pts
 							</span>
@@ -184,7 +184,7 @@ export function BetSheet({
 							value={[amount]}
 							onValueChange={(value) => setAmount(clamp(value[0]))}
 							disabled={busy || balance < 1}
-							aria-label='Stake'
+							aria-label='How sure are you?'
 						/>
 						<Button
 							variant='secondary'
@@ -202,10 +202,10 @@ export function BetSheet({
 							<>
 								If {optionLabel} wins:{" "}
 								<span className='font-semibold text-win tabular-nums'>≈ +{formatPoints(gain)} pts</span>
-								{" "}· changes as others bet. Locked at the deadline.
+								{" "}· changes as others pick. Fixed when picks close.
 							</>
 						) : (
-							"No one to win from on this pick yet. Locked at the deadline."
+							"Nobody's picked against you yet. Fixed when picks close."
 						)}
 					</p>
 				</div>
@@ -220,7 +220,7 @@ export function BetSheet({
 							disabled={busy || !online}
 						>
 							{isCancelling && <Spinner />}
-							Cancel bet
+							Take back pick
 						</Button>
 					) : (
 						<Button variant='outline' size='lg' onClick={close} disabled={busy}>
@@ -263,8 +263,8 @@ function offerNotifications(openNotifications: () => void) {
 	} catch {
 		return;
 	}
-	toast("Want to know when it's settled?", {
-		description: "Get a notification when results are in.",
+	toast("Want to know when the result's in?", {
+		description: "Get a notification when the result is in.",
 		position: "top-center",
 		duration: 10000,
 		action: { label: "Turn on", onClick: openNotifications },

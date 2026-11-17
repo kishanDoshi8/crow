@@ -67,7 +67,7 @@ export default function MembersPage() {
 		<div className='mx-auto w-full max-w-md space-y-3 p-4 lg:max-w-2xl lg:pt-6'>
 			{can.organize ? <JoinRequests roomId={room.id} /> : null}
 			<p className='flex justify-between px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground'>
-				<span>Members</span>
+				<span>Players</span>
 				<span className='tabular-nums'>
 					{room.members.length}
 					{room.member_limit ? ` / ${room.member_limit}` : ""}
@@ -75,8 +75,8 @@ export default function MembersPage() {
 			</p>
 			<p className='px-1 text-sm text-muted-foreground'>
 				{can.own
-					? "Give friends a role to share the work. Resolvers reveal results; organizers also create predictions and series."
-					: "Organizers and resolvers help run the room. The owner assigns roles."}
+					? "Give friends a role to share the work. Refs reveal results; hosts also create questions and series."
+					: "Hosts and refs help run the room. The owner assigns roles."}
 			</p>
 			<ul className='divide-y rounded-2xl border bg-card'>
 				{members.map((member) => {
@@ -191,7 +191,7 @@ function RoleDrawer({
 			{ playerId: member.player_id, role },
 			{
 				onSuccess: () => {
-					toast.success(`${name} is now a ${role}.`, {
+					toast.success(`${name} is now a ${ROLE_INFO[role].label.toLowerCase()}.`, {
 						position: "top-center",
 					});
 					onClose();
@@ -209,7 +209,7 @@ function RoleDrawer({
 	const handleTransfer = () => {
 		transferOwnership(member.player_id, {
 			onSuccess: () => {
-				toast.success(`${name} now owns the room. You're an organizer.`, {
+				toast.success(`${name} now owns the room. You're a host.`, {
 					position: "top-center",
 				});
 				onClose();
@@ -258,7 +258,7 @@ function RoleDrawer({
 						<div className='space-y-3 rounded-xl border border-destructive/40 bg-destructive/10 p-3'>
 							<p className='flex items-start gap-2 text-sm text-destructive'>
 								<ShieldAlertIcon className='mt-0.5 size-4 shrink-0' />
-								Make {name} the owner. You'll stay on as an organizer
+								Make {name} the owner. You'll stay on as a host
 								and can't undo this yourself.
 							</p>
 							<FieldLabel htmlFor='transfer-ownership'>
@@ -347,7 +347,7 @@ function RemoveMember({
 		<div className='space-y-3 rounded-xl border border-destructive/40 bg-destructive/10 p-3'>
 			<p className='flex items-start gap-2 text-sm text-destructive'>
 				<UserMinusIcon className='mt-0.5 size-4 shrink-0' />
-				Remove {name} from the room. Bets on open predictions go back to
+				Remove {name} from the room. Points on open picks go back to
 				them; past results keep their name. They can't rejoin until you let
 				them back in.
 			</p>
@@ -417,7 +417,7 @@ function FormerMembers({
 	return (
 		<section className='space-y-2 pt-3'>
 			<p className='px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
-				Former members
+				Former players
 			</p>
 			<ul className='divide-y rounded-2xl border bg-card'>
 				{formerMembers.map((former) => (

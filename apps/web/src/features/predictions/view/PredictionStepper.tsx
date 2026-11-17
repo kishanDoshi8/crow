@@ -20,7 +20,7 @@ export function PredictionStepper({
 	if (!data || (!data.previous && !data.next)) return null;
 
 	return (
-		<nav aria-label='More predictions' className='-my-1.5 flex items-center'>
+		<nav aria-label='More questions' className='-my-1.5 flex items-center'>
 			<Step to={data.previous} roomCode={roomCode} direction='previous' />
 			<Step to={data.next} roomCode={roomCode} direction='next' />
 		</nav>
@@ -49,7 +49,7 @@ function Step({
 			to={`/rooms/${roomCode}/predictions/${to.id}`}
 			replace
 			title={`${number}${to.title}`}
-			aria-label={`${word} prediction: ${number}${to.title}`}
+			aria-label={`${word} question: ${number}${to.title}`}
 			className={cn(STEP, "hover:bg-secondary hover:text-foreground")}
 		>
 			<Icon className='size-5' />

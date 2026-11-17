@@ -13,12 +13,12 @@ export function splitStandings(entries: LeaderboardEntry[]) {
 	return { ranked, unranked };
 }
 
-// "needs 1 more bet", "needs 2 more bets".
+// "needs 1 more pick", "needs 2 more picks".
 export function betsNeededLabel(betsNeeded: number) {
-	return `needs ${betsNeeded} more ${betsNeeded === 1 ? "bet" : "bets"}`;
+	return `needs ${betsNeeded} more ${betsNeeded === 1 ? "pick" : "picks"}`;
 }
 
-// "Bet on 3 settled predictions to be ranked."
+// "Make 3 picks on questions with results to be ranked."
 export function rankingRuleLabel(requiredBets: number) {
-	return `Bet on ${requiredBets} settled ${requiredBets === 1 ? "prediction" : "predictions"} to be ranked.`;
+	return `Make ${requiredBets} ${requiredBets === 1 ? "pick" : "picks"} on questions with results to be ranked.`;
 }

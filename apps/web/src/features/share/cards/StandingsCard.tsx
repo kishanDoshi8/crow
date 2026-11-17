@@ -154,7 +154,7 @@ export function StandingsCard({
 			<RoomHeader
 				title={data.seriesTitle}
 				subtitle={`${data.roomName} · Final standings`}
-				trailing={<Pill tone='win'>Completed</Pill>}
+				trailing={<Pill tone='win'>Finished</Pill>}
 			/>
 
 			<div

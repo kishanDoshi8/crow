@@ -57,7 +57,7 @@ export function PredictionView({
 			<PredictionViewSkeleton />
 		) : (
 			<p className='p-6 text-center text-muted-foreground'>
-				This prediction isn't here any more.
+				This question isn't here any more.
 			</p>
 		);
 	}
@@ -278,7 +278,7 @@ function LoadedPrediction({
 										)}{" "}
 										pts
 									</span>{" "}
-									to play
+									free to use
 								</p>
 							</div>
 						</>
@@ -345,7 +345,7 @@ function LoadedPrediction({
 						{isScheduled ? (
 							<p className='flex items-start gap-2.5 rounded-xl border border-dashed border-foreground/15 px-3.5 py-3 text-xs leading-relaxed text-muted-foreground'>
 								<EyeOffIcon className='mt-px size-4 shrink-0' aria-hidden />
-								Only owners and organizers can see this until it goes live.
+								Only the owner and hosts can see this until it goes live.
 							</p>
 						) : null}
 
@@ -528,7 +528,7 @@ function PredictionViewSkeleton() {
 	);
 
 	return (
-		<div className='flex min-h-[calc(100dvh-3.5rem)] flex-col' aria-busy='true' aria-label='Loading prediction'>
+		<div className='flex min-h-[calc(100dvh-3.5rem)] flex-col' aria-busy='true' aria-label='Loading question'>
 			{isDesktop ? (
 				<div className='mx-auto grid w-full max-w-260 grid-cols-[minmax(0,1fr)_22rem] items-start gap-8 px-8 pt-6 pb-8'>
 					<div className='flex min-w-0 flex-col gap-7' aria-hidden>
