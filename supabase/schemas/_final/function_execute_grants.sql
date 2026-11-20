@@ -101,3 +101,12 @@ grant execute on function public.get_explore_rooms(text, integer, integer) to au
 grant execute on function public.create_predictions(uuid, uuid, jsonb, timestamp with time zone, timestamp with time zone, text, text[]) to authenticated;
 grant execute on function public.resolve_predictions(uuid, jsonb) to authenticated;
 grant execute on function public.get_room_prediction_history_counts(uuid, uuid, text) to authenticated;
+
+-- Event packs: following competitions and adding fixture questions.
+grant execute on function public.get_room_fixtures(uuid, integer) to authenticated;
+grant execute on function public.set_room_competition(uuid, uuid, boolean) to authenticated;
+grant execute on function public.add_fixture_questions(uuid, uuid, uuid[], timestamp with time zone) to authenticated;
+
+-- Server-only: the sync-fixtures edge function, using the service key.
+grant execute on function public.get_fixture_sync_targets() to service_role;
+grant execute on function public.sync_competition_fixtures(text, text, text, jsonb) to service_role;

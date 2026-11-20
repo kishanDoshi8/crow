@@ -1,4 +1,4 @@
--- Describes everything in the public and private schemas as sorted lines of
+-- Describes everything in the public, private and catalog schemas as sorted lines of
 -- text, so two databases can be compared with diff. Used by
 -- check-schema-drift.sh to prove supabase/schemas matches the migrations.
 \pset format unaligned
@@ -11,7 +11,7 @@ with objects as (
            n.nspname, c.relname, c.relkind, c.relrowsecurity, c.relforcerowsecurity) as line
   from pg_class c
   join pg_namespace n on n.oid = c.relnamespace
-  where n.nspname in ('public', 'private')
+  where n.nspname in ('public', 'private', 'catalog')
     and c.relkind in ('r', 'v', 'm', 'p')
 
   union all
@@ -24,7 +24,7 @@ with objects as (
   join pg_class c on c.oid = a.attrelid
   join pg_namespace n on n.oid = c.relnamespace
   left join pg_attrdef d on d.adrelid = a.attrelid and d.adnum = a.attnum
-  where n.nspname in ('public', 'private')
+  where n.nspname in ('public', 'private', 'catalog')
     and c.relkind in ('r', 'v', 'm', 'p')
     and a.attnum > 0
     and not a.attisdropped
@@ -36,7 +36,7 @@ with objects as (
   from pg_constraint con
   join pg_class c on c.oid = con.conrelid
   join pg_namespace n on n.oid = c.relnamespace
-  where n.nspname in ('public', 'private')
+  where n.nspname in ('public', 'private', 'catalog')
 
   union all
   -- Indexes.
@@ -44,27 +44,27 @@ with objects as (
   from pg_index i
   join pg_class c on c.oid = i.indrelid
   join pg_namespace n on n.oid = c.relnamespace
-  where n.nspname in ('public', 'private')
+  where n.nspname in ('public', 'private', 'catalog')
 
   union all
   -- Policies.
   select format('policy %s.%s %s cmd=%s permissive=%s roles=%s using=%s check=%s',
            schemaname, tablename, policyname, cmd, permissive, roles, qual, with_check)
   from pg_policies
-  where schemaname in ('public', 'private')
+  where schemaname in ('public', 'private', 'catalog')
 
   union all
   -- Table and column privileges for the API roles.
   select format('grant %s.%s to=%s %s', table_schema, table_name, grantee, privilege_type)
   from information_schema.role_table_grants
-  where table_schema in ('public', 'private')
+  where table_schema in ('public', 'private', 'catalog')
     and grantee in ('anon', 'authenticated', 'service_role', 'public')
 
   union all
   select format('column_grant %s.%s.%s to=%s %s',
            table_schema, table_name, column_name, grantee, privilege_type)
   from information_schema.column_privileges
-  where table_schema in ('public', 'private')
+  where table_schema in ('public', 'private', 'catalog')
     and grantee in ('anon', 'authenticated')
     -- Whole-table grants already show up above.
     and not exists (
@@ -84,7 +84,7 @@ with objects as (
   from pg_proc p
   join pg_namespace n on n.oid = p.pronamespace
   join pg_language l on l.oid = p.prolang
-  where n.nspname in ('public', 'private')
+  where n.nspname in ('public', 'private', 'catalog')
     and not exists (
       select 1 from pg_depend dep
       where dep.objid = p.oid and dep.deptype = 'e'
@@ -97,7 +97,7 @@ with objects as (
   from pg_proc p
   join pg_namespace n on n.oid = p.pronamespace
   cross join (values ('anon'), ('authenticated')) as r(rolname)
-  where n.nspname in ('public', 'private')
+  where n.nspname in ('public', 'private', 'catalog')
     and has_function_privilege(r.rolname, p.oid, 'EXECUTE')
     and not exists (
       select 1 from pg_depend dep
@@ -110,7 +110,7 @@ with objects as (
   from pg_trigger t
   join pg_class c on c.oid = t.tgrelid
   join pg_namespace n on n.oid = c.relnamespace
-  where n.nspname in ('public', 'private')
+  where n.nspname in ('public', 'private', 'catalog')
     and not t.tgisinternal
 
   union all
@@ -119,7 +119,7 @@ with objects as (
            md5(regexp_replace(pg_get_viewdef(c.oid), '\s+', '', 'g')))
   from pg_class c
   join pg_namespace n on n.oid = c.relnamespace
-  where n.nspname in ('public', 'private')
+  where n.nspname in ('public', 'private', 'catalog')
     and c.relkind in ('v', 'm')
 
   union all
@@ -129,7 +129,7 @@ with objects as (
             from pg_enum e where e.enumtypid = t.oid))
   from pg_type t
   join pg_namespace n on n.oid = t.typnamespace
-  where n.nspname in ('public', 'private')
+  where n.nspname in ('public', 'private', 'catalog')
     and t.typtype = 'e'
 
   union all
@@ -143,7 +143,7 @@ with objects as (
   select format('schema_usage %s to=%s', n.nspname, r.rolname)
   from pg_namespace n
   cross join (values ('anon'), ('authenticated')) as r(rolname)
-  where n.nspname in ('public', 'private')
+  where n.nspname in ('public', 'private', 'catalog')
     and has_schema_privilege(r.rolname, n.oid, 'USAGE')
 )
 select line from objects order by line;

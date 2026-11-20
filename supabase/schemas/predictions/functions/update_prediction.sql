@@ -2,6 +2,9 @@
 -- the question and options while nobody has bet. Pass null options to keep
 -- them. A scheduled one can also move when it goes live (p_opens_at; null
 -- keeps it), and must stay open at least 5 minutes after that.
+-- A question added from the fixtures becomes the host's own once its
+-- question or options change: the link to the fixture goes, so kickoff
+-- changes no longer move it and its result is the host's to reveal.
 create or replace function public.update_prediction(
   p_prediction_id uuid,
   p_title         text,
@@ -21,6 +24,7 @@ declare
   v_current    text[];
   v_i          int;
   v_opens_at   timestamptz;
+  v_options_changed boolean := false;
 begin
   v_player_id := private.get_player_id_from_auth();
 
@@ -100,6 +104,7 @@ begin
         raise exception 'Options can''t change once someone has bet' using errcode = 'P0001';
       end if;
 
+      v_options_changed := true;
       delete from public.prediction_options where prediction_id = p_prediction_id;
 
       for v_i in 1 .. array_length(v_labels, 1) loop
@@ -114,8 +119,16 @@ begin
       deadline    = p_deadline,
       opens_at    = coalesce(v_opens_at, opens_at),
       -- A moved deadline earns a fresh "1 hour left" reminder.
-      notified_1h = case when p_deadline = deadline then notified_1h else false end
+      notified_1h = case when p_deadline = deadline then notified_1h else false end,
+      fixture_question_id = case
+        when v_options_changed or trim(p_title) is distinct from title then null
+        else fixture_question_id
+      end
   where id = p_prediction_id;
+
+  if v_prediction.fixture_question_id is not null and (v_options_changed or trim(p_title) is distinct from v_prediction.title) then
+    update public.prediction_options set option_key = null where prediction_id = p_prediction_id;
+  end if;
 
   return json_build_object(
     'id',       p_prediction_id,

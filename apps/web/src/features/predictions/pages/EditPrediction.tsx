@@ -3,7 +3,8 @@ import { useAppNavigation } from "@/shared/lib/navigation";
 import { usePrediction, useUpdatePrediction } from "@/features/predictions/hooks/prediction";
 import { PredictionForm } from "@/features/predictions/components/PredictionForm";
 import { useRoomRole } from "@/features/rooms";
-import { Skeleton } from "@/shared/ui";
+import { Alert, AlertDescription, Skeleton } from "@/shared/ui";
+import { InfoIcon } from "lucide-react";
 import { Navigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -44,51 +45,65 @@ export default function EditPrediction() {
 	const hasBets = options.some((option) => option.total_bet > 0);
 
 	return (
-		<PredictionForm
-			mode='edit'
-			roomId={room.id}
-			initial={{
-				title: prediction.title,
-				options: options.map((option) => option.label),
-				deadline: new Date(prediction.deadline),
-				description: prediction.description ?? "",
-				tags: (prediction.tags ?? []).map((tag) => tag.tag),
-				opensAt:
-					prediction.status === "scheduled" && prediction.opens_at
-						? new Date(prediction.opens_at)
-						: null,
-			}}
-			lockedByBets={hasBets}
-			isSubmitting={isSaving}
-			onSubmit={({ title, options: labels, deadline, opensAt, description, tags }) =>
-				updatePrediction(
-					{
-						roomId: room.id,
-						predictionId: prediction.id,
-						title,
-						deadline,
-						options: hasBets ? undefined : labels,
-						opensAt,
-						description,
-						tags,
-					},
-					{
-						onSuccess: () => {
-							toast.success("Question updated.", {
-								position: "top-center",
-							});
-							back(predictionPath);
+		<>
+			{/* Added from the fixtures: its question and options follow the match. */}
+			{prediction.fixture_question_id ? (
+				<div className='mx-auto w-full max-w-md px-4 pt-4'>
+					<Alert>
+						<InfoIcon />
+						<AlertDescription>
+							This question came from the fixtures. Change the question or
+							options and it becomes your own, no longer tied to the match.
+						</AlertDescription>
+					</Alert>
+				</div>
+			) : null}
+			<PredictionForm
+				mode='edit'
+				roomId={room.id}
+				initial={{
+					title: prediction.title,
+					options: options.map((option) => option.label),
+					deadline: new Date(prediction.deadline),
+					description: prediction.description ?? "",
+					tags: (prediction.tags ?? []).map((tag) => tag.tag),
+					opensAt:
+						prediction.status === "scheduled" && prediction.opens_at
+							? new Date(prediction.opens_at)
+							: null,
+				}}
+				lockedByBets={hasBets}
+				isSubmitting={isSaving}
+				onSubmit={({ title, options: labels, deadline, opensAt, description, tags }) =>
+					updatePrediction(
+						{
+							roomId: room.id,
+							predictionId: prediction.id,
+							title,
+							deadline,
+							options: hasBets ? undefined : labels,
+							opensAt,
+							description,
+							tags,
 						},
-						onError: (error) => {
-							toast.error("Couldn't update the question. Try again.", {
-								description: error.message,
-								position: "top-center",
-							});
+						{
+							onSuccess: () => {
+								toast.success("Question updated.", {
+									position: "top-center",
+								});
+								back(predictionPath);
+							},
+							onError: (error) => {
+								toast.error("Couldn't update the question. Try again.", {
+									description: error.message,
+									position: "top-center",
+								});
+							},
 						},
-					},
-				)
-			}
-			onCancel={() => back(predictionPath)}
-		/>
+					)
+				}
+				onCancel={() => back(predictionPath)}
+			/>
+		</>
 	);
 }

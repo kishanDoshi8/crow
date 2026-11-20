@@ -36,6 +36,11 @@ verify_jwt = true
 [functions.invite-preview]
 verify_jwt = false
 
+# Cron only (private.request_fixture_sync): the service key plus
+# x-sync-secret. Fetches fixtures for event packs (docs/event-packs.md).
+[functions.sync-fixtures]
+verify_jwt = true
+
 [db.migrations]
 schema_paths = [
   # Schemas and extensions first.
@@ -55,6 +60,12 @@ schema_paths = [
   "./schemas/core/tables/room_members.sql",
   "./schemas/core/tables/share_events.sql",
   "./schemas/core/tables/weekly_claims.sql",
+  "./schemas/catalog/tables/01_competitions.sql",
+  "./schemas/catalog/tables/02_teams.sql",
+  "./schemas/catalog/tables/03_fixtures.sql",
+  "./schemas/catalog/tables/04_question_templates.sql",
+  "./schemas/catalog/tables/05_fixture_questions.sql",
+  "./schemas/catalog/tables/06_room_competitions.sql",
   "./schemas/activities/tables/room_activities.sql",
   "./schemas/notifications/tables/notification_config.sql",
   "./schemas/notifications/tables/notification_dispatch_log.sql",

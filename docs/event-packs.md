@@ -1,7 +1,7 @@
 # Event packs: research and design
 
-Status: **proposal**, November 2026. Nothing here is built yet. Decisions
-still open are marked ⚑.
+Status: **phase 1 built**, November 2026 (see §11). Decisions are in §10;
+⚑ marks where one was open.
 
 Event packs let a host connect a room to a real competition (Premier League,
 Champions League, IPL...) and add ready-made questions for each match in a
@@ -299,10 +299,51 @@ matches from a list instead of typing them is most of the saving.
 
 ---
 
-## 10. Open decisions ⚑
+## 10. Decisions
 
-1. Launch competitions: Premier League + Champions League only, or the free-tier set (adds La Liga, Serie A, Bundesliga, Ligue 1...)?
-2. Picks close at kickoff, or 5 minutes before?
-3. A host edits a pack question: detach it, or only allow wording changes?
-4. Auto-reveal for soccer from day one (phase 2), or admin-confirmed for the first month?
-5. Who is a platform admin: just you, or a small team?
+1. **Launch competitions:** Premier League and Champions League only, from football-data.org.
+2. **Picks close at kickoff** for now.
+3. **A host edits a pack question:** it's detached. Changing the question or
+   options clears `predictions.fixture_question_id` (and the options'
+   `option_key`), so it becomes a normal question. Changing only the deadline
+   keeps the link, but kickoff changes then leave that deadline alone.
+4. **No auto-reveal yet.** In phase 2 an admin confirms every result before
+   Crow reveals it; auto-confirm can come later.
+5. **Platform admins:** a small team (two people today), so phase 2 adds a
+   `platform_admins` table rather than a hard-coded account.
+
+---
+
+## 11. Phase 1: what's built
+
+- **Catalog** (`supabase/schemas/catalog`): `catalog.competitions`, `teams`,
+  `fixtures`, `question_templates`, `fixture_questions`, plus
+  `public.room_competitions`. App users can't read the catalog directly;
+  everything goes through RPCs. Competitions and soccer templates are seeded
+  by migration `20261125090000_event_packs.sql`.
+- **Sync:** `supabase/functions/sync-fixtures` (adapter
+  `providers/football-data.ts`) → `public.sync_competition_fixtures`. Runs every
+  3 hours (cron `sync-fixtures`). Two-legged ties: the earlier game is a
+  `first_leg` (three-way "Who wins?"), the later one asks "Who goes through?".
+  When a kickoff moves, open room questions whose deadline was the old kickoff
+  move with it. Finished scores are stored in `fixtures.result` but nothing
+  reads them yet.
+- **Rooms:** Manage → Fixtures (`/rooms/:code/manage/fixtures`), also linked
+  from the empty Home card. Organizers follow competitions, tick questions for
+  the next two weeks' matches and add them to an active series in one go
+  (`add_fixture_questions`): one event per match, tagged with the competition,
+  closing at kickoff, one push for the lot. Results are revealed by hand.
+- **Not yet:** postponed matches with no new date just lock at the old
+  kickoff (hosts mark them No result); "go live later" for fixture questions
+  (the RPC takes `p_opens_at`, the page only adds live).
+
+### Turning it on
+
+1. Get a football-data.org key and set the edge function secrets:
+   `FOOTBALL_DATA_API_KEY` and `FIXTURE_SYNC_SECRET` (any long random string).
+2. Deploy: `supabase functions deploy sync-fixtures`.
+3. Give the cron job the same secret:
+   `insert into private.notification_config (key, value) values ('fixture_sync_secret', '<secret>');`
+   (it reuses `supabase_url` and `service_role_key` from the push setup).
+4. Run it once by hand instead of waiting up to 3 hours:
+   `select private.request_fixture_sync();`

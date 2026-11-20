@@ -1125,6 +1125,78 @@ export async function postPredictionPhrase(predictionId: string, phraseId: numbe
 
 // #endregion Predictions
 
+// #region Fixtures (event packs)
+// -------------------------------------------------------
+export type FixtureCompetition = {
+  id: string
+  name: string
+  sport: 'soccer' | 'cricket'
+  // "2026/27"
+  season: string | null
+  following: boolean
+}
+
+export type FixtureQuestion = {
+  id: string
+  title: string
+  description: string | null
+  options: string[]
+  // The room's question made from it, if the room has one.
+  prediction_id: string | null
+}
+
+export type Fixture = {
+  id: string
+  competition_id: string
+  competition_name: string
+  kickoff_at: string
+  matchday: number | null
+  // "Matchweek 13", "Quarter-finals"...
+  round_label: string | null
+  home: string
+  away: string
+  questions: FixtureQuestion[]
+}
+
+export type RoomFixtures = {
+  competitions: FixtureCompetition[]
+  fixtures: Fixture[]
+}
+
+// Organizers: competitions on offer, and the followed ones' matches in the
+// next two weeks with their ready-made questions.
+export async function getRoomFixtures(roomId: string) {
+  const { data, error } = await untypedSupabase.rpc('get_room_fixtures', {
+    p_room_id: roomId,
+  })
+  return assertOk(data, error) as RoomFixtures
+}
+
+export async function setRoomCompetition(roomId: string, competitionId: string, follow: boolean) {
+  const { data, error } = await untypedSupabase.rpc('set_room_competition', {
+    p_room_id: roomId,
+    p_competition_id: competitionId,
+    p_follow: follow,
+  })
+  return assertOk(data, error) as { competition_id: string; following: boolean }
+}
+
+// Adds fixture questions to a series: they close at kickoff, and players get
+// one notification for the lot. Ones the room already has are skipped.
+export async function addFixtureQuestions(roomId: string, seriesId: string, questionIds: string[]) {
+  const { data, error } = await untypedSupabase.rpc('add_fixture_questions', {
+    p_room_id: roomId,
+    p_series_id: seriesId,
+    p_fixture_question_ids: questionIds,
+  })
+  return assertOk(data, error) as {
+    prediction_ids: string[]
+    count: number
+    skipped: number
+  }
+}
+// #endregion Fixtures
+
 // #region Bets
 // -------------------------------------------------------
 export async function getBetsForPrediction(predictionId: string) {

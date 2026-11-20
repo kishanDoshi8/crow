@@ -271,6 +271,7 @@ export type Database = {
           display_order: number
           id: string
           label: string
+          option_key: string | null
           prediction_id: string
           total_bet: number
         }
@@ -337,6 +338,7 @@ export type Database = {
           created_at: string
           created_by: string
           description: string | null
+          fixture_question_id: string | null
           deadline: string
           id: string
           no_result_reason: string | null
@@ -360,6 +362,7 @@ export type Database = {
           created_at?: string
           created_by: string
           description?: string | null
+          fixture_question_id?: string | null
           deadline: string
           id?: string
           no_result_reason?: string | null
@@ -383,6 +386,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           description?: string | null
+          fixture_question_id?: string | null
           deadline?: string
           id?: string
           no_result_reason?: string | null
