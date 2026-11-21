@@ -7,9 +7,13 @@ create table if not exists public.prediction_events (
   room_id uuid not null references public.rooms(id) on delete cascade,
   title text not null check (char_length(btrim(title)) between 1 and 80),
   created_by uuid references public.players(id) on delete set null,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  -- The real match it's about, when its questions came from the fixtures.
+  -- Questions added for the same match later join the same event.
+  fixture_id uuid references catalog.fixtures(id) on delete set null
 );
 create index if not exists idx_prediction_events_room on public.prediction_events (room_id, created_at desc);
+create index if not exists idx_prediction_events_fixture on public.prediction_events (fixture_id, room_id) where fixture_id is not null;
 
 create table if not exists public.predictions (
   id uuid primary key default gen_random_uuid(),
@@ -45,6 +49,10 @@ create table if not exists public.predictions (
   ratings_reversible boolean not null default true,
   -- The event it was made for, when it's one of a set.
   event_id uuid references public.prediction_events(id) on delete set null,
+  -- The fixture question it was added from. Kickoff changes move its
+  -- deadline; editing the question or options detaches it (null), making
+  -- it the host's own.
+  fixture_question_id uuid references catalog.fixture_questions(id) on delete set null,
   constraint predictions_scheduled_opens_check check (status <> 'scheduled' or opens_at is not null)
 );
 
@@ -65,7 +73,10 @@ create table if not exists public.prediction_options (
   label text not null,
   display_order smallint not null default 0,
   total_bet integer not null default 0 check (total_bet >= 0),
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  -- What the option means when the question came from the fixtures
+  -- ("home", "draw", "yes"...), so a result can find it.
+  option_key text
 );
 
 
@@ -83,6 +94,9 @@ create index if not exists idx_predictions_series_id on public.predictions (seri
 -- The every-minute publish job looks for scheduled predictions that are due.
 create index if not exists idx_predictions_scheduled_opens on public.predictions (opens_at) where status = 'scheduled';
 create index if not exists idx_predictions_event on public.predictions (event_id) where event_id is not null;
+-- A room has each fixture question once (again only after scrapping it).
+create unique index if not exists idx_predictions_room_fixture_question on public.predictions (room_id, fixture_question_id) where fixture_question_id is not null and status <> 'cancelled';
+create index if not exists idx_predictions_fixture_question on public.predictions (fixture_question_id) where fixture_question_id is not null;
 
 create or replace function private.enforce_series_prediction_immutability()
 returns trigger

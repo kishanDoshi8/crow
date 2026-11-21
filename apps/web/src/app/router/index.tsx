@@ -64,6 +64,7 @@ const PredictionNewSet = lazy(roomPageLoaders.predictionNewSet);
 const ResolveSeveral = lazy(roomPageLoaders.resolveSeveral);
 const EditPrediction = lazy(roomPageLoaders.editPrediction);
 const ManagePage = lazy(roomPageLoaders.manage);
+const FixturesPage = lazy(roomPageLoaders.fixtures);
 const MembersPage = lazy(roomPageLoaders.members);
 const RoomSettingsPage = lazy(roomPageLoaders.settings);
 const NotFoundPage = lazy(() =>
@@ -269,6 +270,17 @@ export const router = createBrowserRouter([
 													header: {
 														leftAction: "back",
 														title: "Manage",
+													},
+												},
+											},
+											{
+												path: "manage/fixtures",
+												element: withSuspense(<FixturesPage />),
+												handle: {
+													header: {
+														leftAction: "back",
+														title: "Fixtures",
+														parent: "manage",
 													},
 												},
 											},

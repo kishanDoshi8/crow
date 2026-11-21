@@ -9,4 +9,4 @@ drop policy if exists "prediction_events_no_direct_update" on public.prediction_
 create policy "prediction_events_no_direct_update" on public.prediction_events for update using (false);
 drop policy if exists "prediction_events_no_direct_delete" on public.prediction_events;
 create policy "prediction_events_no_direct_delete" on public.prediction_events for delete using (false);
-grant select (id, room_id, title, created_by, created_at) on public.prediction_events to authenticated;
+grant select (id, room_id, title, created_by, created_at, fixture_id) on public.prediction_events to authenticated;

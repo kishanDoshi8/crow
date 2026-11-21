@@ -49,4 +49,6 @@ export interface Prediction {
   seriesStatus?:     string | null
   prediction_options: PredictionOption[]
   no_result_reason?: string | null
+  // The fixture question it was added from; null once a host edits it.
+  fixture_question_id?: string | null
 }

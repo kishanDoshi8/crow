@@ -10,6 +10,7 @@ import type { ManageQueueItem } from "@/features/rooms/types/types";
 import { describeDeadline } from "@/shared/lib/deadline";
 import { Button, Skeleton } from "@/shared/ui";
 import {
+	CalendarDaysIcon,
 	CheckCircle2Icon,
 	ChevronRightIcon,
 	LayersIcon,
@@ -137,6 +138,16 @@ export default function ManagePage() {
 					))
 				)}
 			</Section>
+
+			{can.organize ? (
+				<Section title='Fixtures'>
+					<LinkRow
+						to={`/rooms/${room.code}/manage/fixtures`}
+						icon={<CalendarDaysIcon className='size-4' />}
+						label='Add questions from real matches'
+					/>
+				</Section>
+			) : null}
 
 			{can.organize ? (
 				<Section title='Scheduled' count={scheduled.length}>

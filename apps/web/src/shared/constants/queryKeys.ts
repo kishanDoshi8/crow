@@ -107,6 +107,10 @@ export const roomKeys = {
     [...roomKeys.detail(roomId), "myWeeklyRecap", seriesId] as const,
   roomTags: (roomId: string) =>
     [...roomKeys.detail(roomId), "roomTags"] as const,
+
+  // Organizers: followed competitions and their upcoming fixtures.
+  fixtures: (roomId: string) =>
+    [...roomKeys.detail(roomId), "fixtures"] as const,
   seriesSuggestions: (roomId: string) =>
     [...roomKeys.detail(roomId), "seriesSuggestions"] as const,
 };

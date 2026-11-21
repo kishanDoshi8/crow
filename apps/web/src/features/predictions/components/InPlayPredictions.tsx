@@ -13,6 +13,7 @@ import {
 	CarouselItem,
 } from "@/shared/ui/carousel";
 import {
+	CalendarDaysIcon,
 	CheckIcon,
 	ChevronLeftIcon,
 	ChevronRightIcon,
@@ -594,8 +595,16 @@ function InPlayPredictions({
 					{predictionsOverride === undefined
 						? (finishedSeriesActions ??
 							(newPredictionAction ? (
-								<div className='flex justify-center pb-2'>
+								<div className='flex flex-wrap justify-center gap-2 pb-2'>
 									{newPredictionAction}
+									{isOrganizer && hasActiveSeries ? (
+										<Button variant='outline' size='sm' asChild>
+											<Link to={`/rooms/${room.code}/manage/fixtures`}>
+												<CalendarDaysIcon />
+												From fixtures
+											</Link>
+										</Button>
+									) : null}
 								</div>
 							) : (
 								<RoomNextSteps className='pb-2' />

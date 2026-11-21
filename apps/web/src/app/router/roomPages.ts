@@ -10,6 +10,7 @@ export const roomPageLoaders = {
 	resolveSeveral: () => import("@/features/predictions/pages/ResolveSeveral"),
 	editPrediction: () => import("@/features/predictions/pages/EditPrediction"),
 	manage: () => import("@/features/rooms/pages/ManagePage"),
+	fixtures: () => import("@/features/fixtures/pages/FixturesPage"),
 	members: () => import("@/features/rooms/pages/MembersPage"),
 	settings: () => import("@/features/rooms/pages/RoomSettingsPage"),
 };
