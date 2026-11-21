@@ -1,6 +1,6 @@
 # Event packs: research and design
 
-Status: **phase 1 built**, November 2026 (see §11). Decisions are in §10;
+Status: **phases 1 and 2 built**, November 2026 (see §11 and §12). Decisions are in §10;
 ⚑ marks where one was open.
 
 Event packs let a host connect a room to a real competition (Premier League,
@@ -234,7 +234,7 @@ shape. Nothing provider-specific leaks into the tables beyond `provider_ref`.
 
 ## 7. Platform admin: do we need a management app?
 
-**Yes, but not a separate app.** The jobs above need a person for:
+**Yes, as `/admin` in the web app (built in phase 2, §12).** The jobs above need a person for:
 
 - choosing which competitions are live,
 - confirming cricket results and setting results for manual extras,
@@ -307,10 +307,12 @@ matches from a list instead of typing them is most of the saving.
    options clears `predictions.fixture_question_id` (and the options'
    `option_key`), so it becomes a normal question. Changing only the deadline
    keeps the link, but kickoff changes then leave that deadline alone.
-4. **No auto-reveal yet.** In phase 2 an admin confirms every result before
-   Crow reveals it; auto-confirm can come later.
-5. **Platform admins:** a small team (two people today), so phase 2 adds a
-   `platform_admins` table rather than a hard-coded account.
+4. **No auto-reveal.** An admin confirms every result in `/admin` before Crow
+   reveals it. Confirming reveals straight away in every room; a room that
+   already revealed by hand keeps its result. Auto-confirm can come later.
+5. **Platform admins:** a small team (two people today), in the
+   `public.platform_admins` table (added by hand in SQL). `/admin` stays a
+   route in the web app, not a separate app.
 
 ---
 
@@ -347,3 +349,33 @@ matches from a list instead of typing them is most of the saving.
    (it reuses `supabase_url` and `service_role_key` from the push setup).
 4. Run it once by hand instead of waiting up to 3 hours:
    `select private.request_fixture_sync();`
+
+---
+
+## 12. Phase 2: what's built
+
+- **Platform admins:** `public.platform_admins` (player ids, added in SQL).
+  Every admin RPC checks `private.is_platform_admin()`; the app shows "Crow
+  admin" in the account and room menus only to admins.
+- **Resolvers** (`private.fixture_question_outcome`): each template's
+  `resolver` key turns the saved score into a suggested answer. "90 minutes"
+  questions use the regular-time score; "Who goes through?" adds the first
+  leg; finals and penalties use the shootout. Unclear cases suggest nothing.
+- **Result sync:** every 15 minutes (`fixture-results` cron,
+  `private.run_fixture_results`), while a match that rooms have questions on
+  should be over but has no final score, it asks for a fixture sync.
+- **`/admin` → Results:** played matches rooms have questions on. The admin
+  checks the score (or types it, or marks the match called off), picks or
+  accepts each answer and confirms (`admin_confirm_fixture`). Crow reveals
+  every linked locked room question (`revealed_by_crow`, "Revealed by
+  Crow"), one push per room. Questions that lock later (a host moved the
+  deadline) are revealed by the 15-minute job.
+- **Fix result:** confirming again with other answers fixes every room Crow
+  revealed, through the same path as a host's Fix result. Rooms that
+  revealed or fixed by hand, and finished series, are left alone.
+- **`/admin` → Fixtures:** hide or show a match's question, reword it
+  (`customized_at` keeps the wording through syncs), or reset it.
+- **`/admin` → Competitions:** turn one on or off, and Sync now.
+- **Not yet:** auto-confirm, cricket, one-off extra questions per match,
+  alerts to admins when results are waiting.
+

@@ -26,7 +26,6 @@ import { usePlayer, useSetLastVisitedRoom } from "@/features/home";
 import { usePreferences, useMarkHowToPlaySeen } from "@/features/preferences";
 import { Loading } from "@/shared/ui";
 import { useAppNavigation } from "@/shared/lib/navigation";
-import { RebrandWelcomeDialog } from "@/features/onboarding";
 import { prefetchRoomPages } from "@/app/router/roomPages";
 import { RoomSidebar, SIDEBAR_WIDTH } from "@/app/layouts/RoomSidebar";
 import { RoomTopBar } from "@/app/layouts/RoomTopBar";
@@ -199,8 +198,6 @@ export default function RoomLayout() {
 				open={showSeriesPicker}
 				onOpenChange={setShowSeriesPicker}
 			/>
-
-			{showHowToPlay ? null : <RebrandWelcomeDialog />}
 
 			{showHowToPlay ? (
 				<Suspense fallback={null}>

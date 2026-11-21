@@ -186,11 +186,13 @@ select is(
     order by 1
   ),
   array[
-    'activate_series', 'add_fixture_questions', 'allow_room_member_back', 'archive_series', 'cancel_account_deletion', 'cancel_bet', 'cancel_join_request',
+    'activate_series', 'add_fixture_questions', 'admin_confirm_fixture', 'admin_get_competitions', 'admin_get_fixtures',
+    'admin_get_results', 'admin_request_fixture_sync', 'admin_set_competition_active', 'admin_set_fixture_result',
+    'admin_update_fixture_question', 'allow_room_member_back', 'archive_series', 'cancel_account_deletion', 'cancel_bet', 'cancel_join_request',
     'collect_series_rewards', 'complete_series', 'correct_prediction_result', 'create_prediction', 'create_predictions', 'create_room',
     'create_series',
     'decide_join_request', 'delete_my_push_subscription', 'delete_scheduled_prediction', 'dismiss_weekly_recap',
-    'get_explore_rooms', 'get_my_account_deletion', 'get_my_series_wallets', 'get_my_unseen_results', 'get_my_weekly_recap',
+    'get_explore_rooms', 'get_my_account_deletion', 'get_my_platform_admin', 'get_my_series_wallets', 'get_my_unseen_results', 'get_my_weekly_recap',
     'get_player', 'get_prediction_talk', 'get_preferences', 'get_room_activities', 'get_room_by_code', 'get_room_fixtures', 'get_room_former_members',
     'get_room_has_unseen_activities', 'get_room_join_requests', 'get_room_manage_queue', 'get_room_member_recent_predictions',
     'get_room_member_stats', 'get_room_member_style', 'get_room_overall_standings', 'get_room_prediction_history',

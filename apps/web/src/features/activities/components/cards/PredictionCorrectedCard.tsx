@@ -29,7 +29,7 @@ export function PredictionCorrectedCard({
 	return (
 		<ActivityCard
 			tier={activity.activityTier}
-			actorLabel={activity.createdBy?.username}
+			actorLabel={activity.createdBy?.username ?? (activity.metadata.byCrow ? "Crow" : undefined)}
 			icon={<PencilLineIcon className='size-4' />}
 			typeLabel='Result fixed'
 			tone='warning'

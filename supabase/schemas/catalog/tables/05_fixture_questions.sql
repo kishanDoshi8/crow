@@ -13,6 +13,11 @@ create table if not exists catalog.fixture_questions (
   display_order smallint not null default 0,
   -- Hidden ones aren't offered to rooms.
   hidden boolean not null default false,
+  -- Set when an admin rewords it: the sync no longer rewrites its wording.
+  customized_at timestamptz,
+  -- The confirmed answer: an option key, or 'no_result' (everyone gets
+  -- their points back). Null until an admin confirms the match.
+  outcome text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (fixture_id, template_id)

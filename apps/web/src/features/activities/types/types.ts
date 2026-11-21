@@ -46,6 +46,8 @@ export type PredictionActivityMetadata = {
 	resolvedAt: string | null;
 	winningOptionId: string | null;
 	winningOptionLabel: string | null;
+	// Revealed or fixed by Crow from a confirmed match result (no player).
+	byCrow?: boolean;
 	noResultReason: string | null;
 	totalBets: number;
 	totalWagered: number;

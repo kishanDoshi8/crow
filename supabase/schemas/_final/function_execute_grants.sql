@@ -110,3 +110,15 @@ grant execute on function public.add_fixture_questions(uuid, uuid, uuid[], times
 -- Server-only: the sync-fixtures edge function, using the service key.
 grant execute on function public.get_fixture_sync_targets() to service_role;
 grant execute on function public.sync_competition_fixtures(text, text, text, jsonb) to service_role;
+
+-- Platform admin (/admin): match results, competitions, fixture questions.
+-- Each checks private.is_platform_admin() itself.
+grant execute on function public.get_my_platform_admin() to authenticated;
+grant execute on function public.admin_get_results() to authenticated;
+grant execute on function public.admin_set_fixture_result(uuid, text, jsonb) to authenticated;
+grant execute on function public.admin_confirm_fixture(uuid, jsonb) to authenticated;
+grant execute on function public.admin_get_competitions() to authenticated;
+grant execute on function public.admin_set_competition_active(uuid, boolean) to authenticated;
+grant execute on function public.admin_request_fixture_sync() to authenticated;
+grant execute on function public.admin_get_fixtures(uuid, integer) to authenticated;
+grant execute on function public.admin_update_fixture_question(uuid, boolean, text, text, boolean) to authenticated;

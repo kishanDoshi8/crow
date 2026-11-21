@@ -332,12 +332,16 @@ function LoadedPrediction({
 							resolvedByName={
 								prediction.resolved_by
 									? nameOf(prediction.resolved_by)
-									: null
+									: prediction.revealed_by_crow
+										? "Crow"
+										: null
 							}
 							correctedByName={
 								prediction.corrected_by
 									? nameOf(prediction.corrected_by)
-									: null
+									: prediction.revealed_by_crow && prediction.corrected_at
+										? "Crow"
+										: null
 							}
 							onDeadline={onDeadline}
 						/>

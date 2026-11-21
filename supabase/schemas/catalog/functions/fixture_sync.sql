@@ -4,7 +4,8 @@
 
 -- Writes out a fixture's questions from the templates that fit its sport,
 -- with the teams' names. New ones start hidden unless their template is on
--- by default; an admin's hide or show is kept when the names are rewritten.
+-- by default; an admin's hide or show is kept when the names are rewritten,
+-- and a question an admin reworded (customized_at) keeps its wording.
 -- Templates that stop fitting (a knockout game found to be a first leg)
 -- keep their row: get_room_fixtures only offers the ones that fit.
 create or replace function private.refresh_fixture_questions(p_fixture_id uuid)
@@ -58,8 +59,9 @@ begin
         options = excluded.options,
         display_order = excluded.display_order,
         updated_at = now()
-    where (catalog.fixture_questions.title, catalog.fixture_questions.description, catalog.fixture_questions.options)
-      is distinct from (excluded.title, excluded.description, excluded.options);
+    where catalog.fixture_questions.customized_at is null
+      and (catalog.fixture_questions.title, catalog.fixture_questions.description, catalog.fixture_questions.options)
+        is distinct from (excluded.title, excluded.description, excluded.options);
 end;
 $$;
 

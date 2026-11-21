@@ -16,11 +16,15 @@ create table if not exists catalog.fixtures (
   kickoff_at timestamptz not null,
   status text not null default 'scheduled'
     check (status in ('scheduled', 'live', 'finished', 'postponed', 'abandoned', 'cancelled')),
-  -- The provider's final score as it reported it (winner, duration, full
-  -- and half time...). Nothing reads it yet: results reveal by hand until
-  -- the resolvers arrive (phase 2).
+  -- The final score (winner, duration, full and half time...), as the
+  -- provider reported it or an admin typed it. The resolvers read it to
+  -- suggest each question's outcome.
   result jsonb,
   result_source text check (result_source in ('provider', 'manual')),
+  -- Set when a platform admin confirms the result: the fixture questions'
+  -- outcomes are final and rooms' linked questions get revealed by Crow.
+  result_confirmed_at timestamptz,
+  result_confirmed_by uuid references public.players(id) on delete set null,
   synced_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),

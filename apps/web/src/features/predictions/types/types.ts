@@ -51,4 +51,6 @@ export interface Prediction {
   no_result_reason?: string | null
   // The fixture question it was added from; null once a host edits it.
   fixture_question_id?: string | null
+  // Revealed (or fixed) by Crow from a confirmed match result.
+  revealed_by_crow?: boolean
 }

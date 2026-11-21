@@ -339,6 +339,7 @@ export type Database = {
           created_by: string
           description: string | null
           fixture_question_id: string | null
+          revealed_by_crow: boolean
           deadline: string
           id: string
           no_result_reason: string | null
@@ -363,6 +364,7 @@ export type Database = {
           created_by: string
           description?: string | null
           fixture_question_id?: string | null
+          revealed_by_crow?: boolean
           deadline: string
           id?: string
           no_result_reason?: string | null
@@ -387,6 +389,7 @@ export type Database = {
           created_by?: string
           description?: string | null
           fixture_question_id?: string | null
+          revealed_by_crow?: boolean
           deadline?: string
           id?: string
           no_result_reason?: string | null

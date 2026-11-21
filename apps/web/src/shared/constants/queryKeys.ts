@@ -122,3 +122,11 @@ export const localStorageKeys = {
     currentSeries: "currentSeries",
   }
 }
+// Platform admin (/admin).
+export const adminKeys = {
+  all: ["admin"] as const,
+  isAdmin: () => [...adminKeys.all, "isAdmin"] as const,
+  results: () => [...adminKeys.all, "results"] as const,
+  competitions: () => [...adminKeys.all, "competitions"] as const,
+  fixtures: () => [...adminKeys.all, "fixtures"] as const,
+};

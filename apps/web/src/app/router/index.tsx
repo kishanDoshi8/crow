@@ -67,6 +67,11 @@ const ManagePage = lazy(roomPageLoaders.manage);
 const FixturesPage = lazy(roomPageLoaders.fixtures);
 const MembersPage = lazy(roomPageLoaders.members);
 const RoomSettingsPage = lazy(roomPageLoaders.settings);
+// The Crow team's tools: never downloaded by players.
+const AdminLayout = lazy(() => import("@/features/admin/pages/AdminLayout"));
+const AdminResultsPage = lazy(() => import("@/features/admin/pages/AdminResultsPage"));
+const AdminFixturesPage = lazy(() => import("@/features/admin/pages/AdminFixturesPage"));
+const AdminCompetitionsPage = lazy(() => import("@/features/admin/pages/AdminCompetitionsPage"));
 const NotFoundPage = lazy(() =>
 	import("@/app/router/NotFoundPage").then((module) => ({
 		default: module.NotFoundPage,
@@ -132,6 +137,15 @@ export const router = createBrowserRouter([
 					{
 						path: "/account/delete",
 						element: withSuspense(<DeleteAccountPage />),
+					},
+					{
+						path: "/admin",
+						element: withSuspense(<AdminLayout />),
+						children: [
+							{ index: true, element: withSuspense(<AdminResultsPage />) },
+							{ path: "fixtures", element: withSuspense(<AdminFixturesPage />) },
+							{ path: "competitions", element: withSuspense(<AdminCompetitionsPage />) },
+						],
 					},
 					{
 						path: "/rooms/:roomCode",
