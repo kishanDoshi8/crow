@@ -2,11 +2,13 @@ import {
 	CircleQuestionMarkIcon,
 	FileTextIcon,
 	LogOutIcon,
+	ShieldIcon,
 	UserXIcon,
 	type LucideIcon,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useIsPlatformAdmin } from "@/features/admin";
 import { useAuth } from "@/features/auth";
 import { usePlayer } from "@/features/home/hooks/player";
 import {
@@ -30,6 +32,7 @@ export function AccountSheet({ open, onOpenChange, onHowToPlay }: Readonly<Props
 	const navigate = useNavigate();
 	const { user, signOut } = useAuth();
 	const { data: player } = usePlayer();
+	const { data: isPlatformAdmin } = useIsPlatformAdmin(open);
 	const close = (run: () => void) => () => {
 		onOpenChange(false);
 		run();
@@ -50,6 +53,10 @@ export function AccountSheet({ open, onOpenChange, onHowToPlay }: Readonly<Props
 	const items: Array<{ label: string; icon: LucideIcon; onClick: () => void; isDanger?: boolean }> = [
 		{ label: "How to play", icon: CircleQuestionMarkIcon, onClick: close(onHowToPlay) },
 		{ label: "Terms & privacy", icon: FileTextIcon, onClick: close(() => navigate("/terms")) },
+		// The Crow team only.
+		...(isPlatformAdmin
+			? [{ label: "Crow admin", icon: ShieldIcon, onClick: close(() => navigate("/admin")) }]
+			: []),
 		{ label: "Sign out", icon: LogOutIcon, onClick: close(() => void handleSignOut()) },
 		{
 			label: "Delete account",

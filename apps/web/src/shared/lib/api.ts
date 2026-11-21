@@ -1197,6 +1197,181 @@ export async function addFixtureQuestions(roomId: string, seriesId: string, ques
 }
 // #endregion Fixtures
 
+// #region Platform admin (/admin)
+// -------------------------------------------------------
+// Every call is checked on the server (public.platform_admins).
+
+// Whether the signed-in player is on the Crow team.
+export async function getMyPlatformAdmin() {
+  const { data, error } = await untypedSupabase.rpc('get_my_platform_admin')
+  return assertOk(data, error) as boolean
+}
+
+type GoalScore = { home: number | null; away: number | null }
+
+// A match's saved score, as the feed or an admin wrote it.
+export type FixtureResult = {
+  winner: 'home' | 'away' | 'draw' | null
+  duration: 'regular' | 'extra_time' | 'penalties'
+  full_time: GoalScore
+  half_time: GoalScore
+  regular_time?: GoalScore
+  extra_time?: GoalScore
+  penalties?: GoalScore
+}
+
+export type FixtureStatus = 'scheduled' | 'live' | 'finished' | 'postponed' | 'abandoned' | 'cancelled'
+
+export type AdminResultQuestion = {
+  id: string
+  title: string
+  options: { key: string; label: string }[]
+  // What the score says: an option key, or null when it can't tell.
+  suggested: string | null
+  // The confirmed answer: an option key or 'no_result'.
+  outcome: string | null
+  rooms: number
+  // Room questions still open or locked.
+  waiting: number
+  by_crow: number
+  by_hand: number
+}
+
+export type AdminResultFixture = {
+  id: string
+  competition_name: string
+  round_label: string | null
+  kickoff_at: string
+  status: FixtureStatus
+  home: string
+  away: string
+  result: FixtureResult | null
+  result_source: 'provider' | 'manual' | null
+  confirmed_at: string | null
+  confirmed_by: string | null
+  questions: AdminResultQuestion[]
+}
+
+export async function adminGetResults() {
+  const { data, error } = await untypedSupabase.rpc('admin_get_results')
+  return assertOk(data, error) as {
+    to_confirm: AdminResultFixture[]
+    confirmed: AdminResultFixture[]
+  }
+}
+
+type ScoreInput = { home: number; away: number }
+
+// A score typed by an admin: the 90 minutes, half time, how it ended, and
+// with extra time the score after it, with penalties the shootout.
+export type ManualFixtureResult = {
+  duration: 'regular' | 'extra_time' | 'penalties'
+  ninety: ScoreInput
+  half_time: ScoreInput
+  after_extra_time?: ScoreInput
+  penalties?: ScoreInput
+}
+
+export async function adminSetFixtureResult(
+  fixtureId: string,
+  status: Exclude<FixtureStatus, 'scheduled' | 'live'>,
+  result: ManualFixtureResult | null,
+) {
+  const { data, error } = await untypedSupabase.rpc('admin_set_fixture_result', {
+    p_fixture_id: fixtureId,
+    p_status: status,
+    p_result: result,
+  })
+  return assertOk(data, error) as AdminResultFixture
+}
+
+// outcomes: fixture question id → option key or 'no_result'.
+export async function adminConfirmFixture(fixtureId: string, outcomes: Record<string, string>) {
+  const { data, error } = await untypedSupabase.rpc('admin_confirm_fixture', {
+    p_fixture_id: fixtureId,
+    p_outcomes: outcomes,
+  })
+  return assertOk(data, error) as {
+    fixture: AdminResultFixture
+    revealed: number
+    fixed: number
+    not_fixed: number
+  }
+}
+
+export type AdminCompetition = {
+  id: string
+  name: string
+  sport: 'soccer' | 'cricket'
+  provider: string
+  provider_ref: string
+  season: string | null
+  active: boolean
+  synced_at: string | null
+  rooms: number
+  upcoming: number
+}
+
+export async function adminGetCompetitions() {
+  const { data, error } = await untypedSupabase.rpc('admin_get_competitions')
+  return assertOk(data, error) as AdminCompetition[]
+}
+
+export async function adminSetCompetitionActive(competitionId: string, active: boolean) {
+  const { data, error } = await untypedSupabase.rpc('admin_set_competition_active', {
+    p_competition_id: competitionId,
+    p_active: active,
+  })
+  return assertOk(data, error)
+}
+
+// False when the sync isn't set up on the server yet.
+export async function adminRequestFixtureSync() {
+  const { data, error } = await untypedSupabase.rpc('admin_request_fixture_sync')
+  return assertOk(data, error) as boolean
+}
+
+export type AdminFixtureQuestion = {
+  id: string
+  title: string
+  description: string | null
+  options: { key: string; label: string }[]
+  hidden: boolean
+  // Reworded by an admin: the sync keeps this wording.
+  customized: boolean
+  rooms: number
+}
+
+export type AdminUpcomingFixture = {
+  id: string
+  competition_name: string
+  round_label: string | null
+  kickoff_at: string
+  home: string
+  away: string
+  questions: AdminFixtureQuestion[]
+}
+
+export async function adminGetFixtures() {
+  const { data, error } = await untypedSupabase.rpc('admin_get_fixtures', {})
+  return assertOk(data, error) as AdminUpcomingFixture[]
+}
+
+export async function adminUpdateFixtureQuestion(
+  questionId: string,
+  changes: { hidden?: boolean; title?: string; description?: string; reset?: boolean },
+) {
+  const { data, error } = await untypedSupabase.rpc('admin_update_fixture_question', {
+    p_question_id: questionId,
+    p_hidden: changes.hidden ?? null,
+    p_title: changes.title ?? null,
+    p_description: changes.description ?? null,
+    p_reset: changes.reset ?? false,
+  })
+  return assertOk(data, error)
+}
+// #endregion Platform admin
+
 // #region Bets
 // -------------------------------------------------------
 export async function getBetsForPrediction(predictionId: string) {

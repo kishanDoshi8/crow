@@ -1,7 +1,8 @@
 -- Closes one prediction as p_player_id: settles the points, then ratings,
 -- stats and the room feed. The caller has already checked that the player is
 -- room staff. Shared by resolve_prediction_v2 (one) and resolve_predictions
--- (several at once).
+-- (several at once). A null player is Crow, revealing from a confirmed match
+-- result (private.reveal_confirmed_fixture_questions).
 create or replace function private.resolve_prediction(
   p_prediction_id     uuid,
   p_room_id           uuid,
@@ -46,7 +47,8 @@ begin
       winning_option_id = v_plan.winning_option_id,
       no_result_reason  = v_plan.no_result_reason,
       resolved_at       = now(),
-      resolved_by       = v_player_id
+      resolved_by       = v_player_id,
+      revealed_by_crow  = v_player_id is null
   where id = p_prediction_id
   returning * into v_prediction;
 
@@ -82,7 +84,8 @@ begin
     p_room_id := p_room_id,
     p_activity_type := v_activity,
     p_activity_tier := 1,
-    p_metadata := private.build_prediction_activity_metadata(p_prediction_id),
+    p_metadata := private.build_prediction_activity_metadata(p_prediction_id)
+      || case when v_player_id is null then jsonb_build_object('byCrow', true) else '{}'::jsonb end,
     p_click_action := jsonb_build_object(
       'type', 'prediction',
       'predictionId', p_prediction_id

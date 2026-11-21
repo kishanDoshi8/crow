@@ -53,6 +53,9 @@ create table if not exists public.predictions (
   -- deadline; editing the question or options detaches it (null), making
   -- it the host's own.
   fixture_question_id uuid references catalog.fixture_questions(id) on delete set null,
+  -- Revealed (or fixed) by Crow from a confirmed match result, not by a
+  -- host: resolved_by and corrected_by stay null.
+  revealed_by_crow boolean not null default false,
   constraint predictions_scheduled_opens_check check (status <> 'scheduled' or opens_at is not null)
 );
 

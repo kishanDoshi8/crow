@@ -19,7 +19,7 @@ export function PredictionRevealedCard({
 	return (
 		<ActivityCard
 			tier={activity.activityTier}
-			actorLabel={activity.createdBy?.username}
+			actorLabel={activity.createdBy?.username ?? (activity.metadata.byCrow ? "Crow" : undefined)}
 			icon={<TrophyIcon className='size-4' />}
 			typeLabel="Result's in"
 			tone='success'

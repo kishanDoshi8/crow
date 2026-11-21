@@ -25,6 +25,7 @@ import {
 	LogOutIcon,
 	SettingsIcon,
 	Share2Icon,
+	ShieldIcon,
 	UserXIcon,
 	UsersIcon,
 	type LucideIcon,
@@ -34,6 +35,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import type { Room } from "@/features/rooms/types/types";
 import { SettingsRow } from "@/features/series/components/SeriesOrganizerActionsMenu";
+import { useIsPlatformAdmin } from "@/features/admin";
 import { useAuth } from "@/features/auth";
 import { LegalLinks } from "@/features/legal";
 import { copyToClipboard } from "@/shared/lib/clipboard";
@@ -97,6 +99,8 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 			},
 		});
 	};
+
+	const { data: isPlatformAdmin } = useIsPlatformAdmin(open);
 
 	const handleSignOut = async () => {
 		try {
@@ -217,6 +221,17 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 			icon: BellIcon,
 			onClick: close(openNotifications),
 		},
+		// The Crow team only.
+		...(isPlatformAdmin
+			? [
+					{
+						label: "Crow admin",
+						detail: "Match results, competitions",
+						icon: ShieldIcon,
+						onClick: close(() => navigate("/admin")),
+					},
+				]
+			: []),
 	];
 
 	const accountSectionItems: Array<{
