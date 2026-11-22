@@ -161,7 +161,7 @@ matter.
 ## Adding a metric later
 
 - If the data is already in a table (a new feature's rows), add a view in
-  `supabase/schemas/analytics/views.sql` and a migration. No app change.
+  `supabase/schemas/analytics/views/metrics.sql` and a migration. No app change.
 - If it only happens in the browser (a tap, a page view), add a name to the
   list in `app_events` and `log_app_event`, to `AppEvent` in
   `apps/web/src/shared/lib/analytics.ts`, and call `track()`. Update the
