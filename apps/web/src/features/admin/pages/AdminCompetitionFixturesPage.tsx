@@ -1,12 +1,14 @@
-import { ChevronLeftIcon } from "lucide-react";
+import { ChevronLeftIcon, PlusIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { ExtraQuestionDialog } from "@/features/admin/components/ExtraQuestionDialog";
 import { FixtureQuestionRow } from "@/features/admin/components/FixtureQuestionRow";
 import { useAdminCompetitions, useAdminFixtures } from "@/features/admin/hooks";
 import {
 	chipClass,
 	DayHeader,
 	daysOf,
+	matchDetail,
 	MatchAccordion,
 	RoundFilters,
 	roundsOf,
@@ -14,7 +16,7 @@ import {
 	type MatchState,
 } from "@/features/fixtures";
 import type { AdminUpcomingFixture } from "@/shared/lib/api";
-import { Skeleton } from "@/shared/ui";
+import { Button, Skeleton } from "@/shared/ui";
 
 type Only = "all" | "reworded" | "hidden";
 
@@ -28,6 +30,8 @@ export default function AdminCompetitionFixturesPage() {
 	const [round, setRound] = useState<string | null>(null);
 	const [only, setOnly] = useState<Only>("all");
 	const [openOverride, setOpenOverride] = useState<Record<string, boolean>>({});
+	// The match an extra question is being written for.
+	const [extraFor, setExtraFor] = useState<AdminUpcomingFixture | null>(null);
 	const { header, total, ref: filtersRef } = useStickyOffset();
 
 	const rounds = useMemo(() => roundsOf(data ?? []), [data]);
@@ -133,6 +137,7 @@ export default function AdminCompetitionFixturesPage() {
 									home={fixture.home}
 									away={fixture.away}
 									kickoffAt={fixture.kickoff_at}
+									detail={matchDetail(fixture)}
 									state={stateOf(fixture)}
 									open={isOpen(fixture)}
 									onOpenChange={(open) => setOpen([fixture.id], open)}
@@ -142,12 +147,27 @@ export default function AdminCompetitionFixturesPage() {
 											<FixtureQuestionRow key={question.id} question={question} />
 										))}
 									</ul>
+									<Button variant='outline' size='sm' className='mt-2' onClick={() => setExtraFor(fixture)}>
+										<PlusIcon />
+										Extra question
+									</Button>
 								</MatchAccordion>
 							))}
 						</section>
 					))}
 				</div>
 			)}
+
+			{extraFor ? (
+				<ExtraQuestionDialog
+					fixtureId={extraFor.id}
+					match={`${extraFor.home} vs ${extraFor.away}`}
+					open
+					onOpenChange={(open) => {
+						if (!open) setExtraFor(null);
+					}}
+				/>
+			) : null}
 		</div>
 	);
 }

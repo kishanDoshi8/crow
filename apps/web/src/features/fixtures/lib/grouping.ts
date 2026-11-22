@@ -55,3 +55,7 @@ export function daysOf<T extends Dated>(fixtures: T[]) {
 	}
 	return days;
 }
+
+// "1st Test, Basin Reserve, Wellington": the line under a cricket match.
+export const matchDetail = (match: { label?: string | null; venue?: string | null }) =>
+	[match.label, match.venue].filter(Boolean).join(", ") || null;

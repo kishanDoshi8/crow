@@ -400,3 +400,39 @@ matches from a list instead of typing them is most of the saving.
   with its own Sync (`admin_request_fixture_sync(provider)`), and show the
   last failed sync (`last_sync_error`, reported by the edge function).
   Fixtures are per competition, laid out like the host page.
+
+---
+
+## 14. Phase 3: cricket (CricketData.org)
+
+- **Adding a series:** /admin → Competitions → Add a cricket series searches
+  CricketData.org through the `catalog-admin` edge function (it holds the
+  key and checks the caller is a platform admin) and adds one with
+  `admin_add_competition`: a tour (both countries as its region), a league or
+  a cup, with its start and end dates. It leaves Browse the day after it ends
+  and stops syncing a week later.
+- **Matches:** each has a format (Test, ODI, T20), a label ("1st Test") and a
+  venue. Round chips are the formats (Tests, ODIs, T20Is). Unknown teams
+  ("Tbc") wait, like knockout draws.
+- **Questions** (templates fit by `formats` as well as stage):
+  Who wins (a draw only in Tests), who wins the toss and does the toss winner
+  bat or bowl (both close 35 minutes before the start:
+  `question_templates.close_minutes_before`), does the team batting first
+  win (T20 and ODI), and a first-innings par score (160 in T20s, 300 in
+  ODIs). Rain or an abandoned match suggests No result; a tie without a
+  super over winner suggests nothing.
+- **Extras:** admins write one-off questions per match (any sport) in /admin
+  → Fixtures; their answers are picked when confirming.
+- **Calls (free plan, 100 a day):** a series list syncs at most every 12
+  hours (Sync in /admin forces it); results are fetched with one
+  `match_info` call per played match that rooms have questions on, once it
+  should be over, at most every 45 minutes for T20s, hourly for ODIs and
+  every 6 hours for Tests (`private.fixture_result_due`). The adapter stops 5
+  calls short of the day's limit.
+- **To check once the key is live:** the adapter follows CricAPI v1's field
+  names (`series_info.matchList`, `match_info.tossWinner`, `tossChoice`,
+  `matchWinner`, `score[].inning`), which couldn't be verified from the
+  build environment. Search for one series, add it, and compare a synced
+  match with the API's own response.
+- **Not yet:** player questions from scorecards (paid data), auto-confirm.
+

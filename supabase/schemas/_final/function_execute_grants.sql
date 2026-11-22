@@ -109,7 +109,7 @@ grant execute on function public.add_fixture_questions(uuid, uuid, uuid[], times
 
 -- Server-only: the sync-fixtures edge function, using the service key.
 grant execute on function public.get_fixture_sync_targets() to service_role;
-grant execute on function public.sync_competition_fixtures(text, text, text, jsonb) to service_role;
+grant execute on function public.sync_competition_fixtures(text, text, text, jsonb, boolean) to service_role;
 
 -- Platform admin (/admin): match results, competitions, fixture questions.
 -- Each checks private.is_platform_admin() itself.
@@ -131,3 +131,14 @@ grant execute on function public.record_fixture_sync_error(text, text, text) to 
 -- Product analytics: the one function signed-out visitors can call, so the
 -- landing page can count visits (see log_app_event for its limits).
 grant execute on function public.log_app_event(text, uuid, text, text) to anon, authenticated;
+
+-- Phase 3: cricket series from the provider's search, and one-off questions.
+grant execute on function public.admin_add_competition(text, text, text, text, text, text, date, date) to authenticated;
+grant execute on function public.admin_add_fixture_extra(uuid, text, text, text[]) to authenticated;
+grant execute on function public.admin_delete_fixture_extra(uuid) to authenticated;
+grant execute on function public.get_fixture_result_targets(text) to service_role;
+
+-- Server-only: provider calls relayed through the database (pg_net), used
+-- by the sync-fixtures and catalog-admin edge functions.
+grant execute on function public.provider_http_get(text) to service_role;
+grant execute on function public.provider_http_response(bigint) to service_role;

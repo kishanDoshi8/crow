@@ -102,7 +102,17 @@ begin
   where q.id = p_question_id;
 
   v_result := v_fixture.result;
-  if v_resolver is null or v_result is null or v_fixture.status <> 'finished' then
+  if v_resolver is null or v_result is null then
+    return null;
+  end if;
+
+  -- Cricket: the adapter saves the winner, the toss and each innings with
+  -- sides as home or away (see supabase/functions/sync-fixtures).
+  if v_fixture.match_format is not null then
+    return private.cricket_outcome(v_resolver, v_result);
+  end if;
+
+  if v_fixture.status <> 'finished' then
     return null;
   end if;
 
@@ -165,6 +175,67 @@ begin
       end
     else null
   end;
+end;
+$$;
+
+-- The suggested answer for a cricket question. p_result is
+--   {"winner": "home" | "away" | "draw" | "tie" | "no_result" | null,
+--    "toss_winner": "home" | "away" | null, "toss_choice": "bat" | "bowl" | null,
+--    "innings": [{"team": "home" | "away", "runs": 245, "wickets": 6, "overs": 50}],
+--    "status_text": "India won by 5 wkts"}
+-- A match with no result answers its result questions with no_result
+-- (everyone gets their points back); the toss still counts if it happened.
+-- A tie with no super over winner suggests nothing: an admin decides.
+create or replace function private.cricket_outcome(p_resolver text, p_result jsonb)
+returns text
+language plpgsql
+immutable
+set search_path = public, private
+as $$
+declare
+  v_winner      text := p_result->>'winner';
+  v_toss        text := p_result->>'toss_winner';
+  v_choice      text := p_result->>'toss_choice';
+  v_first_team  text;
+  v_first_runs  int;
+  v_threshold   int;
+begin
+  v_first_team := case
+    when v_toss is null or v_choice is null then p_result->'innings'->0->>'team'
+    when v_choice = 'bat' then v_toss
+    else case v_toss when 'home' then 'away' else 'home' end
+  end;
+  v_first_runs := (p_result->'innings'->0->>'runs')::int;
+
+  if p_resolver in ('toss_winner', 'toss_choice') then
+    return case p_resolver when 'toss_winner' then v_toss else v_choice end;
+  end if;
+
+  if v_winner = 'no_result' then
+    return 'no_result';
+  end if;
+
+  if p_resolver = 'cricket_winner' then
+    -- Limited overs: no draw option; a tie needs its super over.
+    return case when v_winner in ('home', 'away') then v_winner end;
+  elsif p_resolver = 'cricket_test_winner' then
+    return case when v_winner in ('home', 'away', 'draw') then v_winner end;
+  elsif p_resolver = 'batting_first_wins' then
+    return case
+      when v_winner not in ('home', 'away') or v_first_team is null then null
+      when v_winner = v_first_team then 'yes'
+      else 'no'
+    end;
+  elsif p_resolver like 'first_innings_at_least:%' then
+    v_threshold := split_part(p_resolver, ':', 2)::int;
+    return case
+      when v_first_runs is null then null
+      when v_first_runs >= v_threshold then 'yes'
+      else 'no'
+    end;
+  end if;
+
+  return null;
 end;
 $$;
 
@@ -254,18 +325,16 @@ security definer
 set search_path = public, private
 as $$
 begin
+  -- One request for all of them: the sync function fetches what's due
+  -- (get_fixture_result_targets), and syncs season lists only as often as
+  -- each provider allows.
   if exists (
     select 1
     from catalog.fixtures f
     join catalog.competitions c on c.id = f.competition_id and c.active
     where f.result_confirmed_at is null
-      and f.kickoff_at between now() - interval '6 hours' and now() - interval '105 minutes'
-      and (f.status <> 'finished' or f.result is null)
-      and exists (
-        select 1 from catalog.fixture_questions q
-        join public.predictions p on p.fixture_question_id = q.id
-        where q.fixture_id = f.id
-      )
+      and f.kickoff_at between now() - interval '7 days' and now() - interval '105 minutes'
+      and private.fixture_result_due(f.id)
   ) then
     perform private.request_fixture_sync();
   end if;
@@ -296,6 +365,9 @@ as $$
     'status', f.status,
     'home', h.short_name,
     'away', a.short_name,
+    'sport', c.sport,
+    'format', f.match_format,
+    'label', f.label,
     'result', f.result,
     'result_source', f.result_source,
     'confirmed_at', f.result_confirmed_at,
@@ -409,6 +481,19 @@ begin
 
   if p_status not in ('finished', 'abandoned', 'postponed', 'cancelled') then
     raise exception 'Status must be finished, abandoned, postponed or cancelled' using errcode = 'P0001';
+  end if;
+
+  -- Cricket has no score form: an admin marks a match finished (or called
+  -- off) and picks each answer when confirming.
+  if p_status = 'finished' and p_result is null and exists (
+    select 1 from catalog.fixtures f
+    join catalog.competitions c on c.id = f.competition_id
+    where f.id = p_fixture_id and c.sport = 'cricket'
+  ) then
+    update catalog.fixtures
+    set status = 'finished', result_source = 'manual', updated_at = now()
+    where id = p_fixture_id;
+    return private.admin_fixture_json(p_fixture_id);
   end if;
 
   if p_status = 'finished' then
@@ -624,6 +709,8 @@ begin
       'provider', c.provider,
       'provider_ref', c.provider_ref,
       'kind', c.kind,
+      'starts_on', c.starts_on,
+      'ends_on', c.ends_on,
       'region', c.region,
       'season', c.current_season,
       'active', c.active,
@@ -714,6 +801,9 @@ begin
       'competition_name', c.name,
       'round_label', f.round_label,
       'kickoff_at', f.kickoff_at,
+      'format', f.match_format,
+      'label', f.label,
+      'venue', f.venue,
       'home', h.short_name,
       'away', a.short_name,
       'questions', (
@@ -723,6 +813,9 @@ begin
           'description', q.description,
           'options', q.options,
           'hidden', q.hidden,
+          -- A one-off question an admin wrote for this match.
+          'extra', q.template_id is null,
+          'closes_before', coalesce(t.close_minutes_before, 0),
           'customized', q.customized_at is not null,
           'rooms', (select count(*)::int from public.predictions p
                     where p.fixture_question_id = q.id and p.status <> 'cancelled')
@@ -730,7 +823,7 @@ begin
         from catalog.fixture_questions q
         left join catalog.question_templates t on t.id = q.template_id
         where q.fixture_id = f.id
-          and (q.template_id is null or (t.active and f.stage_kind = any(t.stages)))
+          and (q.template_id is null or private.template_fits(t.active, t.stages, t.formats, f.stage_kind, f.match_format))
       )
     ) order by f.kickoff_at, h.short_name), '[]'::json)
     from catalog.fixtures f
@@ -814,5 +907,137 @@ begin
     from catalog.fixture_questions q
     where q.id = p_question_id
   );
+end;
+$$;
+
+-- Platform admins add a competition the provider lists (a cricket series
+-- found with the search in /admin), or turn an existing one back on. It's
+-- synced on the next run; Sync in /admin starts it now.
+create or replace function public.admin_add_competition(
+  p_provider     text,
+  p_provider_ref text,
+  p_name         text,
+  p_sport        text,
+  p_kind         text,
+  p_region       text default null,
+  p_starts_on    date default null,
+  p_ends_on      date default null
+)
+returns json
+language plpgsql
+security definer
+set search_path = public, private
+as $$
+declare
+  v_id uuid;
+begin
+  if not private.is_platform_admin() then
+    raise exception 'Only platform admins can do this' using errcode = 'P0012';
+  end if;
+
+  if nullif(btrim(p_name), '') is null or nullif(btrim(p_provider_ref), '') is null then
+    raise exception 'A competition needs a name and the provider''s id' using errcode = 'P0001';
+  end if;
+
+  insert into catalog.competitions (
+    sport, name, format, kind, region, provider, provider_ref, active, display_order, starts_on, ends_on
+  )
+  values (
+    p_sport, left(btrim(p_name), 40),
+    case p_kind when 'league' then 'league' when 'cup' then 'knockout' else 'mixed' end,
+    p_kind, nullif(btrim(p_region), ''), p_provider, p_provider_ref, true,
+    coalesce((select max(display_order) + 1 from catalog.competitions), 1),
+    p_starts_on, p_ends_on
+  )
+  on conflict (provider, provider_ref) do update
+    set active = true,
+        starts_on = coalesce(excluded.starts_on, catalog.competitions.starts_on),
+        ends_on = coalesce(excluded.ends_on, catalog.competitions.ends_on)
+  returning id into v_id;
+
+  return json_build_object('id', v_id);
+end;
+$$;
+
+-- Platform admins write a one-off question for one match ("Will Kohli score
+-- 50?"), offered to rooms next to the ready-made ones. No feed can settle
+-- it: the admin picks its answer when confirming the match. Options are
+-- 2 to 6 labels; their keys are o1, o2, ...
+create or replace function public.admin_add_fixture_extra(
+  p_fixture_id  uuid,
+  p_title       text,
+  p_description text,
+  p_options     text[]
+)
+returns json
+language plpgsql
+security definer
+set search_path = public, private
+as $$
+declare
+  v_title   text := nullif(btrim(regexp_replace(coalesce(p_title, ''), '\s+', ' ', 'g')), '');
+  v_labels  text[] := array(select btrim(o) from unnest(coalesce(p_options, '{}')) with ordinality as x(o, n) where btrim(o) <> '' order by n);
+  v_id      uuid;
+begin
+  if not private.is_platform_admin() then
+    raise exception 'Only platform admins can do this' using errcode = 'P0012';
+  end if;
+
+  if not exists (select 1 from catalog.fixtures where id = p_fixture_id and status = 'scheduled' and kickoff_at > now()) then
+    raise exception 'That match has started or isn''t on the list' using errcode = 'P0001';
+  end if;
+
+  if v_title is null or char_length(v_title) > 200 then
+    raise exception 'Write a question under 200 characters' using errcode = 'P0001';
+  end if;
+
+  if cardinality(v_labels) not between 2 and 6 then
+    raise exception 'Give 2 to 6 options' using errcode = 'P0001';
+  end if;
+
+  if (select count(distinct lower(l)) from unnest(v_labels) l) <> cardinality(v_labels) then
+    raise exception 'Each option must be different' using errcode = 'P0001';
+  end if;
+
+  insert into catalog.fixture_questions (fixture_id, template_id, title, description, options, display_order, hidden)
+  values (
+    p_fixture_id,
+    null,
+    v_title,
+    nullif(btrim(coalesce(p_description, '')), ''),
+    (select jsonb_agg(jsonb_build_object('key', 'o' || n, 'label', l) order by n)
+     from unnest(v_labels) with ordinality as x(l, n)),
+    100 + (select count(*) from catalog.fixture_questions where fixture_id = p_fixture_id and template_id is null),
+    false
+  )
+  returning id into v_id;
+
+  return json_build_object('id', v_id);
+end;
+$$;
+
+-- Platform admins remove a one-off question no room has added yet (once a
+-- room has it, hide it instead).
+create or replace function public.admin_delete_fixture_extra(p_question_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public, private
+as $$
+begin
+  if not private.is_platform_admin() then
+    raise exception 'Only platform admins can do this' using errcode = 'P0012';
+  end if;
+
+  if exists (select 1 from public.predictions where fixture_question_id = p_question_id) then
+    raise exception 'A room has added it: hide it instead' using errcode = 'P0001';
+  end if;
+
+  delete from catalog.fixture_questions
+  where id = p_question_id and template_id is null;
+
+  if not found then
+    raise exception 'Only an extra question can be removed' using errcode = 'P0002';
+  end if;
 end;
 $$;

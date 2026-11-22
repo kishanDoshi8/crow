@@ -6,6 +6,7 @@ import { useAdminResults, useConfirmFixture } from "@/features/admin/hooks";
 import { isReady } from "@/features/admin/lib/results";
 import type {
 	AdminResultFixture,
+	CricketFixtureResult,
 	FixtureResult,
 	FixtureStatus,
 } from "@/shared/lib/api";
@@ -209,6 +210,21 @@ function scoreLines(result: FixtureResult) {
 	return { main: ninety ?? "?", lines: lines.filter(Boolean) as string[] };
 }
 
+// A cricket result as lines: how it ended, then each innings and the toss.
+function cricketLines(fixture: AdminResultFixture, result: CricketFixtureResult) {
+	const name = (side: "home" | "away" | null) =>
+		side === "home" ? fixture.home : side === "away" ? fixture.away : "?";
+	const lines = result.innings.map(
+		(inning) => `${name(inning.team)} ${inning.runs}/${inning.wickets} (${inning.overs} ov)`,
+	);
+	if (result.toss_winner) {
+		lines.push(
+			`Toss: ${name(result.toss_winner)}${result.toss_choice ? `, chose to ${result.toss_choice}` : ""}`,
+		);
+	}
+	return { main: result.status_text || "Finished", lines };
+}
+
 function ResultCard({ fixture }: Readonly<{ fixture: AdminResultFixture }>) {
 	const confirmed = !!fixture.confirmed_at;
 	const [editing, setEditing] = useState(!confirmed);
@@ -232,7 +248,12 @@ function ResultCard({ fixture }: Readonly<{ fixture: AdminResultFixture }>) {
 	const calledOff = ["postponed", "abandoned", "cancelled"].includes(
 		fixture.status,
 	);
-	const result = fixture.result ? scoreLines(fixture.result) : null;
+	const cricket = fixture.sport === "cricket";
+	const result = !fixture.result
+		? null
+		: cricket
+			? cricketLines(fixture, fixture.result as CricketFixtureResult)
+			: scoreLines(fixture.result as FixtureResult);
 	const answerLabel = (
 		key: string | undefined,
 		options: { key: string; label: string }[],
@@ -284,7 +305,9 @@ function ResultCard({ fixture }: Readonly<{ fixture: AdminResultFixture }>) {
 					</h3>
 					<p className='text-xs text-muted-foreground'>
 						{fixture.competition_name}
-						{fixture.round_label ? `, ${fixture.round_label}` : ""}
+						{fixture.label ?? fixture.round_label
+							? `, ${fixture.label ?? fixture.round_label}`
+							: ""}
 					</p>
 				</div>
 				<time
@@ -298,11 +321,11 @@ function ResultCard({ fixture }: Readonly<{ fixture: AdminResultFixture }>) {
 			<div className='flex items-end justify-between gap-3 px-3 py-3'>
 				<div className='min-w-0'>
 					<p className='text-xs text-muted-foreground'>
-						{STATUS[fixture.status]}
+						{cricket && fixture.status === "finished" ? "Finished" : STATUS[fixture.status]}
 					</p>
 					{result ? (
 						<>
-							<p className='text-2xl font-bold tabular-nums'>
+							<p className={cn("font-bold tabular-nums", cricket ? "text-base" : "text-2xl")}>
 								{result.main}
 							</p>
 							{result.lines.map((line) => (
@@ -315,13 +338,15 @@ function ResultCard({ fixture }: Readonly<{ fixture: AdminResultFixture }>) {
 							))}
 							<p className='text-xs text-muted-foreground'>
 								{fixture.result_source === "manual"
-									? "Typed in by an admin"
+									? "Set by an admin"
 									: "From the feed"}
 							</p>
 						</>
 					) : (
 						<p className='text-sm text-muted-foreground'>
-							No score yet
+							{cricket && fixture.status === "finished"
+								? "No result from the feed: pick each answer"
+								: "No score yet"}
 						</p>
 					)}
 				</div>
@@ -332,7 +357,7 @@ function ResultCard({ fixture }: Readonly<{ fixture: AdminResultFixture }>) {
 						onClick={() => setIsScoreOpen(true)}
 					>
 						<PencilIcon />
-						{fixture.result ? "Edit score" : "Type score"}
+						{cricket ? "Set status" : fixture.result ? "Edit score" : "Type score"}
 					</Button>
 				) : null}
 			</div>

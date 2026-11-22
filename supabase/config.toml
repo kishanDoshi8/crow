@@ -41,6 +41,11 @@ verify_jwt = false
 [functions.sync-fixtures]
 verify_jwt = true
 
+# /admin only: searching a provider (CricketData.org) with the key kept
+# server side. Checks the caller is a platform admin.
+[functions.catalog-admin]
+verify_jwt = true
+
 [db.migrations]
 schema_paths = [
   # Schemas and extensions first.

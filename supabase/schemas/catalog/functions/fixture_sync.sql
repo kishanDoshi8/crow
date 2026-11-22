@@ -65,37 +65,135 @@ begin
 end;
 $$;
 
--- The competitions to sync: every active one, with its provider.
+-- Whether a template's question fits a fixture: its stage (league,
+-- knockout...) and, for cricket, its format (Test, ODI, T20).
+create or replace function private.template_fits(
+  p_active     boolean,
+  p_stages     text[],
+  p_formats    text[],
+  p_stage_kind text,
+  p_format     text
+)
+returns boolean
+language sql
+immutable
+as $$
+  select p_active
+    and p_stage_kind = any(p_stages)
+    and (p_formats is null or p_format = any(p_formats));
+$$;
+
+-- The competitions to sync: every active one that hasn't ended more than a
+-- week ago, with its provider and when it last synced (the edge function
+-- syncs some providers less often to stay inside their call limits).
 create or replace function public.get_fixture_sync_targets()
-returns table (provider text, provider_ref text, name text)
+returns table (provider text, provider_ref text, name text, synced_at timestamptz)
 language sql
 stable
 security definer
 set search_path = public, private
 as $$
-  select c.provider, c.provider_ref, c.name
+  select c.provider, c.provider_ref, c.name, c.synced_at
   from catalog.competitions c
   where c.active
+    and (c.ends_on is null or c.ends_on >= current_date - 7)
   order by c.display_order, c.name;
+$$;
+
+-- Whether to ask the provider how a played match stands: rooms have
+-- questions on it, it isn't confirmed or finished with a score, it should
+-- be over by now (a T20 runs about 3.5 hours, an ODI 8, a Test up to five
+-- days), and it wasn't checked too recently. Cricket costs one call per
+-- match, so its checks are spaced out.
+create or replace function private.fixture_result_due(p_fixture_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, private
+as $$
+  select exists (
+    select 1
+    from catalog.fixtures f
+    cross join lateral (
+      select
+        case f.match_format
+          when 't20' then interval '3 hours'
+          when 'odi' then interval '7 hours'
+          when 'test' then interval '60 hours'
+          else interval '105 minutes'
+        end as earliest,
+        case f.match_format
+          when 'test' then interval '7 days'
+          when 'odi' then interval '30 hours'
+          when 't20' then interval '30 hours'
+          else interval '6 hours'
+        end as latest,
+        case f.match_format
+          when 'test' then interval '6 hours'
+          when 'odi' then interval '1 hour'
+          when 't20' then interval '45 minutes'
+          else interval '10 minutes'
+        end as every
+    ) w
+    where f.id = p_fixture_id
+      and f.result_confirmed_at is null
+      and not (f.status = 'finished' and f.result is not null)
+      and f.kickoff_at between now() - w.latest and now() - w.earliest
+      and (f.result_checked_at is null or f.result_checked_at < now() - w.every)
+      and exists (
+        select 1 from catalog.fixture_questions q
+        join public.predictions p on p.fixture_question_id = q.id
+        where q.fixture_id = f.id and p.status <> 'cancelled'
+      )
+  );
+$$;
+
+-- Played matches whose result the sync should fetch one by one (providers
+-- whose season list doesn't carry results, like CricketData.org): the
+-- active competitions' matches that private.fixture_result_due says are
+-- due. Server only (service role).
+create or replace function public.get_fixture_result_targets(p_provider text)
+returns table (competition_ref text, provider_ref text)
+language sql
+stable
+security definer
+set search_path = public, private
+as $$
+  select c.provider_ref, f.provider_ref
+  from catalog.fixtures f
+  join catalog.competitions c on c.id = f.competition_id
+  where c.provider = p_provider
+    and c.active
+    and private.fixture_result_due(f.id)
+  order by f.kickoff_at
+  limit 20;
 $$;
 
 -- Saves one competition's fixtures from its provider. p_fixtures is an
 -- array of
 --   {"provider_ref": "...", "kickoff_at": "...", "status": "scheduled",
 --    "matchday": 13, "round_label": "Matchweek 13", "stage_kind": "league",
+--    "match_format": null, "label": null, "venue": null,
 --    "home": {"provider_ref": "...", "name": "...", "short_name": "..."},
 --    "away": {...}, "result": {...}}
 -- (home and away null until known, result null until the end). Knockout
 -- games played over two legs are told apart here: the earlier of two games
 -- between the same teams in the same round is a first leg.
 -- When a kickoff moves, room questions still open for picks that close at
--- the old kickoff move with it; ones a host gave another deadline stay.
+-- the old kickoff (or their template's time before it, like a toss) move
+-- with it; ones a host gave another deadline stay. A season list can carry
+-- only some of a competition's matches (or one, from a result check):
+-- matches left out are untouched.
 -- Server only (service role).
 create or replace function public.sync_competition_fixtures(
   p_provider     text,
   p_provider_ref text,
   p_season       text,
-  p_fixtures     jsonb
+  p_fixtures     jsonb,
+  -- Only a few matches (a result check): the competition's season list
+  -- still needs its regular sync, so synced_at stays.
+  p_partial      boolean default false
 )
 returns json
 language plpgsql
@@ -168,7 +266,9 @@ begin
     if v_fixture_id is null then
       insert into catalog.fixtures (
         competition_id, provider_ref, season, matchday, round_label, stage_kind,
-        home_team_id, away_team_id, kickoff_at, status, result, result_source, synced_at
+        match_format, label, venue,
+        home_team_id, away_team_id, kickoff_at, status, result, result_source, synced_at,
+        result_checked_at
       )
       values (
         v_competition.id,
@@ -177,13 +277,17 @@ begin
         (v_item->>'matchday')::smallint,
         nullif(v_item->>'round_label', ''),
         v_item->>'stage_kind',
+        nullif(v_item->>'match_format', ''),
+        nullif(v_item->>'label', ''),
+        nullif(v_item->>'venue', ''),
         v_home_id,
         v_away_id,
         v_new_kickoff,
         v_item->>'status',
         case when jsonb_typeof(v_item->'result') = 'object' then v_item->'result' end,
         case when jsonb_typeof(v_item->'result') = 'object' then 'provider' end,
-        now()
+        now(),
+        case when v_new_kickoff < now() then now() end
       )
       returning id into v_fixture_id;
     else
@@ -192,6 +296,9 @@ begin
           matchday = (v_item->>'matchday')::smallint,
           round_label = nullif(v_item->>'round_label', ''),
           stage_kind = v_item->>'stage_kind',
+          match_format = nullif(v_item->>'match_format', ''),
+          label = nullif(v_item->>'label', ''),
+          venue = nullif(v_item->>'venue', ''),
           home_team_id = v_home_id,
           away_team_id = v_away_id,
           kickoff_at = v_new_kickoff,
@@ -202,6 +309,7 @@ begin
           result_source = case when result_source = 'manual' then 'manual'
                                when jsonb_typeof(v_item->'result') = 'object' then 'provider' end,
           synced_at = now(),
+          result_checked_at = case when v_new_kickoff < now() then now() else result_checked_at end,
           updated_at = now()
       where id = v_fixture_id;
 
@@ -209,18 +317,21 @@ begin
         -- Picks close at kickoff: the room questions that close at the old
         -- kickoff follow it. Scheduled ones still go live before it.
         update public.predictions p
-        set deadline = v_new_kickoff,
+        set deadline = v_new_kickoff - m.before,
             opens_at = case
-              when p.status = 'scheduled' and p.opens_at > v_new_kickoff - interval '5 minutes'
-                then greatest(now(), v_new_kickoff - interval '5 minutes')
+              when p.status = 'scheduled' and p.opens_at > v_new_kickoff - m.before - interval '5 minutes'
+                then greatest(now(), v_new_kickoff - m.before - interval '5 minutes')
               else p.opens_at
             end,
             notified_1h = false
         from catalog.fixture_questions q
+        left join catalog.question_templates t on t.id = q.template_id
+        cross join lateral (select make_interval(mins => coalesce(t.close_minutes_before, 0)::int) as before) m
         where q.fixture_id = v_fixture_id
           and p.fixture_question_id = q.id
           and p.status in ('scheduled', 'draft')
-          and p.deadline = v_old_kickoff;
+          and p.deadline = v_old_kickoff - m.before
+          and v_new_kickoff - m.before > now();
         get diagnostics v_count = row_count;
         v_moved := v_moved + v_count;
       end if;
@@ -255,7 +366,7 @@ begin
 
   update catalog.competitions
   set current_season = coalesce(nullif(p_season, ''), current_season),
-      synced_at = now(),
+      synced_at = case when p_partial then synced_at else now() end,
       last_sync_error = null,
       last_sync_error_at = null
   where id = v_competition.id;

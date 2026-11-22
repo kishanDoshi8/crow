@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useSetFixtureResult } from "@/features/admin/hooks";
-import type { AdminResultFixture, ManualFixtureResult } from "@/shared/lib/api";
+import type { AdminResultFixture, FixtureResult, ManualFixtureResult } from "@/shared/lib/api";
 import { cn } from "@/shared/lib/utils";
 import {
 	Button,
@@ -16,12 +16,20 @@ import {
 	Spinner,
 } from "@/shared/ui";
 
-type Ending = "regular" | "extra_time" | "penalties" | "abandoned" | "postponed" | "cancelled";
+type Ending = "regular" | "extra_time" | "penalties" | "finished" | "abandoned" | "postponed" | "cancelled";
 
 const ENDINGS: { value: Ending; label: string }[] = [
 	{ value: "regular", label: "90 minutes" },
 	{ value: "extra_time", label: "Extra time" },
 	{ value: "penalties", label: "Penalties" },
+	{ value: "abandoned", label: "Abandoned" },
+	{ value: "postponed", label: "Postponed" },
+	{ value: "cancelled", label: "Called off" },
+];
+
+// Cricket has no score form: say how it ended, then pick each answer.
+const CRICKET_ENDINGS: { value: Ending; label: string }[] = [
+	{ value: "finished", label: "Played" },
 	{ value: "abandoned", label: "Abandoned" },
 	{ value: "postponed", label: "Postponed" },
 	{ value: "cancelled", label: "Called off" },
@@ -42,9 +50,17 @@ export function ScoreDialog({
 	open,
 	onOpenChange,
 }: Readonly<{ fixture: AdminResultFixture; open: boolean; onOpenChange: (open: boolean) => void }>) {
-	const result = fixture.result;
+	const cricket = fixture.sport === "cricket";
+	// Football's score fields; a cricket result has none of them.
+	const result = cricket ? null : (fixture.result as FixtureResult | null);
 	const [ending, setEnding] = useState<Ending>(
-		fixture.status === "finished" || !result ? (result?.duration ?? "regular") : (fixture.status as Ending),
+		cricket
+			? ["abandoned", "postponed", "cancelled"].includes(fixture.status)
+				? (fixture.status as Ending)
+				: "finished"
+			: fixture.status === "finished" || !result
+				? (result?.duration ?? "regular")
+				: (fixture.status as Ending),
 	);
 	const [ninety, setNinety] = useState(pair(result?.regular_time ?? result?.full_time));
 	const [halfTime, setHalfTime] = useState(pair(result?.half_time));
@@ -52,7 +68,7 @@ export function ScoreDialog({
 	const [penalties, setPenalties] = useState(pair(result?.penalties));
 	const { mutate: save, isPending } = useSetFixtureResult();
 
-	const played = ending === "regular" || ending === "extra_time" || ending === "penalties";
+	const played = !cricket && (ending === "regular" || ending === "extra_time" || ending === "penalties");
 	const ready =
 		!played ||
 		(filled(ninety) &&
@@ -63,7 +79,7 @@ export function ScoreDialog({
 	const submit = () => {
 		const manual: ManualFixtureResult | null = played
 			? {
-					duration: ending,
+					duration: ending as ManualFixtureResult["duration"],
 					ninety: toScore(ninety),
 					half_time: toScore(halfTime),
 					...(ending === "regular" ? {} : { after_extra_time: toScore(afterExtraTime) }),
@@ -71,11 +87,15 @@ export function ScoreDialog({
 				}
 			: null;
 		save(
-			{ fixtureId: fixture.id, status: played ? "finished" : ending, result: manual },
+			{
+				fixtureId: fixture.id,
+				status: played ? "finished" : (ending as "finished" | "abandoned" | "postponed" | "cancelled"),
+				result: manual,
+			},
 			{
 				onSuccess: () => {
 					onOpenChange(false);
-					toast.success("Score saved", {
+					toast.success(cricket ? "Status saved" : "Score saved", {
 						description: "Check the answers, then confirm.",
 						position: "top-center",
 					});
@@ -97,7 +117,9 @@ export function ScoreDialog({
 						{fixture.home} vs {fixture.away}
 					</DialogTitle>
 					<DialogDescription>
-						The feed won't overwrite a score typed here.
+						{cricket
+							? "Cricket scores come from the feed. Say how the match ended, then pick each answer on its card."
+							: "The feed won't overwrite a score typed here."}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -105,7 +127,7 @@ export function ScoreDialog({
 					<fieldset className='space-y-2'>
 						<legend className='text-xs font-medium text-muted-foreground'>How it ended</legend>
 						<div className='flex flex-wrap gap-1.5'>
-							{ENDINGS.map((option) => (
+							{(cricket ? CRICKET_ENDINGS : ENDINGS).map((option) => (
 								<button
 									key={option.value}
 									type='button'
@@ -143,7 +165,9 @@ export function ScoreDialog({
 						</>
 					) : (
 						<p className='text-sm text-muted-foreground'>
-							Then pick No result for each question, so everyone gets their points back.
+							{cricket && ending === "finished"
+								? "Then pick each question's answer on the match's card."
+								: "Then pick No result for each question, so everyone gets their points back."}
 						</p>
 					)}
 				</div>
@@ -154,7 +178,7 @@ export function ScoreDialog({
 					</DialogClose>
 					<Button variant='linear' disabled={!ready || isPending} onClick={submit}>
 						{isPending ? <Spinner /> : null}
-						Save score
+						{cricket ? "Save status" : "Save score"}
 					</Button>
 				</DialogFooter>
 			</DialogContent>
