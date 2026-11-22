@@ -67,6 +67,15 @@ export default function PrivacyPage() {
 					brought you in when you join a room.
 				</p>
 				<p>
+					<strong>Visits.</strong> When you open our home page, we count the visit
+					with a random visitor ID kept in your browser, the page, and the site
+					that sent you there if the link says so. We also note when that visitor
+					taps "Start a room" or "Join with a code", tries the example question, or
+					creates an account, so we can see whether the page helps people get
+					started. We don't use third-party analytics or trackers, and we skip
+					this if your browser asks sites not to track you.
+				</p>
+				<p>
 					<strong>Technical.</strong> Error reports when something breaks in the
 					app (what went wrong, the app version and browser, and an anonymous
 					account ID), and standard server logs (IP address, browser and time of
@@ -200,8 +209,9 @@ export default function PrivacyPage() {
 				<p>
 					Crow doesn't use advertising or tracking cookies. It keeps a few things
 					in your browser's local storage so the app works: your sign-in session,
-					which room and series you last looked at, and whether you've seen a
-					tip. Clearing your browser data removes them and signs you out.
+					which room and series you last looked at, whether you've seen a
+					tip, and the random visitor ID described under Visits. Clearing your
+					browser data removes them and signs you out.
 				</p>
 			</LegalSection>
 

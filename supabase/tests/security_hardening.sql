@@ -165,15 +165,16 @@ select is(
 -- 2. Function access is an allowlist
 -- ------------------------------------------------------------
 select is(
-  (
-    select count(*)::int
+  array(
+    select p.proname::text
     from pg_proc p
     join pg_namespace n on n.oid = p.pronamespace
     where n.nspname in ('public', 'private')
       and has_function_privilege('anon', p.oid, 'EXECUTE')
+    order by 1
   ),
-  0,
-  'logged-out users cannot call any public or private function'
+  array['log_app_event'],
+  'logged-out users can call only log_app_event (landing page analytics)'
 );
 
 select is(
@@ -199,7 +200,7 @@ select is(
     'get_room_prediction_history_counts',
     'get_room_series', 'get_room_series_selector', 'get_room_stat_cards', 'get_room_tags', 'get_series_awards',
     'get_series_leaderboard', 'get_series_placements', 'get_series_suggestions', 'get_series_weekly_recap', 'join_room',
-    'leave_room', 'mark_how_to_play_seen', 'mark_ratings_tip_seen', 'mark_results_seen', 'mark_room_activities_seen',
+    'leave_room', 'log_app_event', 'mark_how_to_play_seen', 'mark_ratings_tip_seen', 'mark_results_seen', 'mark_room_activities_seen',
     'mark_series_suggestion_played', 'place_bet', 'post_prediction_phrase', 'publish_prediction_now', 'record_share',
     'register_player', 'remove_room_member', 'remove_series_suggestion', 'request_account_deletion', 'reset_room_preferences',
     'resolve_prediction_v2', 'resolve_predictions', 'set_last_visited_room', 'set_member_role', 'set_prediction_details', 'set_prediction_reaction', 'set_room_competition',

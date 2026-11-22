@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth";
 import { savePostAuthRedirect } from "@/shared/lib/postAuthRedirect";
+import { track } from "@/shared/lib/analytics";
 import { cn } from "@/shared/lib/utils";
 import { Button, Skeleton } from "@/shared/ui";
 
@@ -15,10 +16,12 @@ function useStartFlow() {
 	const navigate = useNavigate();
 	return {
 		startRoom: () => {
+			track("landing_start_room");
 			savePostAuthRedirect(`${APP_HOME}?tab=create`);
 			navigate("/signup");
 		},
 		joinRoom: () => {
+			track("landing_join");
 			savePostAuthRedirect(`${APP_HOME}?tab=join`);
 			navigate("/login");
 		},

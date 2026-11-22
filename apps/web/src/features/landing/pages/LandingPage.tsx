@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { track } from "@/shared/lib/analytics";
 import { RankChange } from "@/features/leaderboard";
 import { CrowTile } from "@/shared/ui";
 import { DemoQuestion } from "@/features/landing/components/DemoQuestion";
@@ -55,6 +57,8 @@ const RANK_COLOR: Record<number, string> = {
 };
 
 export default function LandingPage() {
+	useEffect(() => track("landing_view"), []);
+
 	return (
 		<div className='min-h-dvh bg-background text-foreground'>
 			<header className='mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 md:px-8 md:py-6'>

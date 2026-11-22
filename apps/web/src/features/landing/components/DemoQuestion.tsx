@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { CheckIcon } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui";
+import { track } from "@/shared/lib/analytics";
 
 // A pretend question visitors can play in the hero: pick, lock in, see the
 // result. Nothing is saved. The split and result are fixed so the numbers
@@ -33,6 +34,7 @@ export function DemoQuestion({ className }: Readonly<{ className?: string }>) {
 
 	const choose = (id: OptionId) => {
 		if (stage !== "open") return;
+		track("landing_demo_pick");
 		setPick(id);
 		setStage("locked");
 	};
