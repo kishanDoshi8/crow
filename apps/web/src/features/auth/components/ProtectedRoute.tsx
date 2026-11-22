@@ -16,9 +16,11 @@ export function ProtectedRoute() {
 	}
 
 	if (!user) {
-		// Visitors at the bare address get the landing page, not a sign-in form.
-		if (location.pathname === "/" && !location.search) {
-			return <Navigate to='/welcome' replace />;
+		// Visitors at the bare address get the landing page, not a sign-in form,
+		// keeping ?ref= so analytics knows where they came from. A link to a Home
+		// tab (?tab=join) still asks them to sign in first.
+		if (location.pathname === "/" && !new URLSearchParams(location.search).has("tab")) {
+			return <Navigate to={`/welcome${location.search}`} replace />;
 		}
 		// Remember the page (e.g. an invite link) through signup and Google sign-in.
 		savePostAuthRedirect(location.pathname + location.search);

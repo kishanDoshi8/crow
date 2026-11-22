@@ -6,6 +6,7 @@ import { Button, Input, Spinner } from "@/shared/ui";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth";
 import { takePostAuthRedirect } from "@/shared/lib/postAuthRedirect";
+import { track } from "@/shared/lib/analytics";
 
 const MIN_USERNAME_LENGTH = 3;
 
@@ -51,6 +52,7 @@ function CreatePlayer() {
 
 		createPlayer(trimmed, {
 			onSuccess: (data) => {
+				track("account_created");
 				toast.success(`Welcome to the flock, ${data.username}.`, {
 					position: "top-center",
 				});

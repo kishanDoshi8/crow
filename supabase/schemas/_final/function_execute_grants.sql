@@ -127,3 +127,7 @@ grant execute on function public.admin_update_fixture_question(uuid, boolean, te
 grant execute on function public.get_room_competitions(uuid) to authenticated;
 grant execute on function public.get_room_competition_fixtures(uuid, uuid) to authenticated;
 grant execute on function public.record_fixture_sync_error(text, text, text) to service_role;
+
+-- Product analytics: the one function signed-out visitors can call, so the
+-- landing page can count visits (see log_app_event for its limits).
+grant execute on function public.log_app_event(text, uuid, text, text) to anon, authenticated;
