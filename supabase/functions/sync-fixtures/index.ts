@@ -7,7 +7,10 @@
 // (private.request_fixture_sync) with the service key and x-sync-secret.
 // To run it by hand:
 //   curl -X POST "$SUPABASE_URL/functions/v1/sync-fixtures" \
-//     -H "Authorization: Bearer $SERVICE_ROLE_KEY" -H "x-sync-secret: $SECRET"
+//     -H "Authorization: Bearer $SERVICE_ROLE_KEY" -H "x-sync-secret: $SECRET" \
+//     -d '{"provider": "cricketdata", "wait": true}'
+// ("wait" returns each competition's result; without it the sync runs in
+// the background and the reply is 202.)
 //
 // Secrets: FIXTURE_SYNC_SECRET, FOOTBALL_DATA_API_KEY, CRICKETDATA_API_KEY.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.8";
@@ -49,20 +52,45 @@ Deno.serve(async (req) => {
 	// CricketData.org only answers the database's HTTP client.
 	relayThroughDatabase(supabase);
 
-	const { data: targets, error } = await supabase.rpc(
-		"get_fixture_sync_targets",
-	);
-	if (error) {
-		return json({ error: error.message }, 500);
-	}
-
-	// Optional: only this provider's competitions (Sync in /admin).
+	// Optional: only this provider's competitions (Sync in /admin), and
+	// {"wait": true} to get the results back instead of a 202 (by hand).
 	let onlyProvider: string | null = null;
+	let wait = false;
 	try {
-		const body = (await req.json()) as { provider?: unknown };
+		const body = (await req.json()) as { provider?: unknown; wait?: unknown };
 		if (typeof body?.provider === "string") onlyProvider = body.provider;
+		wait = body?.wait === true;
 	} catch {
 		// No body: sync everything.
+	}
+
+	// The cron and /admin call this through the database's HTTP client
+	// (pg_net), which can hold the requests the relay queues until this
+	// reply arrives: answer at once and sync in the background, so the two
+	// never wait on each other.
+	const runtime = (globalThis as { EdgeRuntime?: { waitUntil: (p: Promise<unknown>) => void } }).EdgeRuntime;
+	if (!wait && runtime?.waitUntil) {
+		runtime.waitUntil(
+			sync(supabase, onlyProvider).then(({ results, failed }) =>
+				console.log(`sync-fixtures done, ${failed} failed: ${JSON.stringify(results)}`),
+			),
+		);
+		return json({ started: true, provider: onlyProvider }, 202);
+	}
+
+	const { results, failed } = await sync(supabase, onlyProvider);
+	return json({ results }, failed > 0 ? 502 : 200);
+});
+
+type Client = ReturnType<typeof createClient>;
+
+// Syncs every active competition (or one provider's), then fetches due
+// results for providers that need them one by one.
+async function sync(supabase: Client, onlyProvider: string | null) {
+	const { data: targets, error } = await supabase.rpc("get_fixture_sync_targets");
+	if (error) {
+		console.error(`sync-fixtures targets: ${error.message}`);
+		return { results: [{ error: error.message }], failed: 1 };
 	}
 
 	const results: unknown[] = [];
@@ -162,5 +190,5 @@ Deno.serve(async (req) => {
 		}
 	}
 
-	return json({ results }, failed > 0 ? 502 : 200);
-});
+	return { results, failed };
+}
