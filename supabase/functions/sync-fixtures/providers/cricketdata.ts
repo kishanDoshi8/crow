@@ -254,6 +254,23 @@ export const cricketData: ProviderAdapter = {
 	},
 };
 
+const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+
+// The series list gives "2026-10-24" as a start but "Nov 10" as an end: the
+// end takes the start's year, or the next one when it's an earlier month
+// (a tour from December to January).
+export function isoDate(value?: string, after?: string | null): string | null {
+	if (!value) return null;
+	if (/^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
+	const match = /^([a-z]{3})[a-z]*\s+(\d{1,2})$/i.exec(value.trim());
+	if (!match || !after) return null;
+	const month = MONTHS.indexOf(match[1].toLowerCase());
+	if (month < 0) return null;
+	let year = Number(after.slice(0, 4));
+	if (month + 1 < Number(after.slice(5, 7))) year += 1;
+	return `${year}-${String(month + 1).padStart(2, "0")}-${match[2].padStart(2, "0")}`;
+}
+
 // For the /admin search: the provider's series matching a name, with a
 // guess at how Browse should group each one.
 export async function searchSeries(query: string) {
@@ -267,15 +284,15 @@ export async function searchSeries(query: string) {
 				: /cup|trophy|championship|world/i.test(series.name)
 					? "cup"
 					: "tour";
-		const iso = (value?: string) => (/^\d{4}-\d{2}-\d{2}/.test(value ?? "") ? value!.slice(0, 10) : null);
+		const startsOn = isoDate(series.startDate ?? series.startdate);
 		return {
 			provider: "cricketdata",
 			provider_ref: series.id,
 			name: series.name,
 			kind,
 			region: tour ? `${tour[2].trim()} and ${tour[1].trim()}` : null,
-			starts_on: iso(series.startDate ?? series.startdate),
-			ends_on: iso(series.endDate ?? series.enddate),
+			starts_on: startsOn,
+			ends_on: isoDate(series.endDate ?? series.enddate, startsOn),
 			tests: series.test ?? 0,
 			odis: series.odi ?? 0,
 			t20s: series.t20 ?? 0,
