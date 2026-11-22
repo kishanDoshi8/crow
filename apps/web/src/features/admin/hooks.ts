@@ -1,4 +1,9 @@
 import {
+	adminAddCompetition,
+	adminAddFixtureExtra,
+	adminDeleteFixtureExtra,
+	adminSearchSeries,
+	type ProviderSeries,
 	adminConfirmFixture,
 	adminGetCompetitions,
 	adminGetFixtures,
@@ -95,6 +100,52 @@ export const useUpdateFixtureQuestion = () => {
 			description?: string;
 			reset?: boolean;
 		}) => adminUpdateFixtureQuestion(questionId, changes),
+		onSettled: () => queryClient.invalidateQueries({ queryKey: adminKeys.fixtures() }),
+	});
+};
+
+// CricketData.org's series matching a name (one API call each time).
+export const useSearchSeries = () => useMutation({ mutationFn: (query: string) => adminSearchSeries(query) });
+
+// Adds a series, then syncs its provider so its matches arrive now.
+export const useAddCompetition = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async (series: ProviderSeries) => {
+			const added = await adminAddCompetition(series, "cricket");
+			await adminRequestFixtureSync(series.provider);
+			return added;
+		},
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: adminKeys.competitions() });
+			// The sync runs on its own: look again once it has had time.
+			setTimeout(() => queryClient.invalidateQueries({ queryKey: adminKeys.competitions() }), 20_000);
+		},
+	});
+};
+
+export const useAddFixtureExtra = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({
+			fixtureId,
+			title,
+			description,
+			options,
+		}: {
+			fixtureId: string;
+			title: string;
+			description: string;
+			options: string[];
+		}) => adminAddFixtureExtra(fixtureId, title, description, options),
+		onSettled: () => queryClient.invalidateQueries({ queryKey: adminKeys.fixtures() }),
+	});
+};
+
+export const useDeleteFixtureExtra = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (questionId: string) => adminDeleteFixtureExtra(questionId),
 		onSettled: () => queryClient.invalidateQueries({ queryKey: adminKeys.fixtures() }),
 	});
 };

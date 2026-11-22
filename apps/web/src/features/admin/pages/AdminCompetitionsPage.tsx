@@ -1,6 +1,7 @@
-import { RefreshCwIcon, SearchIcon } from "lucide-react";
+import { PlusIcon, RefreshCwIcon, SearchIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { AddSeriesDialog } from "@/features/admin/components/AddSeriesDialog";
 import {
 	useAdminCompetitions,
 	useRequestFixtureSync,
@@ -35,6 +36,11 @@ export default function AdminCompetitionsPage() {
 	const { data, isPending, isError, refetch } = useAdminCompetitions();
 	const [query, setQuery] = useState("");
 	const [filter, setFilter] = useState<Filter>("all");
+	const [isAddOpen, setIsAddOpen] = useState(false);
+	const existingRefs = useMemo(
+		() => new Set((data ?? []).filter((c) => c.active).map((c) => c.provider_ref)),
+		[data],
+	);
 
 	const groups = useMemo(() => {
 		const q = query.trim().toLowerCase();
@@ -58,6 +64,12 @@ export default function AdminCompetitionsPage() {
 	return (
 		<div className='space-y-6'>
 			<div className='space-y-2'>
+				<div className='flex justify-end'>
+					<Button variant='outline' size='sm' onClick={() => setIsAddOpen(true)}>
+						<PlusIcon />
+						Add a cricket series
+					</Button>
+				</div>
 				<label className='relative block'>
 					<span className='sr-only'>Search competitions</span>
 					<SearchIcon className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' aria-hidden='true' />
@@ -114,6 +126,8 @@ export default function AdminCompetitionsPage() {
 					/>
 				))
 			)}
+
+			<AddSeriesDialog open={isAddOpen} onOpenChange={setIsAddOpen} existingRefs={existingRefs} />
 		</div>
 	);
 }

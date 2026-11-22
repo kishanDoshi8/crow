@@ -63,7 +63,7 @@ begin
           left join catalog.question_templates t on t.id = q.template_id
           where q.fixture_id = f.id
             and not q.hidden
-            and (q.template_id is null or (t.active and f.stage_kind = any(t.stages)))
+            and (q.template_id is null or private.template_fits(t.active, t.stages, t.formats, f.stage_kind, f.match_format))
         )
       ) order by f.kickoff_at, h.short_name), '[]'::json)
       from catalog.fixtures f
@@ -192,7 +192,8 @@ begin
     raise exception 'Predictions can only be assigned to active series' using errcode = 'P0001';
   end if;
 
-  -- Every one must still be on offer: shown, for a match yet to kick off.
+  -- Every one must still be on offer: shown, for a match yet to kick off,
+  -- and still open (a toss question closes before the start).
   if (
     select count(*)
     from catalog.fixture_questions q
@@ -201,10 +202,10 @@ begin
     left join catalog.question_templates t on t.id = q.template_id
     where q.id = any(p_fixture_question_ids)
       and not q.hidden
-      and (q.template_id is null or (t.active and f.stage_kind = any(t.stages)))
+      and (q.template_id is null or private.template_fits(t.active, t.stages, t.formats, f.stage_kind, f.match_format))
       and c.active
       and f.status = 'scheduled'
-      and f.kickoff_at > now()
+      and f.kickoff_at - make_interval(mins => coalesce(t.close_minutes_before, 0)::int) > now()
       and f.home_team_id is not null
       and f.away_team_id is not null
   ) <> v_requested then
@@ -215,8 +216,9 @@ begin
     select 1
     from catalog.fixture_questions q
     join catalog.fixtures f on f.id = q.fixture_id
+    left join catalog.question_templates t on t.id = q.template_id
     where q.id = any(p_fixture_question_ids)
-      and f.kickoff_at < p_opens_at + interval '5 minutes'
+      and f.kickoff_at - make_interval(mins => coalesce(t.close_minutes_before, 0)::int) < p_opens_at + interval '5 minutes'
   ) then
     raise exception 'Leave at least 5 minutes between going live and the deadline' using errcode = 'P0001';
   end if;
@@ -234,9 +236,16 @@ begin
   for v_question in
     select q.id, q.title, q.description, q.options,
       f.id as fixture_id, f.kickoff_at,
+      f.kickoff_at - make_interval(mins => coalesce(t.close_minutes_before, 0)::int) as closes_at,
       h.short_name || ' vs ' || a.short_name as event_title,
-      c.name as competition_name
+      -- Tags are 24 characters at most: a longer name (a tour) tags the sport.
+      case
+        when char_length(c.name) <= 24 then c.name
+        when c.sport = 'soccer' then 'Football'
+        else initcap(c.sport)
+      end as competition_name
     from catalog.fixture_questions q
+    left join catalog.question_templates t on t.id = q.template_id
     join catalog.fixtures f on f.id = q.fixture_id
     join catalog.competitions c on c.id = f.competition_id
     join catalog.teams h on h.id = f.home_team_id
@@ -282,8 +291,8 @@ begin
       v_player_id,
       v_question.title,
       case when v_scheduled then 'scheduled' else 'draft' end,
-      -- Picks close at kickoff.
-      v_question.kickoff_at,
+      -- Picks close at kickoff (a toss question a little before).
+      v_question.closes_at,
       case when v_scheduled then p_opens_at else now() end,
       v_event_id,
       v_question.id,
@@ -400,6 +409,8 @@ begin
         and f.away_team_id is not null
     ) w
     where c.active
+      -- A tour or cup that's over drops out the day after it ends.
+      and (c.ends_on is null or c.ends_on >= current_date - 1)
   );
 end;
 $$;
@@ -449,6 +460,9 @@ begin
         'id', f.id,
         'kickoff_at', f.kickoff_at,
         'matchday', f.matchday,
+        'format', f.match_format,
+        'label', f.label,
+        'venue', f.venue,
         'round_label', f.round_label,
         'home', h.short_name,
         'away', a.short_name,
@@ -457,6 +471,8 @@ begin
             'id', q.id,
             'title', q.title,
             'description', q.description,
+            -- Minutes before the start that picks close (a toss question).
+            'closes_before', coalesce(t.close_minutes_before, 0),
             'options', (select json_agg(o->>'label') from jsonb_array_elements(q.options) o),
             'prediction_id', (
               select p.id from public.predictions p
@@ -470,7 +486,7 @@ begin
           left join catalog.question_templates t on t.id = q.template_id
           where q.fixture_id = f.id
             and not q.hidden
-            and (q.template_id is null or (t.active and f.stage_kind = any(t.stages)))
+            and (q.template_id is null or private.template_fits(t.active, t.stages, t.formats, f.stage_kind, f.match_format))
         )
       ) order by f.kickoff_at, h.short_name), '[]'::json)
       from (

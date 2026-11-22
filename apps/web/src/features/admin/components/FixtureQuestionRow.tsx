@@ -1,7 +1,7 @@
-import { PencilIcon } from "lucide-react";
+import { PencilIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useUpdateFixtureQuestion } from "@/features/admin/hooks";
+import { useDeleteFixtureExtra, useUpdateFixtureQuestion } from "@/features/admin/hooks";
 import type { AdminFixtureQuestion } from "@/shared/lib/api";
 import {
 	Button,
@@ -22,6 +22,7 @@ import { Textarea } from "@/shared/ui/textarea";
 // rooms, or reword it for this match.
 export function FixtureQuestionRow({ question }: Readonly<{ question: AdminFixtureQuestion }>) {
 	const { mutate: update } = useUpdateFixtureQuestion();
+	const { mutate: remove, isPending: isRemoving } = useDeleteFixtureExtra();
 	const [isEditOpen, setIsEditOpen] = useState(false);
 	const id = `shown-${question.id}`;
 
@@ -32,13 +33,39 @@ export function FixtureQuestionRow({ question }: Readonly<{ question: AdminFixtu
 				<p className='truncate text-xs text-muted-foreground'>
 					{question.options.map((option) => option.label).join(" / ")}
 				</p>
+				{question.extra ? (
+					<p className='text-xs font-medium text-primary'>Extra: you pick the answer when confirming</p>
+				) : null}
 				{question.customized ? <p className='text-xs text-muted-foreground'>Reworded</p> : null}
+				{question.closes_before ? (
+					<p className='text-xs text-muted-foreground'>Closes {question.closes_before} minutes before the start</p>
+				) : null}
 				{question.rooms > 0 ? (
 					<p className='text-xs text-muted-foreground'>
 						In {question.rooms} {question.rooms === 1 ? "room" : "rooms"}
 					</p>
 				) : null}
 			</div>
+			{question.extra && question.rooms === 0 ? (
+				<Button
+					variant='ghost'
+					size='sm'
+					aria-label={`Remove ${question.title}`}
+					disabled={isRemoving}
+					onClick={() =>
+						remove(question.id, {
+							onSuccess: () => toast.success("Question removed", { position: "top-center" }),
+							onError: (error) =>
+								toast.error("Couldn't remove the question. Try again.", {
+									description: error.message,
+									position: "top-center",
+								}),
+						})
+					}
+				>
+					<Trash2Icon />
+				</Button>
+			) : null}
 			<Button variant='ghost' size='sm' aria-label={`Reword ${question.title}`} onClick={() => setIsEditOpen(true)}>
 				<PencilIcon />
 			</Button>

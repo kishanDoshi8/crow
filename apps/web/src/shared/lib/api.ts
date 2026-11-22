@@ -1134,6 +1134,8 @@ export type FixtureQuestion = {
   options: string[]
   // The room's question made from it, if the room has one.
   prediction_id: string | null
+  // Minutes before the start that picks close (toss questions).
+  closes_before?: number
 }
 
 export type Fixture = {
@@ -1144,6 +1146,10 @@ export type Fixture = {
   matchday: number | null
   // "Matchweek 13", "Quarter-finals"...
   round_label: string | null
+  // Cricket: the format, the match's name ("1st Test") and where it's played.
+  format?: CricketFormat | null
+  label?: string | null
+  venue?: string | null
   home: string
   away: string
   questions: FixtureQuestion[]
@@ -1236,6 +1242,17 @@ export type FixtureResult = {
 
 export type FixtureStatus = 'scheduled' | 'live' | 'finished' | 'postponed' | 'abandoned' | 'cancelled'
 
+// A cricket match's result, with sides as home or away.
+export type CricketFixtureResult = {
+  winner: 'home' | 'away' | 'draw' | 'tie' | 'no_result' | null
+  toss_winner: 'home' | 'away' | null
+  toss_choice: 'bat' | 'bowl' | null
+  innings: { team: 'home' | 'away' | null; runs: number; wickets: number; overs: number }[]
+  status_text: string
+}
+
+export type CricketFormat = 'test' | 'odi' | 't20'
+
 export type AdminResultQuestion = {
   id: string
   title: string
@@ -1259,7 +1276,11 @@ export type AdminResultFixture = {
   status: FixtureStatus
   home: string
   away: string
-  result: FixtureResult | null
+  sport: 'soccer' | 'cricket'
+  format: CricketFormat | null
+  // "1st Test"
+  label: string | null
+  result: FixtureResult | CricketFixtureResult | null
   result_source: 'provider' | 'manual' | null
   confirmed_at: string | null
   confirmed_by: string | null
@@ -1325,6 +1346,8 @@ export type AdminCompetition = {
   season: string | null
   active: boolean
   synced_at: string | null
+  starts_on: string | null
+  ends_on: string | null
   // The last failed sync, until one works again.
   last_sync_error: string | null
   last_sync_error_at: string | null
@@ -1362,6 +1385,10 @@ export type AdminFixtureQuestion = {
   hidden: boolean
   // Reworded by an admin: the sync keeps this wording.
   customized: boolean
+  // A one-off question an admin wrote for this match.
+  extra: boolean
+  // Minutes before the start that picks close (toss questions).
+  closes_before: number
   rooms: number
 }
 
@@ -1371,6 +1398,9 @@ export type AdminUpcomingFixture = {
   round_label: string | null
   matchday?: number | null
   kickoff_at: string
+  format: CricketFormat | null
+  label: string | null
+  venue: string | null
   home: string
   away: string
   questions: AdminFixtureQuestion[]
@@ -1396,6 +1426,69 @@ export async function adminUpdateFixtureQuestion(
     p_reset: changes.reset ?? false,
   })
   return assertOk(data, error)
+}
+// A series the provider lists, from the search in /admin.
+export type ProviderSeries = {
+  provider: string
+  provider_ref: string
+  name: string
+  kind: CompetitionKind
+  region: string | null
+  starts_on: string | null
+  ends_on: string | null
+  tests: number
+  odis: number
+  t20s: number
+  matches: number
+}
+
+// Searches CricketData.org (through the catalog-admin edge function, which
+// holds the key). One API call per search.
+export async function adminSearchSeries(query: string) {
+  const { data, error } = await supabase.functions.invoke('catalog-admin', {
+    body: { action: 'search_series', query },
+  })
+  if (error) {
+    let message = error.message
+    try {
+      const body = await (error as { context?: Response }).context?.json()
+      if (body?.error) message = body.error
+    } catch {
+      // Keep the client's message.
+    }
+    throw new Error(message)
+  }
+  return (data as { series: ProviderSeries[] }).series
+}
+
+export async function adminAddCompetition(series: ProviderSeries, sport: 'soccer' | 'cricket') {
+  const { data, error } = await untypedSupabase.rpc('admin_add_competition', {
+    p_provider: series.provider,
+    p_provider_ref: series.provider_ref,
+    p_name: series.name,
+    p_sport: sport,
+    p_kind: series.kind,
+    p_region: series.region,
+    p_starts_on: series.starts_on,
+    p_ends_on: series.ends_on,
+  })
+  return assertOk(data, error) as { id: string }
+}
+
+// A one-off question for one match; its answer is picked when confirming.
+export async function adminAddFixtureExtra(fixtureId: string, title: string, description: string, options: string[]) {
+  const { data, error } = await untypedSupabase.rpc('admin_add_fixture_extra', {
+    p_fixture_id: fixtureId,
+    p_title: title,
+    p_description: description,
+    p_options: options,
+  })
+  return assertOk(data, error) as { id: string }
+}
+
+export async function adminDeleteFixtureExtra(questionId: string) {
+  const { error } = await untypedSupabase.rpc('admin_delete_fixture_extra', { p_question_id: questionId })
+  if (error) throw error
 }
 // #endregion Platform admin
 

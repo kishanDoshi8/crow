@@ -18,6 +18,11 @@ create table if not exists catalog.competitions (
   provider_ref text not null,
   -- The season the provider is on now, e.g. "2026/27".
   current_season text,
+  -- When it runs, where the provider says (tours and cups end; leagues
+  -- roll into the next season). It drops out of Browse and the sync a week
+  -- after it ends.
+  starts_on date,
+  ends_on date,
   active boolean not null default false,
   display_order smallint not null default 0,
   synced_at timestamptz,

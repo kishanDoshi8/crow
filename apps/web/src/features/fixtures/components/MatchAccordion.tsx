@@ -20,6 +20,7 @@ export function MatchAccordion({
 	home,
 	away,
 	kickoffAt,
+	detail,
 	state,
 	open,
 	onOpenChange,
@@ -28,6 +29,8 @@ export function MatchAccordion({
 	home: string;
 	away: string;
 	kickoffAt: string;
+	// A line under the teams: the match's name and where it's played.
+	detail?: string | null;
 	state: MatchState;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
@@ -47,6 +50,9 @@ export function MatchAccordion({
 				<span className='flex min-w-0 flex-col text-sm font-semibold leading-snug'>
 					<span className='truncate'>{home}</span>
 					<span className='truncate'>{away}</span>
+					{detail ? (
+						<span className='truncate text-xs font-normal text-muted-foreground'>{detail}</span>
+					) : null}
 				</span>
 				<span className='flex flex-col items-end gap-1'>
 					<time dateTime={kickoffAt} className='text-sm font-semibold tabular-nums'>

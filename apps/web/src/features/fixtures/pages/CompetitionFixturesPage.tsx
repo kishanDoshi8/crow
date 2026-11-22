@@ -10,7 +10,7 @@ import { MatchAccordion, type MatchState } from "@/features/fixtures/components/
 import { NoActiveSeries } from "@/features/fixtures/components/NoActiveSeries";
 import { chipClass, RoundFilters } from "@/features/fixtures/components/RoundFilters";
 import { useAddFixtureQuestions, useCompetitionFixtures } from "@/features/fixtures/hooks";
-import { daysOf, roundsOf } from "@/features/fixtures/lib/grouping";
+import { daysOf, matchDetail, roundsOf } from "@/features/fixtures/lib/grouping";
 import { useStickyOffset } from "@/features/fixtures/lib/useStickyOffset";
 import { useRoomRole } from "@/features/rooms";
 import { SeriesSelector, useCurrentSeries } from "@/features/series";
@@ -146,7 +146,7 @@ export default function CompetitionFixturesPage() {
 				<header className='flex items-center gap-3 px-4 pt-4 pb-3'>
 					<CompetitionMark name={competition.name} className='size-12 text-sm' />
 					<div className='min-w-0 flex-1'>
-						<h2 className='truncate text-lg font-bold'>{competition.name}</h2>
+						<h2 className='text-lg leading-tight font-bold text-balance'>{competition.name}</h2>
 						<p className='text-xs text-muted-foreground'>
 							{[kindLabel(competition.kind), competition.season].filter(Boolean).join(", ")}
 						</p>
@@ -241,6 +241,7 @@ export default function CompetitionFixturesPage() {
 											home={match.home}
 											away={match.away}
 											kickoffAt={match.kickoff_at}
+											detail={matchDetail(match)}
 											state={stateOf(match)}
 											open={isOpen(match)}
 											onOpenChange={(open) => setOpen([match.id], open)}
@@ -276,7 +277,9 @@ export default function CompetitionFixturesPage() {
 				<div className='sticky bottom-0 z-10 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
 					<div className='mx-auto flex w-full max-w-md items-center gap-3 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] lg:max-w-2xl'>
 						<p className='min-w-0 flex-1 text-xs text-muted-foreground'>
-							Picks close at kickoff. One notification for the lot.
+							{competition.sport === "cricket"
+								? "Picks close at the start, toss questions 35 minutes before. One notification for the lot."
+								: "Picks close at kickoff. One notification for the lot."}
 						</p>
 						<Button
 							variant='linear'
@@ -353,6 +356,11 @@ function QuestionRow({
 			<label htmlFor={id} className='min-w-0 flex-1 cursor-pointer'>
 				<span className='block text-sm font-medium'>{question.title}</span>
 				<span className='block truncate text-xs text-muted-foreground'>{question.options.join(" / ")}</span>
+				{question.closes_before ? (
+					<span className='block text-xs text-muted-foreground'>
+						Closes {question.closes_before} minutes before the start
+					</span>
+				) : null}
 			</label>
 		</li>
 	);

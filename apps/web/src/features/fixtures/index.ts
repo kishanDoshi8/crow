@@ -4,5 +4,5 @@ export { MatchAccordion, type MatchState } from "./components/MatchAccordion";
 export { DayHeader } from "./components/DayHeader";
 export { RoundFilters, chipClass } from "./components/RoundFilters";
 export { CompetitionMark } from "./components/CompetitionMark";
-export { categoryOf, daysOf, roundsOf, sportLabel } from "./lib/grouping";
+export { categoryOf, daysOf, matchDetail, roundsOf, sportLabel } from "./lib/grouping";
 export { useStickyOffset } from "./lib/useStickyOffset";

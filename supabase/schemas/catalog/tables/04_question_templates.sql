@@ -11,6 +11,11 @@ create table if not exists catalog.question_templates (
   options jsonb not null check (jsonb_typeof(options) = 'array' and jsonb_array_length(options) between 2 and 12),
   -- The fixtures' stage_kind values it fits.
   stages text[] not null,
+  -- Cricket formats it fits (test, odi, t20); null for any.
+  formats text[],
+  -- Picks close this long before the start: a toss question closes before
+  -- the toss (about 30 minutes before the first ball).
+  close_minutes_before smallint not null default 0 check (close_minutes_before between 0 and 240),
   -- How a result settles it (phase 2). Only templates a result can settle
   -- belong here.
   resolver text,

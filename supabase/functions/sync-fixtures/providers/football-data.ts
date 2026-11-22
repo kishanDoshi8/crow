@@ -3,7 +3,7 @@
 // returns its whole current season. Key: FOOTBALL_DATA_API_KEY.
 import type {
 	CatalogFixture,
-	CatalogResult,
+	FootballResult,
 	CatalogTeam,
 	FixtureStatus,
 	ProviderAdapter,
@@ -102,7 +102,7 @@ function team(value: Team): CatalogTeam | null {
 	};
 }
 
-function result(match: Match, status: FixtureStatus): CatalogResult | null {
+function result(match: Match, status: FixtureStatus): FootballResult | null {
 	if (status !== "finished") return null;
 	const { score } = match;
 	return {

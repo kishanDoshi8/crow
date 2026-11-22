@@ -18,7 +18,8 @@ export type CatalogTeam = {
 	short_name: string;
 };
 
-export type CatalogResult = {
+// Football: the score as the provider gives it.
+export type FootballResult = {
 	winner: "home" | "away" | "draw" | null;
 	duration: "regular" | "extra_time" | "penalties";
 	full_time: { home: number | null; away: number | null };
@@ -28,6 +29,20 @@ export type CatalogResult = {
 	extra_time?: { home: number | null; away: number | null };
 	penalties?: { home: number | null; away: number | null };
 };
+
+type Side = "home" | "away";
+
+// Cricket: who won, the toss and each innings, with sides as home or away
+// (the fixture's teams in the order the provider lists them).
+export type CricketResult = {
+	winner: Side | "draw" | "tie" | "no_result" | null;
+	toss_winner: Side | null;
+	toss_choice: "bat" | "bowl" | null;
+	innings: { team: Side | null; runs: number; wickets: number; overs: number }[];
+	status_text: string;
+};
+
+export type CatalogResult = FootballResult | CricketResult;
 
 export type CatalogFixture = {
 	provider_ref: string;
@@ -39,6 +54,11 @@ export type CatalogFixture = {
 	round_label: string | null;
 	// The database tells first legs from deciding ones.
 	stage_kind: StageKind;
+	// Cricket only.
+	match_format?: "test" | "odi" | "t20" | null;
+	// "1st Test", and where it's played.
+	label?: string | null;
+	venue?: string | null;
 	// Null until a draw decides them.
 	home: CatalogTeam | null;
 	away: CatalogTeam | null;
@@ -47,7 +67,17 @@ export type CatalogFixture = {
 };
 
 export type ProviderAdapter = {
+	// The competition's whole season (or the matches the provider lists).
 	fetchFixtures: (
 		competitionRef: string,
 	) => Promise<{ season: string; fixtures: CatalogFixture[] }>;
+	// Providers whose season list carries no results: fetch these played
+	// matches one by one.
+	fetchResults?: (
+		competitionRef: string,
+		matchRefs: string[],
+	) => Promise<CatalogFixture[]>;
+	// Sync the season list at most this often, unless asked from /admin
+	// (call limits). Results are paced by the database instead.
+	minHoursBetweenSyncs?: number;
 };
