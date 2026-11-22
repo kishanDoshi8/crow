@@ -1,11 +1,12 @@
 import { ChevronLeftIcon } from "lucide-react";
 import { Link, Navigate, NavLink, Outlet } from "react-router-dom";
-import { useIsPlatformAdmin } from "@/features/admin/hooks";
+import { useAdminResults, useIsPlatformAdmin } from "@/features/admin/hooks";
+import { isReady } from "@/features/admin/lib/results";
 import { cn } from "@/shared/lib/utils";
 import { Loading } from "@/shared/ui";
 
 const TABS = [
-	{ to: "/admin", label: "Results", end: true },
+	{ to: "/admin", label: "Results", end: true, count: true },
 	{ to: "/admin/fixtures", label: "Fixtures", end: false },
 	{ to: "/admin/competitions", label: "Competitions", end: false },
 ];
@@ -14,6 +15,8 @@ const TABS = [
 // home; the server refuses every admin call from them anyway.
 export default function AdminLayout() {
 	const { data: isAdmin, isPending } = useIsPlatformAdmin();
+	const { data: results } = useAdminResults(isAdmin === true);
+	const toConfirm = results?.to_confirm.filter(isReady).length ?? 0;
 
 	if (isPending) {
 		return (
@@ -29,7 +32,8 @@ export default function AdminLayout() {
 
 	return (
 		<div className='min-h-dvh bg-background'>
-			<header className='sticky top-0 z-20 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
+			{/* data-room-header: sticky rows on admin pages sit under it. */}
+			<header data-room-header className='sticky top-0 z-20 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
 				<div className='mx-auto flex w-full max-w-2xl items-center gap-2 px-4 pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-2'>
 					<Link
 						to='/'
@@ -38,7 +42,10 @@ export default function AdminLayout() {
 					>
 						<ChevronLeftIcon className='size-5' />
 					</Link>
-					<h1 className='text-base font-semibold'>Crow admin</h1>
+					<div className='flex flex-col'>
+						<h1 className='text-base font-semibold leading-tight'>Crow admin</h1>
+						<span className='text-xs text-muted-foreground'>Event packs</span>
+					</div>
 				</div>
 				<nav aria-label='Admin' className='mx-auto flex w-full max-w-2xl gap-1 px-4 pb-2'>
 					{TABS.map((tab) => (
@@ -48,7 +55,7 @@ export default function AdminLayout() {
 							end={tab.end}
 							className={({ isActive }) =>
 								cn(
-									"rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+									"inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
 									isActive
 										? "bg-secondary text-foreground"
 										: "text-muted-foreground hover:text-foreground",
@@ -56,6 +63,11 @@ export default function AdminLayout() {
 							}
 						>
 							{tab.label}
+							{tab.count && toConfirm > 0 ? (
+								<span className='ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[0.6875rem] font-bold text-primary-foreground tabular-nums'>
+									{toConfirm}
+								</span>
+							) : null}
 						</NavLink>
 					))}
 				</nav>

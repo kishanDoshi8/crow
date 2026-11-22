@@ -111,6 +111,13 @@ export const roomKeys = {
   // Organizers: followed competitions and their upcoming fixtures.
   fixtures: (roomId: string) =>
     [...roomKeys.detail(roomId), "fixtures"] as const,
+
+  // Under fixtures, so adding or following refreshes them all.
+  competitions: (roomId: string) =>
+    [...roomKeys.fixtures(roomId), "competitions"] as const,
+
+  competitionFixtures: (roomId: string, competitionId: string) =>
+    [...roomKeys.fixtures(roomId), "competition", competitionId] as const,
   seriesSuggestions: (roomId: string) =>
     [...roomKeys.detail(roomId), "seriesSuggestions"] as const,
 };
@@ -128,5 +135,5 @@ export const adminKeys = {
   isAdmin: () => [...adminKeys.all, "isAdmin"] as const,
   results: () => [...adminKeys.all, "results"] as const,
   competitions: () => [...adminKeys.all, "competitions"] as const,
-  fixtures: () => [...adminKeys.all, "fixtures"] as const,
+  fixtures: (competitionId?: string) => [...adminKeys.all, "fixtures", ...(competitionId ? [competitionId] : [])] as const,
 };

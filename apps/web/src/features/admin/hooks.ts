@@ -24,14 +24,18 @@ export const useIsPlatformAdmin = (enabled = true) =>
 		staleTime: 10 * 60_000,
 	});
 
-export const useAdminResults = () =>
-	useQuery({ queryKey: adminKeys.results(), queryFn: adminGetResults });
+export const useAdminResults = (enabled = true) =>
+	useQuery({ queryKey: adminKeys.results(), queryFn: adminGetResults, enabled });
 
 export const useAdminCompetitions = () =>
 	useQuery({ queryKey: adminKeys.competitions(), queryFn: adminGetCompetitions });
 
-export const useAdminFixtures = () =>
-	useQuery({ queryKey: adminKeys.fixtures(), queryFn: adminGetFixtures });
+export const useAdminFixtures = (competitionId: string) =>
+	useQuery({
+		queryKey: adminKeys.fixtures(competitionId),
+		queryFn: () => adminGetFixtures(competitionId),
+		enabled: !!competitionId,
+	});
 
 export const useSetFixtureResult = () => {
 	const queryClient = useQueryClient();
@@ -74,8 +78,9 @@ export const useSetCompetitionActive = () => {
 	});
 };
 
+// Every active competition, or one provider's.
 export const useRequestFixtureSync = () =>
-	useMutation({ mutationFn: adminRequestFixtureSync });
+	useMutation({ mutationFn: (provider?: string) => adminRequestFixtureSync(provider) });
 
 export const useUpdateFixtureQuestion = () => {
 	const queryClient = useQueryClient();

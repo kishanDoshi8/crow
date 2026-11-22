@@ -34,7 +34,7 @@ export function RoomTopBar({
 	const heading = title ?? tab?.label ?? room.name;
 
 	return (
-		<header className='sticky top-0 z-20 hidden border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:block'>
+		<header data-room-header className='sticky top-0 z-20 hidden border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:block'>
 			<div className='flex h-14 items-center gap-2 px-4'>
 				{/* The toggle stays by the sidebar; the rest lines up with the
 				    page content, so on a wide screen the title and points don't

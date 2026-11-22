@@ -1,5 +1,6 @@
 // Syncs fixtures for every active competition in catalog.competitions from
-// its provider (docs/event-packs.md). Called by the sync-fixtures cron job
+// its provider (docs/event-packs.md), or only one provider's when the body
+// is {"provider": "football-data"}. Called by the sync-fixtures cron job
 // (private.request_fixture_sync) with the service key and x-sync-secret.
 // To run it by hand:
 //   curl -X POST "$SUPABASE_URL/functions/v1/sync-fixtures" \
@@ -47,11 +48,23 @@ Deno.serve(async (req) => {
 		return json({ error: error.message }, 500);
 	}
 
+	// Optional: only this provider's competitions (Sync in /admin).
+	let onlyProvider: string | null = null;
+	try {
+		const body = (await req.json()) as { provider?: unknown };
+		if (typeof body?.provider === "string") onlyProvider = body.provider;
+	} catch {
+		// No body: sync everything.
+	}
+
 	const results: unknown[] = [];
 	let failed = 0;
 
 	// One competition at a time: free tiers limit calls per minute.
-	for (const target of (targets ?? []) as Target[]) {
+	const chosen = ((targets ?? []) as Target[]).filter(
+		(target) => !onlyProvider || target.provider === onlyProvider,
+	);
+	for (const target of chosen) {
 		const adapter = ADAPTERS[target.provider];
 		if (!adapter) {
 			failed++;
@@ -77,6 +90,12 @@ Deno.serve(async (req) => {
 			const message = cause instanceof Error ? cause.message : String(cause);
 			console.error(`sync-fixtures ${target.name}: ${message}`);
 			results.push({ competition: target.name, error: message });
+			// Shown in /admin until a sync of it works again.
+			await supabase.rpc("record_fixture_sync_error", {
+				p_provider: target.provider,
+				p_provider_ref: target.provider_ref,
+				p_message: message,
+			});
 		}
 	}
 

@@ -1127,15 +1127,6 @@ export async function postPredictionPhrase(predictionId: string, phraseId: numbe
 
 // #region Fixtures (event packs)
 // -------------------------------------------------------
-export type FixtureCompetition = {
-  id: string
-  name: string
-  sport: 'soccer' | 'cricket'
-  // "2026/27"
-  season: string | null
-  following: boolean
-}
-
 export type FixtureQuestion = {
   id: string
   title: string
@@ -1156,20 +1147,6 @@ export type Fixture = {
   home: string
   away: string
   questions: FixtureQuestion[]
-}
-
-export type RoomFixtures = {
-  competitions: FixtureCompetition[]
-  fixtures: Fixture[]
-}
-
-// Organizers: competitions on offer, and the followed ones' matches in the
-// next two weeks with their ready-made questions.
-export async function getRoomFixtures(roomId: string) {
-  const { data, error } = await untypedSupabase.rpc('get_room_fixtures', {
-    p_room_id: roomId,
-  })
-  return assertOk(data, error) as RoomFixtures
 }
 
 export async function setRoomCompetition(roomId: string, competitionId: string, follow: boolean) {
@@ -1193,6 +1170,43 @@ export async function addFixtureQuestions(roomId: string, seriesId: string, ques
     prediction_ids: string[]
     count: number
     skipped: number
+  }
+}
+
+export type CompetitionKind = 'league' | 'cup' | 'tour' | 'season'
+
+// A competition as the Fixtures home and Browse show it.
+export type RoomCompetition = {
+  id: string
+  name: string
+  sport: 'soccer' | 'cricket'
+  kind: CompetitionKind
+  // "England", "Europe", or a tour's two countries.
+  region: string | null
+  season: string | null
+  following: boolean
+  next: { home: string; away: string; kickoff_at: string } | null
+  // Matches in the next 7 days, and how many of them the room has added from.
+  week_matches: number
+  week_added: number
+}
+
+export async function getRoomCompetitions(roomId: string) {
+  const { data, error } = await untypedSupabase.rpc('get_room_competitions', {
+    p_room_id: roomId,
+  })
+  return assertOk(data, error) as RoomCompetition[]
+}
+
+// One competition's page: its coming matches (six weeks) with their questions.
+export async function getRoomCompetitionFixtures(roomId: string, competitionId: string) {
+  const { data, error } = await untypedSupabase.rpc('get_room_competition_fixtures', {
+    p_room_id: roomId,
+    p_competition_id: competitionId,
+  })
+  return assertOk(data, error) as {
+    competition: Omit<RoomCompetition, 'next' | 'week_matches' | 'week_added'>
+    fixtures: Omit<Fixture, 'competition_id' | 'competition_name'>[]
   }
 }
 // #endregion Fixtures
@@ -1257,6 +1271,7 @@ export async function adminGetResults() {
   return assertOk(data, error) as {
     to_confirm: AdminResultFixture[]
     confirmed: AdminResultFixture[]
+    last_synced_at: string | null
   }
 }
 
@@ -1305,9 +1320,14 @@ export type AdminCompetition = {
   sport: 'soccer' | 'cricket'
   provider: string
   provider_ref: string
+  kind: CompetitionKind
+  region: string | null
   season: string | null
   active: boolean
   synced_at: string | null
+  // The last failed sync, until one works again.
+  last_sync_error: string | null
+  last_sync_error_at: string | null
   rooms: number
   upcoming: number
 }
@@ -1325,9 +1345,12 @@ export async function adminSetCompetitionActive(competitionId: string, active: b
   return assertOk(data, error)
 }
 
-// False when the sync isn't set up on the server yet.
-export async function adminRequestFixtureSync() {
-  const { data, error } = await untypedSupabase.rpc('admin_request_fixture_sync')
+// Every active competition, or one provider's. False when the sync isn't set
+// up on the server yet.
+export async function adminRequestFixtureSync(provider?: string) {
+  const { data, error } = await untypedSupabase.rpc('admin_request_fixture_sync', {
+    p_provider: provider ?? null,
+  })
   return assertOk(data, error) as boolean
 }
 
@@ -1346,14 +1369,18 @@ export type AdminUpcomingFixture = {
   id: string
   competition_name: string
   round_label: string | null
+  matchday?: number | null
   kickoff_at: string
   home: string
   away: string
   questions: AdminFixtureQuestion[]
 }
 
-export async function adminGetFixtures() {
-  const { data, error } = await untypedSupabase.rpc('admin_get_fixtures', {})
+export async function adminGetFixtures(competitionId: string) {
+  const { data, error } = await untypedSupabase.rpc('admin_get_fixtures', {
+    p_competition_id: competitionId,
+    p_days: 42,
+  })
   return assertOk(data, error) as AdminUpcomingFixture[]
 }
 
