@@ -19,7 +19,7 @@ const WEEK = [
 	{
 		day: "Thu",
 		title: "You ask",
-		body: "Post the weekend's questions, or schedule them ahead. Who wins? Both teams to score? Anything your group argues about.",
+		body: "Write your own, or follow a competition like the Premier League and add ready-made questions for each match in a tap.",
 	},
 	{
 		day: "Sat",
@@ -29,13 +29,14 @@ const WEEK = [
 	{
 		day: "Sun",
 		title: "Result's in",
-		body: "You reveal the result, points move and the standings update. Somebody's top crow. Somebody eats crow.",
+		body: "Crow reveals match results for you, and you reveal your own questions. Points move and somebody eats crow.",
 	},
 ] as const;
 
 const FAIR_PLAY = [
 	"Same starting points for everyone, every series.",
 	"Picks stay hidden until they lock.",
+	"Match results are checked by the Crow team before they're revealed.",
 	"Every result and point change shows in Activity.",
 	"No real money. Ever. Just bragging rights.",
 ] as const;
