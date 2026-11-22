@@ -18,8 +18,10 @@ import { previewWinnings } from "@/features/predictions/lib/payoutPreview";
 import { formatPoints } from "@/features/predictions/lib/predictionView";
 import { useRoomActions } from "@/shared/lib/roomActions";
 import { useOnline } from "@/shared/lib/offline";
+import { needsHomeScreenInstall } from "@/shared/lib/pushNotifications";
 
 const NOTIFICATIONS_OFFERED_KEY = "notifications-offered-after-bet";
+const HOME_SCREEN_OFFERED_KEY = "home-screen-offered-after-bet";
 const QUICK_ADDS = [5, 20, 50, 100] as const;
 
 type Props = {
@@ -253,7 +255,13 @@ function defaultStake(available: number) {
 
 // Right after a first bet is when hearing about the result matters, so
 // offer notifications once per device, if the player hasn't decided yet.
+// iPhones and iPads in the browser can't get notifications at all until
+// Crow is on the Home Screen, so they get that step instead.
 function offerNotifications(openNotifications: () => void) {
+	if (needsHomeScreenInstall()) {
+		offerHomeScreen();
+		return;
+	}
 	if (!("Notification" in globalThis) || Notification.permission !== "default") {
 		return;
 	}
@@ -268,5 +276,21 @@ function offerNotifications(openNotifications: () => void) {
 		position: "top-center",
 		duration: 10000,
 		action: { label: "Turn on", onClick: openNotifications },
+	});
+}
+
+function offerHomeScreen() {
+	try {
+		if (localStorage.getItem(HOME_SCREEN_OFFERED_KEY)) return;
+		localStorage.setItem(HOME_SCREEN_OFFERED_KEY, "1");
+	} catch {
+		return;
+	}
+	toast("Want to know when the result's in?", {
+		description:
+			"Add Crow to your Home Screen: tap Share, then Add to Home Screen. Open Crow from there to turn on notifications.",
+		position: "top-center",
+		duration: 15000,
+		action: { label: "Got it", onClick: () => {} },
 	});
 }

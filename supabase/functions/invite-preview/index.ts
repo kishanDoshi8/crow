@@ -156,7 +156,7 @@ Deno.serve(async (request) => {
 			title,
 			description,
 			destination,
-			image: `${origin}/og-image.jpg`,
+			image: `${origin}/og-image.jpg?v=2`,
 			pageUrl: `${origin}/i/${code ?? rawCode}`,
 		}),
 		{

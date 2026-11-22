@@ -57,7 +57,7 @@ export function PhraseSheet({ open, onOpenChange, roomId, predictionId, talk }: 
 							? "You're offline. You can squawk once you're back."
 							: left > 0
 								? "Tap one to squawk it in Room talk."
-								: "You've used your 3 squawks on this question."}
+								: `You've used your ${talk?.post_limit ?? 3} ${talk?.post_limit === 1 ? "squawk" : "squawks"} on this question.`}
 					</DrawerDescription>
 				</DrawerHeader>
 				<div className='flex flex-col gap-4 px-4 pb-2'>

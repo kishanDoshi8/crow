@@ -135,10 +135,3 @@ What doesn't:
   wording. The app shows `getSeriesAwardDescription()` from
   `shared/lib/seriesRewards.ts` instead.
 - **Stat card labels in `get_room_stat_cards`** aren't used by the app.
-
-## 4. Known leftovers
-
-- `public/og-image.jpg` still says "top balance takes the title". It's a
-  static image with no source file, so redraw it with the landing page.
-- `talk/components/PhraseSheet.tsx` hardcodes "3 squawks" while the limit
-  comes from `post_limit`.
