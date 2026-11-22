@@ -11,7 +11,7 @@
 //
 // Secrets: FIXTURE_SYNC_SECRET, FOOTBALL_DATA_API_KEY, CRICKETDATA_API_KEY.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.8";
-import { cricketData } from "./providers/cricketdata.ts";
+import { cricketData, relayThroughDatabase } from "./providers/cricketdata.ts";
 import { footballData } from "./providers/football-data.ts";
 import type { ProviderAdapter } from "./types.ts";
 
@@ -46,6 +46,8 @@ Deno.serve(async (req) => {
 		return json({ error: "Missing Supabase configuration" }, 500);
 	}
 	const supabase = createClient(supabaseUrl, serviceRoleKey);
+	// CricketData.org only answers the database's HTTP client.
+	relayThroughDatabase(supabase);
 
 	const { data: targets, error } = await supabase.rpc(
 		"get_fixture_sync_targets",

@@ -137,3 +137,8 @@ grant execute on function public.admin_add_competition(text, text, text, text, t
 grant execute on function public.admin_add_fixture_extra(uuid, text, text, text[]) to authenticated;
 grant execute on function public.admin_delete_fixture_extra(uuid) to authenticated;
 grant execute on function public.get_fixture_result_targets(text) to service_role;
+
+-- Server-only: provider calls relayed through the database (pg_net), used
+-- by the sync-fixtures and catalog-admin edge functions.
+grant execute on function public.provider_http_get(text) to service_role;
+grant execute on function public.provider_http_response(bigint) to service_role;

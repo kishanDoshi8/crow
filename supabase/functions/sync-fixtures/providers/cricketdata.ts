@@ -71,6 +71,47 @@ function connectionReason(cause: unknown) {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// CricketData.org resets connections from the edge runtime's TLS client but
+// answers the database's (pg_net). With a service-role client set here,
+// requests go through the database: provider_http_get queues one,
+// provider_http_response reads (and deletes) the reply.
+type RpcClient = {
+	rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: { message: string } | null }>;
+};
+let relay: RpcClient | null = null;
+
+export function relayThroughDatabase(client: RpcClient) {
+	relay = client;
+}
+
+type Reply = { status: number; body: string };
+
+async function getThroughDatabase(client: RpcClient, url: string): Promise<Reply> {
+	const { data: requestId, error } = await client.rpc("provider_http_get", { p_url: url });
+	if (error) throw new Error(`relay: ${error.message}`);
+	// pg_net sends it within a second or so; its own timeout is 15 seconds.
+	const deadline = Date.now() + 20_000;
+	while (Date.now() < deadline) {
+		await sleep(400);
+		const { data, error: readError } = await client.rpc("provider_http_response", { p_request_id: requestId });
+		if (readError) throw new Error(`relay: ${readError.message}`);
+		const reply = data as { done: boolean; status: number | null; body: string | null; error: string | null; timed_out: boolean };
+		if (!reply.done) continue;
+		if (reply.timed_out) throw new Error("timed out");
+		if (reply.error || reply.status === null) throw new Error(reply.error ?? "no reply");
+		return { status: reply.status, body: reply.body ?? "" };
+	}
+	throw new Error("timed out");
+}
+
+async function getDirect(url: string): Promise<Reply> {
+	const response = await fetch(url, {
+		headers: { Accept: "application/json" },
+		signal: AbortSignal.timeout(15_000),
+	});
+	return { status: response.status, body: await response.text() };
+}
+
 export async function cricApi<T>(path: string, params: Record<string, string>) {
 	const key = Deno.env.get("CRICKETDATA_API_KEY");
 	if (!key) throw new Error("CRICKETDATA_API_KEY is not set");
@@ -78,15 +119,12 @@ export async function cricApi<T>(path: string, params: Record<string, string>) {
 
 	// A dropped connection is retried twice, a second apart then two. A
 	// connection that fails before any reply costs no call.
-	let response: Response | null = null;
+	let response: Reply | null = null;
 	let lastError: unknown = null;
 	for (let attempt = 0; attempt < 3 && !response; attempt++) {
 		if (attempt > 0) await sleep(1000 * attempt);
 		try {
-			response = await fetch(url, {
-				headers: { Accept: "application/json" },
-				signal: AbortSignal.timeout(15_000),
-			});
+			response = relay ? await getThroughDatabase(relay, url) : await getDirect(url);
 		} catch (cause) {
 			lastError = cause;
 			console.error(`CricketData.org ${path}, attempt ${attempt + 1}: ${redact(String(cause), key)}`);
@@ -96,11 +134,16 @@ export async function cricApi<T>(path: string, params: Record<string, string>) {
 		throw new Error(`Couldn't reach CricketData.org (${path}): ${connectionReason(lastError)}. Try again in a minute.`);
 	}
 
-	if (!response.ok) {
-		const text = redact(await response.text(), key).slice(0, 200);
+	if (response.status < 200 || response.status >= 300) {
+		const text = redact(response.body, key).slice(0, 200);
 		throw new Error(`CricketData.org ${path}: ${response.status} ${text}`);
 	}
-	const body = (await response.json()) as Envelope<T>;
+	let body: Envelope<T>;
+	try {
+		body = JSON.parse(response.body) as Envelope<T>;
+	} catch {
+		throw new Error(`CricketData.org ${path}: the reply wasn't JSON`);
+	}
 	if (body.status && body.status !== "success") {
 		throw new Error(`CricketData.org ${path}: ${redact(String(body.reason ?? body.status), key)}`);
 	}
