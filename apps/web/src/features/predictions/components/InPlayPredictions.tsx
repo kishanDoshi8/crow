@@ -1,4 +1,5 @@
 import { RoomNextSteps, useRoomRole } from "@/features/rooms";
+import { useRoomCompetitions } from "@/features/fixtures";
 import type { Prediction } from "@/features/predictions/types/types";
 import { useActivePredictions } from "@/features/predictions/hooks/prediction";
 import { useBets } from "@/features/predictions/hooks/bet";
@@ -472,6 +473,15 @@ function InPlayPredictions({
 			</Button>
 		);
 	}
+	// Rooms that follow a competition get their quickest first question from
+	// its fixtures, so an empty room leads with that for hosts.
+	const { data: competitions } = useRoomCompetitions(
+		room.id,
+		isOrganizer && hasActiveSeries && predictionsOverride === undefined,
+	);
+	const followed = competitions?.filter((c) => c.following) ?? [];
+	const matchesThisWeek = followed.reduce((sum, c) => sum + c.week_matches, 0);
+	const leadWithFixtures = isOrganizer && hasActiveSeries && followed.length > 0;
 	let defaultEmptyMessage =
 		"Nothing to call yet. Your host is cooking something up.";
 	const isSeriesFinished =
@@ -488,6 +498,11 @@ function InPlayPredictions({
 		defaultEmptyMessage = `${currentSeries.title} has finished.`;
 	} else if (currentSeries.status === "draft") {
 		defaultEmptyMessage = "This series hasn't started yet.";
+	} else if (leadWithFixtures) {
+		defaultEmptyMessage =
+			matchesThisWeek > 0
+				? `Nothing to call yet. ${matchesThisWeek} ${matchesThisWeek === 1 ? "match" : "matches"} this week in ${followed.length === 1 ? followed[0].name : "your competitions"}.`
+				: "Nothing to call yet. Add questions from your competitions, or write your own.";
 	}
 	// A finished series points to its final standings, and to the live one.
 	const finishedSeriesActions = isSeriesFinished ? (
@@ -596,15 +611,37 @@ function InPlayPredictions({
 						? (finishedSeriesActions ??
 							(newPredictionAction ? (
 								<div className='flex flex-wrap justify-center gap-2 pb-2'>
-									{newPredictionAction}
-									{isOrganizer && hasActiveSeries ? (
-										<Button variant='outline' size='sm' asChild>
-											<Link to={`/rooms/${room.code}/manage/fixtures`}>
-												<CalendarDaysIcon />
-												From fixtures
-											</Link>
-										</Button>
-									) : null}
+									{leadWithFixtures ? (
+										<>
+											<Button size='sm' asChild>
+												<Link to={`/rooms/${room.code}/manage/fixtures`}>
+													<CalendarDaysIcon />
+													Add from fixtures
+												</Link>
+											</Button>
+											<Button variant='outline' size='sm' asChild>
+												<Link
+													to={`/rooms/${room.code}/predictions/new`}
+													state={{ seriesId: currentSeries?.id }}
+												>
+													<PlusIcon />
+													Write your own
+												</Link>
+											</Button>
+										</>
+									) : (
+										<>
+											{newPredictionAction}
+											{isOrganizer && hasActiveSeries ? (
+												<Button variant='outline' size='sm' asChild>
+													<Link to={`/rooms/${room.code}/manage/fixtures`}>
+														<CalendarDaysIcon />
+														From fixtures
+													</Link>
+												</Button>
+											) : null}
+										</>
+									)}
 								</div>
 							) : (
 								<RoomNextSteps className='pb-2' />

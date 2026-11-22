@@ -110,5 +110,5 @@ white page with a single link.
    `/rooms/<code>/join` links, which work without the steps above.
 
 The ticket image in the preview is `apps/web/public/og-image.jpg`. Its
-source is `apps/web/og/invite-card.html`; regenerate it with
+source is `apps/web/og/render.mjs`, built from the theme tokens and the crow mark; regenerate it with
 `node og/render.mjs` from `apps/web`.
