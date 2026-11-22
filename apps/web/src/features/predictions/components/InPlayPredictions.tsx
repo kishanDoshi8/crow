@@ -614,8 +614,27 @@ function InPlayPredictions({
 			</CarouselItem>
 		);
 	} else {
-		carouselContent = predictions.map((prediction) => (
-			<CarouselItem key={prediction.id}>
+		// With more than one card, each takes most of the width so the next
+		// one peeks in from the side: a hint that there's more to swipe to.
+		// The cards you're not on fade back a little.
+		const hasMore = predictions.length > 1;
+		carouselContent = predictions.map((prediction, index) => (
+			<CarouselItem
+				key={prediction.id}
+				aria-label={`Question ${index + 1} of ${predictions.length}`}
+				className={cn(
+					hasMore && "basis-[88%] transition-opacity duration-300 sm:basis-[85%]",
+					hasMore && index !== current && "opacity-50",
+				)}
+				// Tapping the peeking card brings it into view instead of
+				// opening something on a card you can barely see.
+				onClickCapture={(event) => {
+					if (!hasMore || index === current) return;
+					event.preventDefault();
+					event.stopPropagation();
+					api?.scrollTo(index);
+				}}
+			>
 				<PredictionCard
 					prediction={prediction}
 					roomId={room.id}
