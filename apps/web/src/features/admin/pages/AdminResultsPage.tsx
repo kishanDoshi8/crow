@@ -3,6 +3,7 @@ import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { ScoreDialog } from "@/features/admin/components/ScoreDialog";
 import { useAdminResults, useConfirmFixture } from "@/features/admin/hooks";
+import { isReady } from "@/features/admin/lib/results";
 import type { AdminResultFixture, FixtureResult, FixtureStatus } from "@/shared/lib/api";
 import { describeDeadline } from "@/shared/lib/deadline";
 import { cn } from "@/shared/lib/utils";
@@ -56,23 +57,50 @@ export default function AdminResultsPage() {
 		);
 	}
 
+	const ready = data.to_confirm.filter(isReady);
+	const waiting = data.to_confirm.filter((fixture) => !isReady(fixture));
+
 	return (
-		<div className='space-y-8'>
-			<section className='space-y-3'>
-				<SectionHeading count={data.to_confirm.length}>To confirm</SectionHeading>
-				{data.to_confirm.length === 0 ? (
+		<div className='space-y-10'>
+			<dl className='grid grid-cols-3 divide-x rounded-2xl border bg-card'>
+				<StatusCell label='To confirm' value={ready.length} hot={ready.length > 0} />
+				<StatusCell label='No score yet' value={waiting.length} />
+				<StatusCell
+					label='Last sync'
+					value={data.last_synced_at ? describeDeadline(new Date(data.last_synced_at)).relative : "Never"}
+					small
+				/>
+			</dl>
+
+			<section className='space-y-4'>
+				<SectionHeading count={ready.length}>To confirm</SectionHeading>
+				{ready.length === 0 ? (
 					<p className='flex items-center gap-2 rounded-2xl border bg-card px-3 py-4 text-sm text-muted-foreground'>
 						<CheckCircle2Icon className='size-4 text-win' aria-hidden='true' />
-						All caught up. No played match is waiting on a result.
+						All caught up. No played match is waiting on you.
 					</p>
 				) : (
-					data.to_confirm.map((fixture) => <ResultCard key={cardKey(fixture)} fixture={fixture} />)
+					ready.map((fixture) => <ResultCard key={cardKey(fixture)} fixture={fixture} />)
 				)}
 			</section>
 
+			{waiting.length > 0 ? (
+				<section className='space-y-4'>
+					<SectionHeading
+						count={waiting.length}
+						note="The feed is checked every 15 minutes. Type the score if it doesn't arrive."
+					>
+						Waiting for the score
+					</SectionHeading>
+					{waiting.map((fixture) => (
+						<ResultCard key={cardKey(fixture)} fixture={fixture} />
+					))}
+				</section>
+			) : null}
+
 			{data.confirmed.length > 0 ? (
-				<section className='space-y-3'>
-					<SectionHeading>Confirmed in the last two weeks</SectionHeading>
+				<section className='space-y-4'>
+					<SectionHeading count={data.confirmed.length}>Confirmed in the last two weeks</SectionHeading>
 					{data.confirmed.map((fixture) => (
 						<ResultCard key={cardKey(fixture)} fixture={fixture} />
 					))}
@@ -86,12 +114,35 @@ export default function AdminResultsPage() {
 const cardKey = (fixture: AdminResultFixture) =>
 	`${fixture.id}:${JSON.stringify(fixture.result)}:${fixture.confirmed_at ?? ""}`;
 
-function SectionHeading({ children, count }: Readonly<{ children: ReactNode; count?: number }>) {
+function SectionHeading({
+	children,
+	count,
+	note,
+}: Readonly<{ children: ReactNode; count?: number; note?: string }>) {
 	return (
-		<h2 className='px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
-			{children}
-			{count ? ` (${count})` : ""}
-		</h2>
+		<div className='space-y-0.5 px-1'>
+			<h2 className='flex items-baseline gap-2 text-base font-semibold'>
+				{children}
+				{count ? <span className='text-sm font-medium text-muted-foreground tabular-nums'>{count}</span> : null}
+			</h2>
+			{note ? <p className='text-xs text-muted-foreground'>{note}</p> : null}
+		</div>
+	);
+}
+
+function StatusCell({
+	label,
+	value,
+	hot = false,
+	small = false,
+}: Readonly<{ label: string; value: number | string; hot?: boolean; small?: boolean }>) {
+	return (
+		<div className='flex min-w-0 flex-col-reverse justify-end gap-0.5 px-3 py-2.5'>
+			<dt className='text-xs text-muted-foreground'>{label}</dt>
+			<dd className={cn("font-bold tabular-nums", small ? "text-sm leading-tight" : "text-xl", hot && "text-primary")}>
+				{value}
+			</dd>
+		</div>
 	);
 }
 

@@ -379,3 +379,24 @@ matches from a list instead of typing them is most of the saving.
 - **Not yet:** auto-confirm, cricket, one-off extra questions per match,
   alerts to admins when results are waiting.
 
+
+---
+
+## 13. Fixtures pages, reorganised (November 2026)
+
+- **Hosts:** Manage → Fixtures lists the competitions the room follows (next
+  match, this week's matches) and a search to follow more; Browse lists every
+  competition by category; each competition has its own page with round chips
+  (matchweeks, cup rounds), Hide added, open/close all, sticky day headers and
+  matches that open and close (open by default while nothing is added).
+- **Categories:** `catalog.competitions.kind` (league, cup, tour, season) and
+  `region` drive Browse's groups: sport plus region, and "tours" per sport
+  for competitions between two countries. Only football is live; cricket
+  tours fit as they are (team against team, formats as rounds). Formula 1
+  needs a field of participants per event instead of home and away: not
+  designed yet.
+- **Admin:** Results has a status strip and splits matches with no score
+  yet from ones ready to confirm. Competitions are grouped by provider, each
+  with its own Sync (`admin_request_fixture_sync(provider)`), and show the
+  last failed sync (`last_sync_error`, reported by the edge function).
+  Fixtures are per competition, laid out like the host page.

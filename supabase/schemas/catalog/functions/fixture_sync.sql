@@ -255,7 +255,9 @@ begin
 
   update catalog.competitions
   set current_season = coalesce(nullif(p_season, ''), current_season),
-      synced_at = now()
+      synced_at = now(),
+      last_sync_error = null,
+      last_sync_error_at = null
   where id = v_competition.id;
 
   return json_build_object(
@@ -267,10 +269,11 @@ end;
 $$;
 
 -- Cron: asks the sync-fixtures edge function to sync every active
--- competition. Uses the push function's config (supabase_url,
--- service_role_key) plus its own secret, fixture_sync_secret, which must
--- match the function's FIXTURE_SYNC_SECRET. Does nothing until it's set.
-create or replace function private.request_fixture_sync()
+-- competition, or only one provider's (p_provider). Uses the push
+-- function's config (supabase_url, service_role_key) plus its own secret,
+-- fixture_sync_secret, which must match the function's FIXTURE_SYNC_SECRET.
+-- Does nothing until it's set.
+create or replace function private.request_fixture_sync(p_provider text default null)
 returns void
 language plpgsql
 security definer
@@ -296,9 +299,28 @@ begin
       'Authorization', 'Bearer ' || v_service_role_key,
       'x-sync-secret', v_secret
     ),
-    body    := '{}'::jsonb,
+    body    := jsonb_strip_nulls(jsonb_build_object('provider', p_provider)),
     -- A full season for each competition: give it time.
     timeout_milliseconds := 60000
   );
 end;
+$$;
+
+-- The sync-fixtures function reports a competition it couldn't sync (the
+-- provider failed or refused), so /admin can show it. Server only.
+create or replace function public.record_fixture_sync_error(
+  p_provider     text,
+  p_provider_ref text,
+  p_message      text
+)
+returns void
+language sql
+security definer
+set search_path = public, private
+as $$
+  update catalog.competitions
+  set last_sync_error = left(coalesce(nullif(btrim(p_message), ''), 'Unknown error'), 500),
+      last_sync_error_at = now()
+  where provider = p_provider
+    and provider_ref = p_provider_ref;
 $$;

@@ -119,6 +119,11 @@ grant execute on function public.admin_set_fixture_result(uuid, text, jsonb) to 
 grant execute on function public.admin_confirm_fixture(uuid, jsonb) to authenticated;
 grant execute on function public.admin_get_competitions() to authenticated;
 grant execute on function public.admin_set_competition_active(uuid, boolean) to authenticated;
-grant execute on function public.admin_request_fixture_sync() to authenticated;
+grant execute on function public.admin_request_fixture_sync(text) to authenticated;
 grant execute on function public.admin_get_fixtures(uuid, integer) to authenticated;
 grant execute on function public.admin_update_fixture_question(uuid, boolean, text, text, boolean) to authenticated;
+
+-- Event packs: the Fixtures home, Browse and one competition's page.
+grant execute on function public.get_room_competitions(uuid) to authenticated;
+grant execute on function public.get_room_competition_fixtures(uuid, uuid) to authenticated;
+grant execute on function public.record_fixture_sync_error(text, text, text) to service_role;

@@ -10,7 +10,9 @@ export const roomPageLoaders = {
 	resolveSeveral: () => import("@/features/predictions/pages/ResolveSeveral"),
 	editPrediction: () => import("@/features/predictions/pages/EditPrediction"),
 	manage: () => import("@/features/rooms/pages/ManagePage"),
-	fixtures: () => import("@/features/fixtures/pages/FixturesPage"),
+	fixtures: () => import("@/features/fixtures/pages/FixturesHomePage"),
+	fixturesBrowse: () => import("@/features/fixtures/pages/BrowseCompetitionsPage"),
+	fixturesCompetition: () => import("@/features/fixtures/pages/CompetitionFixturesPage"),
 	members: () => import("@/features/rooms/pages/MembersPage"),
 	settings: () => import("@/features/rooms/pages/RoomSettingsPage"),
 };

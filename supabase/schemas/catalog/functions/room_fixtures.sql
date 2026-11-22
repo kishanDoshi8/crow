@@ -344,3 +344,149 @@ begin
   );
 end;
 $$;
+
+-- Organizers: every competition on offer, for the Fixtures home (the ones
+-- the room follows) and Browse (the rest). Each with what's next and how
+-- much of the coming week the room has added.
+create or replace function public.get_room_competitions(p_room_id uuid)
+returns json
+language plpgsql
+stable
+security definer
+set search_path = public, private
+as $$
+begin
+  if not private.is_room_organizer(p_room_id) then
+    raise exception 'Only organizers can add questions' using errcode = 'P0012';
+  end if;
+
+  return (
+    select coalesce(json_agg(json_build_object(
+      'id', c.id,
+      'name', c.name,
+      'sport', c.sport,
+      'kind', c.kind,
+      'region', c.region,
+      'season', c.current_season,
+      'following', rc.room_id is not null,
+      'next', (
+        select json_build_object('home', h.short_name, 'away', a.short_name, 'kickoff_at', f.kickoff_at)
+        from catalog.fixtures f
+        join catalog.teams h on h.id = f.home_team_id
+        join catalog.teams a on a.id = f.away_team_id
+        where f.competition_id = c.id and f.status = 'scheduled' and f.kickoff_at > now()
+        order by f.kickoff_at
+        limit 1
+      ),
+      'week_matches', w.matches,
+      'week_added', w.added
+    ) order by c.display_order, c.name), '[]'::json)
+    from catalog.competitions c
+    left join public.room_competitions rc on rc.competition_id = c.id and rc.room_id = p_room_id
+    cross join lateral (
+      select
+        count(*)::int as matches,
+        count(*) filter (where exists (
+          select 1 from catalog.fixture_questions q
+          join public.predictions p on p.fixture_question_id = q.id
+          where q.fixture_id = f.id and p.room_id = p_room_id and p.status <> 'cancelled'
+        ))::int as added
+      from catalog.fixtures f
+      where f.competition_id = c.id
+        and f.status = 'scheduled'
+        and f.kickoff_at > now()
+        and f.kickoff_at < now() + interval '7 days'
+        and f.home_team_id is not null
+        and f.away_team_id is not null
+    ) w
+    where c.active
+  );
+end;
+$$;
+
+-- Organizers: one competition's matches over the next six weeks that
+-- haven't kicked off, each with its questions and, for the ones the room
+-- already has, the room's question. The page groups them by round
+-- (round_label) and day.
+create or replace function public.get_room_competition_fixtures(
+  p_room_id        uuid,
+  p_competition_id uuid
+)
+returns json
+language plpgsql
+stable
+security definer
+set search_path = public, private
+as $$
+begin
+  if not private.is_room_organizer(p_room_id) then
+    raise exception 'Only organizers can add questions' using errcode = 'P0012';
+  end if;
+
+  if not exists (select 1 from catalog.competitions where id = p_competition_id and active) then
+    raise exception 'Competition not found' using errcode = 'P0002';
+  end if;
+
+  return json_build_object(
+    'competition', (
+      select json_build_object(
+        'id', c.id,
+        'name', c.name,
+        'sport', c.sport,
+        'kind', c.kind,
+        'region', c.region,
+        'season', c.current_season,
+        'following', exists (
+          select 1 from public.room_competitions rc
+          where rc.room_id = p_room_id and rc.competition_id = c.id
+        )
+      )
+      from catalog.competitions c
+      where c.id = p_competition_id
+    ),
+    'fixtures', (
+      select coalesce(json_agg(json_build_object(
+        'id', f.id,
+        'kickoff_at', f.kickoff_at,
+        'matchday', f.matchday,
+        'round_label', f.round_label,
+        'home', h.short_name,
+        'away', a.short_name,
+        'questions', (
+          select coalesce(json_agg(json_build_object(
+            'id', q.id,
+            'title', q.title,
+            'description', q.description,
+            'options', (select json_agg(o->>'label') from jsonb_array_elements(q.options) o),
+            'prediction_id', (
+              select p.id from public.predictions p
+              where p.room_id = p_room_id
+                and p.fixture_question_id = q.id
+                and p.status <> 'cancelled'
+              limit 1
+            )
+          ) order by q.display_order, q.created_at), '[]'::json)
+          from catalog.fixture_questions q
+          left join catalog.question_templates t on t.id = q.template_id
+          where q.fixture_id = f.id
+            and not q.hidden
+            and (q.template_id is null or (t.active and f.stage_kind = any(t.stages)))
+        )
+      ) order by f.kickoff_at, h.short_name), '[]'::json)
+      from (
+        select * from catalog.fixtures
+        where competition_id = p_competition_id
+          and status = 'scheduled'
+          and kickoff_at > now()
+          and kickoff_at < now() + interval '42 days'
+          and home_team_id is not null
+          and away_team_id is not null
+        order by kickoff_at
+        limit 150
+      ) f
+      join catalog.teams h on h.id = f.home_team_id
+      join catalog.teams a on a.id = f.away_team_id
+    )
+  );
+end;
+$$;

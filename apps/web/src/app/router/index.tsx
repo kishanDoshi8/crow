@@ -64,13 +64,16 @@ const PredictionNewSet = lazy(roomPageLoaders.predictionNewSet);
 const ResolveSeveral = lazy(roomPageLoaders.resolveSeveral);
 const EditPrediction = lazy(roomPageLoaders.editPrediction);
 const ManagePage = lazy(roomPageLoaders.manage);
-const FixturesPage = lazy(roomPageLoaders.fixtures);
+const FixturesHomePage = lazy(roomPageLoaders.fixtures);
+const BrowseCompetitionsPage = lazy(roomPageLoaders.fixturesBrowse);
+const CompetitionFixturesPage = lazy(roomPageLoaders.fixturesCompetition);
 const MembersPage = lazy(roomPageLoaders.members);
 const RoomSettingsPage = lazy(roomPageLoaders.settings);
 // The Crow team's tools: never downloaded by players.
 const AdminLayout = lazy(() => import("@/features/admin/pages/AdminLayout"));
 const AdminResultsPage = lazy(() => import("@/features/admin/pages/AdminResultsPage"));
 const AdminFixturesPage = lazy(() => import("@/features/admin/pages/AdminFixturesPage"));
+const AdminCompetitionFixturesPage = lazy(() => import("@/features/admin/pages/AdminCompetitionFixturesPage"));
 const AdminCompetitionsPage = lazy(() => import("@/features/admin/pages/AdminCompetitionsPage"));
 const NotFoundPage = lazy(() =>
 	import("@/app/router/NotFoundPage").then((module) => ({
@@ -144,6 +147,7 @@ export const router = createBrowserRouter([
 						children: [
 							{ index: true, element: withSuspense(<AdminResultsPage />) },
 							{ path: "fixtures", element: withSuspense(<AdminFixturesPage />) },
+							{ path: "fixtures/:competitionId", element: withSuspense(<AdminCompetitionFixturesPage />) },
 							{ path: "competitions", element: withSuspense(<AdminCompetitionsPage />) },
 						],
 					},
@@ -289,12 +293,34 @@ export const router = createBrowserRouter([
 											},
 											{
 												path: "manage/fixtures",
-												element: withSuspense(<FixturesPage />),
+												element: withSuspense(<FixturesHomePage />),
 												handle: {
 													header: {
 														leftAction: "back",
 														title: "Fixtures",
 														parent: "manage",
+													},
+												},
+											},
+											{
+												path: "manage/fixtures/browse",
+												element: withSuspense(<BrowseCompetitionsPage />),
+												handle: {
+													header: {
+														leftAction: "back",
+														title: "Competitions",
+														parent: "manage/fixtures",
+													},
+												},
+											},
+											{
+												path: "manage/fixtures/:competitionId",
+												element: withSuspense(<CompetitionFixturesPage />),
+												handle: {
+													header: {
+														leftAction: "back",
+														title: "Fixtures",
+														parent: "manage/fixtures",
 													},
 												},
 											},

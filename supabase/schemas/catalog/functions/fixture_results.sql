@@ -370,7 +370,8 @@ begin
         order by f.result_confirmed_at desc
         limit 30
       ) x
-    )
+    ),
+    'last_synced_at', (select max(synced_at) from catalog.competitions where active)
   );
 end;
 $$;
@@ -622,9 +623,13 @@ begin
       'sport', c.sport,
       'provider', c.provider,
       'provider_ref', c.provider_ref,
+      'kind', c.kind,
+      'region', c.region,
       'season', c.current_season,
       'active', c.active,
       'synced_at', c.synced_at,
+      'last_sync_error', c.last_sync_error,
+      'last_sync_error_at', c.last_sync_error_at,
       'rooms', (select count(*)::int from public.room_competitions rc where rc.competition_id = c.id),
       'upcoming', (
         select count(*)::int from catalog.fixtures f
@@ -661,9 +666,10 @@ begin
 end;
 $$;
 
--- Asks the sync-fixtures function to sync now. False when the sync isn't
--- set up (fixture_sync_secret missing).
-create or replace function public.admin_request_fixture_sync()
+-- Asks the sync-fixtures function to sync now: every active competition,
+-- or one provider's. False when the sync isn't set up (fixture_sync_secret
+-- missing).
+create or replace function public.admin_request_fixture_sync(p_provider text default null)
 returns boolean
 language plpgsql
 security definer
@@ -678,7 +684,7 @@ begin
     return false;
   end if;
 
-  perform private.request_fixture_sync();
+  perform private.request_fixture_sync(p_provider);
   return true;
 end;
 $$;

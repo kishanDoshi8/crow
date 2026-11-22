@@ -193,7 +193,7 @@ select is(
     'create_series',
     'decide_join_request', 'delete_my_push_subscription', 'delete_scheduled_prediction', 'dismiss_weekly_recap',
     'get_explore_rooms', 'get_my_account_deletion', 'get_my_platform_admin', 'get_my_series_wallets', 'get_my_unseen_results', 'get_my_weekly_recap',
-    'get_player', 'get_prediction_talk', 'get_preferences', 'get_room_activities', 'get_room_by_code', 'get_room_fixtures', 'get_room_former_members',
+    'get_player', 'get_prediction_talk', 'get_preferences', 'get_room_activities', 'get_room_by_code', 'get_room_competition_fixtures', 'get_room_competitions', 'get_room_fixtures', 'get_room_former_members',
     'get_room_has_unseen_activities', 'get_room_join_requests', 'get_room_manage_queue', 'get_room_member_recent_predictions',
     'get_room_member_stats', 'get_room_member_style', 'get_room_overall_standings', 'get_room_prediction_history',
     'get_room_prediction_history_counts',
