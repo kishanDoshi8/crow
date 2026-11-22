@@ -53,17 +53,56 @@ type Envelope<T> = {
 	info?: { hitsToday?: number; hitsLimit?: number };
 };
 
+// The key travels in the query string (CricAPI's only option), so it must
+// never reach an error message: those are shown in /admin and logged.
+function redact(text: string, key: string) {
+	return text.replaceAll(key, "***").replace(/apikey=[^&\s)"']+/gi, "apikey=***");
+}
+
+// Why a connection failed, in a few words and without the request's URL.
+function connectionReason(cause: unknown) {
+	const text = cause instanceof Error ? cause.message : String(cause);
+	if (/reset by peer|os error 104/i.test(text)) return "the connection was reset by CricketData.org";
+	if (/timed? ?out/i.test(text)) return "the request timed out";
+	if (/dns|lookup|not known/i.test(text)) return "its address couldn't be found";
+	if (/certificate|tls|ssl|handshake/i.test(text)) return "the secure connection failed";
+	return "the connection failed";
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export async function cricApi<T>(path: string, params: Record<string, string>) {
 	const key = Deno.env.get("CRICKETDATA_API_KEY");
 	if (!key) throw new Error("CRICKETDATA_API_KEY is not set");
-	const query = new URLSearchParams({ apikey: key, ...params });
-	const response = await fetch(`${API}/${path}?${query}`);
+	const url = `${API}/${path}?${new URLSearchParams({ apikey: key, ...params })}`;
+
+	// A dropped connection is retried twice, a second apart then two. A
+	// connection that fails before any reply costs no call.
+	let response: Response | null = null;
+	let lastError: unknown = null;
+	for (let attempt = 0; attempt < 3 && !response; attempt++) {
+		if (attempt > 0) await sleep(1000 * attempt);
+		try {
+			response = await fetch(url, {
+				headers: { Accept: "application/json" },
+				signal: AbortSignal.timeout(15_000),
+			});
+		} catch (cause) {
+			lastError = cause;
+			console.error(`CricketData.org ${path}, attempt ${attempt + 1}: ${redact(String(cause), key)}`);
+		}
+	}
+	if (!response) {
+		throw new Error(`Couldn't reach CricketData.org (${path}): ${connectionReason(lastError)}. Try again in a minute.`);
+	}
+
 	if (!response.ok) {
-		throw new Error(`CricketData.org ${path}: ${response.status} ${await response.text()}`);
+		const text = redact(await response.text(), key).slice(0, 200);
+		throw new Error(`CricketData.org ${path}: ${response.status} ${text}`);
 	}
 	const body = (await response.json()) as Envelope<T>;
 	if (body.status && body.status !== "success") {
-		throw new Error(`CricketData.org ${path}: ${body.reason ?? body.status}`);
+		throw new Error(`CricketData.org ${path}: ${redact(String(body.reason ?? body.status), key)}`);
 	}
 	return { data: body.data as T, hitsToday: body.info?.hitsToday, hitsLimit: body.info?.hitsLimit };
 }
