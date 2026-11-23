@@ -6,8 +6,8 @@ security definer
 set search_path = public, private
 as $$
 begin
-  insert into public.series_standing_snapshots (series_id, player_id, week_key, rank, is_ranked, balance)
-  select p_series_id, st.player_id, p_week_key, st.rank, st.is_ranked, st.balance
+  insert into public.series_standing_snapshots (series_id, player_id, week_key, rank, is_ranked, balance, net_points)
+  select p_series_id, st.player_id, p_week_key, st.rank, st.is_ranked, st.balance, st.net_points
   from private.series_standings(p_series_id) st
   on conflict (series_id, player_id, week_key) do nothing;
 end;

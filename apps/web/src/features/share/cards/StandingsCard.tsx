@@ -7,7 +7,9 @@ import {
 	singleLine,
 } from "@/features/share/components/AppCard";
 import { app, type CardFormat } from "@/features/share/tokens";
-import { twColor } from "@/shared/lib/utils";
+import { getAwardVisual } from "@/shared/lib/seriesRecognitionVisuals";
+import type { SeriesAwardType } from "@/shared/lib/seriesRewards";
+import { cn, twColor } from "@/shared/lib/utils";
 
 export type StandingsCardData = {
 	roomName: string;
@@ -20,7 +22,12 @@ export type StandingsCardData = {
 		balance: number;
 		netProfit: number;
 	}>;
-	awards: Array<{ label: string; username: string; value: string }>;
+	awards: Array<{
+		awardType: SeriesAwardType;
+		label: string;
+		username: string;
+		value: string;
+	}>;
 };
 
 // Everyone is shown; these only guard against a very large room.
@@ -103,8 +110,9 @@ function Step({
 					whiteSpace: "nowrap",
 				}}
 			>
-				{entry.balance.toLocaleString()} pts
-				{isChampion ? ` · ${signed(entry.netProfit)}` : ""}
+				{/* Ranked by net points; the champion's wallet sits beside it. */}
+				{signed(entry.netProfit)} net
+				{isChampion ? ` · ${entry.balance.toLocaleString()} pts` : ""}
 			</span>
 			<div
 				style={{
@@ -207,7 +215,7 @@ export function StandingsCard({
 								{entry.username}
 							</span>
 							<span style={{ color: app.muted }}>
-								{entry.balance.toLocaleString()} pts
+								{signed(entry.netProfit)} net
 							</span>
 						</div>
 					))}
@@ -226,25 +234,15 @@ export function StandingsCard({
 			) : null}
 
 			{awards.length > 0 ? (
-				<div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-					{awards.map((award, index) => (
-						<span
-							key={award.label}
-							style={{
-								fontSize: 24,
-								borderRadius: 999,
-								padding: "12px 22px",
-								background:
-									index % 2 === 0
-										? twColor("activity", 0.12)
-										: twColor("accent", 0.14),
-								color: index % 2 === 0 ? app.activity : app.accent,
-								maxWidth: "100%",
-								boxSizing: "border-box",
-							}}
-						>
-							{award.label}: {award.username}, {award.value}
-						</span>
+				<div
+					style={{
+						display: "grid",
+						gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+						gap: 20,
+					}}
+				>
+					{awards.map((award) => (
+						<AwardTile key={`${award.awardType}-${award.username}`} award={award} />
 					))}
 				</div>
 			) : null}
@@ -255,5 +253,36 @@ export function StandingsCard({
 				roomCode={data.roomCode}
 			/>
 		</CardCanvas>
+	);
+}
+
+// One award: its icon and name, then who won it, then what they won it with.
+// Each on its own line, so long names truncate without hiding the award.
+function AwardTile({
+	award,
+}: Readonly<{ award: StandingsCardData["awards"][number] }>) {
+	const { Icon, textClassName } = getAwardVisual(award.awardType);
+	return (
+		<div
+			style={{
+				display: "flex",
+				flexDirection: "column",
+				gap: 10,
+				minWidth: 0,
+				borderRadius: 28,
+				border: `2px solid ${app.hairline}`,
+				background: app.card,
+				padding: "24px 28px",
+			}}
+		>
+			<div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
+				<Icon className={cn("shrink-0", textClassName)} width={30} height={30} aria-hidden='true' />
+				<span style={{ fontSize: 24, color: app.muted, ...singleLine }}>{award.label}</span>
+			</div>
+			<span style={{ fontSize: 34, fontWeight: 700, ...singleLine }}>{award.username}</span>
+			<span className={textClassName} style={{ fontSize: 26, fontWeight: 600, ...singleLine }}>
+				{award.value}
+			</span>
+		</div>
 	);
 }

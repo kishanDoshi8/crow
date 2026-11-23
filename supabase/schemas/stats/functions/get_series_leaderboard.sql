@@ -110,7 +110,9 @@ begin
       case when bc.is_ranked then rank() over (
         partition by bc.is_ranked
         order by
-          case when p_sort_by = 'points' then bc.balance end desc nulls last,
+          -- Points: net points (won minus put on settled picks), so weekly
+          -- top-ups and starting points don't count; the wallet is shown beside it.
+          case when p_sort_by = 'points' then bc.net_points end desc nulls last,
           case when p_sort_by = 'points' then bc.winning_bets end desc nulls last,
           case when p_sort_by = 'rating' then bc.prediction_rating end desc nulls last,
           case when p_sort_by = 'rating' then bc.rated_predictions_count end desc nulls last,

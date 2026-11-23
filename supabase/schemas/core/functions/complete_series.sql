@@ -102,13 +102,16 @@ begin
       -- Only players who bet on enough settled predictions can place.
       and coalesce(stats.total_bets, 0) >= v_required_bets
   ),
-  -- The final balance decides the title; placements record net profit for the Hall of Fame.
+  -- The standings decide the title (net points, as the table shows them);
+  -- placements record net profit for the Hall of Fame.
   ranked as (
     select
       l.player_id,
       l.net_profit,
-      rank() over (order by l.balance desc) as placement
+      st.rank as placement
     from leaderboard l
+    join private.series_standings(p_series_id) st
+      on st.player_id = l.player_id and st.is_ranked
   )
   select
     p_series_id,

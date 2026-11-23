@@ -178,8 +178,8 @@ export function JoinRoomPage() {
 				</dl>
 
 				<p className='text-sm text-muted-foreground'>
-					Same points for everyone. Most points when the series ends takes the
-					title.
+					Same points for everyone. Most net points when the series ends takes
+					the title.
 				</p>
 			</main>
 

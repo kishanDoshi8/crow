@@ -8,5 +8,8 @@ create table if not exists public.series_standing_snapshots (
   is_ranked  boolean not null,
   balance    integer not null,
   created_at timestamptz not null default now(),
+  -- What the rank was decided on. Null in weeks before standings ranked by
+  -- net points (they ranked by balance then).
+  net_points integer,
   primary key (series_id, player_id, week_key)
 );

@@ -49,6 +49,7 @@ export function ShareStandingsButton({
 			netProfit: entry.net_profit,
 		})),
 		awards: awards.map((award) => ({
+			awardType: award.award_type,
 			label: sentenceCase(getSeriesAwardLabel(award.award_type)),
 			username: award.username,
 			value: String(getSeriesAwardValue(award.award_type, award.value)),

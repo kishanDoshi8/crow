@@ -36,7 +36,7 @@ const SLIDES = [
 		emoji: "🏆",
 		title: "Win the series",
 		description:
-			"Once the host reveals the result, the winners collect points. Make enough picks to be ranked: when the series ends, the most points takes the title.",
+			"Once the host reveals the result, the winners collect points. Make enough picks to be ranked: when the series ends, the most net points (points won minus points put on picks) takes the title.",
 	},
 ] as const;
 

@@ -31,7 +31,7 @@ export const useSeriesWeeklyRecap = (
     })
 }
 
-// Series standings, ranked by wallet balance.
+// Series standings, ranked by net points; the wallet balance comes with them.
 export const useSeriesLeaderboard = (
     roomId?: string,
     seriesId?: string | null,

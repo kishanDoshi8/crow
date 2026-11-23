@@ -51,7 +51,7 @@ begin
 
   return (
     with latest as (
-      select s.player_id, s.rank, s.balance
+      select s.player_id, s.rank, s.balance, s.net_points
       from public.series_standing_snapshots s
       where s.series_id = p_series_id and s.week_key = v_latest and s.rank is not null
     ),
@@ -66,6 +66,7 @@ begin
         p.username,
         l.rank,
         l.balance,
+        l.net_points,
         pv.rank - l.rank as rank_change,
         v_previous is not null and pv.rank is null as is_new
       from latest l
@@ -81,6 +82,7 @@ begin
           'rank', m.rank,
           'username', m.username,
           'balance', m.balance,
+          'net_points', m.net_points,
           'rank_change', m.rank_change,
           'is_new', m.is_new
         ) order by m.rank, m.username)

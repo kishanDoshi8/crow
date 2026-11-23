@@ -7,7 +7,7 @@ import {
 	singleLine,
 } from "@/features/share/components/AppCard";
 import { app, type CardFormat } from "@/features/share/tokens";
-import { twColor } from "@/shared/lib/utils";
+import { formatSignedPoints, twColor } from "@/shared/lib/utils";
 
 type Mover = { username: string; rank: number; rankChange: number };
 
@@ -23,6 +23,8 @@ export type WeeklyStandingsCardData = {
 		rank: number;
 		username: string;
 		balance: number;
+		// Null for weeks ranked by balance; the card shows the balance then.
+		netPoints: number | null;
 		rankChange: number | null;
 		isNew: boolean;
 	}>;
@@ -203,7 +205,9 @@ export function WeeklyStandingsCard({
 								whiteSpace: "nowrap",
 							}}
 						>
-							{entry.balance.toLocaleString()} pts
+							{entry.netPoints === null
+								? `${entry.balance.toLocaleString()} pts`
+								: `${formatSignedPoints(entry.netPoints)} net`}
 						</span>
 					</div>
 				))}
