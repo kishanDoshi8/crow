@@ -1,6 +1,6 @@
 import { Button } from "@/shared/ui/button";
 import { OfflineBar } from "@/shared/ui";
-import { useRoomRole } from "@/features/rooms";
+import { useMyRoomInvites, useRoomRole } from "@/features/rooms";
 import type { Room} from "@/features/rooms";
 import { RoomMenuDrawer } from "@/features/rooms";
 import {
@@ -44,6 +44,9 @@ function RoomHeader({
 
 	const { can } = useRoomRole(room);
 	const isOrganizer = can.organize;
+	// A dot on the room switcher: invites waiting in it.
+	const { data: invites } = useMyRoomInvites();
+	const hasInvites = leftAction === "home" && !!invites?.length;
 	const { up } = useAppNavigation();
 	const roomHome = `/rooms/${room.code}`;
 	const isOnHome = pathname.replace(/\/$/, "") === roomHome;
@@ -71,12 +74,22 @@ function RoomHeader({
 					<Button
 						variant='linear'
 						size='icon'
-						className={`cursor-pointer rounded-lg shrink-0`}
+						className={`relative cursor-pointer rounded-lg shrink-0`}
 						onClick={onLeftAction}
 						aria-label={
-							leftAction === "back" ? "Back" : "Switch room"
+							leftAction === "back"
+								? "Back"
+								: hasInvites
+									? "Switch room. You have invites"
+									: "Switch room"
 						}
 					>
+						{hasInvites ? (
+							<span
+								aria-hidden='true'
+								className='absolute -right-1 -top-1 size-3 rounded-full border-2 border-background bg-activity'
+							/>
+						) : null}
 						{leftAction === "back" ? (
 							<ChevronLeftIcon />
 						) : (

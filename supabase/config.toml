@@ -64,6 +64,7 @@ schema_paths = [
   "./schemas/core/tables/09_room_join_requests.sql",
   "./schemas/core/tables/10_platform_admins.sql",
   "./schemas/core/tables/11_app_events.sql",
+  "./schemas/core/tables/12_room_invites.sql",
   "./schemas/core/tables/room_members.sql",
   "./schemas/core/tables/share_events.sql",
   "./schemas/core/tables/weekly_claims.sql",

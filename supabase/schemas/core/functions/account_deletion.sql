@@ -169,6 +169,9 @@ begin
   delete from public.user_push_subscriptions where user_id = p_player_id;
   delete from public.room_preferences where player_id = p_player_id;
   delete from public.player_preferences where player_id = p_player_id;
+  -- Invites still waiting, to them or from them: neither can be answered now.
+  delete from public.room_invites
+  where status = 'pending' and (player_id = p_player_id or invited_by = p_player_id);
 
   -- Last, now nothing cascades from it: the login itself.
   if v_player.user_id is not null then

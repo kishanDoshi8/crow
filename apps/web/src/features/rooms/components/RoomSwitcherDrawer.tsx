@@ -14,6 +14,7 @@ import { CircleQuestionMarkIcon, CompassIcon, PlusIcon, UsersIcon } from "lucide
 import React, { Suspense, lazy, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { RoomCardsList } from "./RoomCardsList";
+import { RoomInvitesList } from "./RoomInvitesList";
 
 const HowToPlayModal = lazy(
 	() => import("@/features/onboarding/components/HowToPlayModal"),
@@ -87,7 +88,10 @@ export function RoomSwitcherPopover({
 function RoomList({ playerId, onDone }: Readonly<{ playerId: string; onDone: () => void }>) {
 	const { data, isPending, error } = usePlayerRooms(playerId);
 	return (
-		<RoomCardsList rooms={data} isLoading={isPending} error={error} onRoomSelect={onDone} />
+		<div className='flex flex-col gap-4'>
+			<RoomInvitesList onJoined={onDone} />
+			<RoomCardsList rooms={data} isLoading={isPending} error={error} onRoomSelect={onDone} />
+		</div>
 	);
 }
 

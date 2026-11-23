@@ -42,6 +42,11 @@ grant execute on function public.get_room_overall_standings(uuid) to authenticat
 grant execute on function public.get_room_member_style(uuid, uuid) to authenticated;
 grant execute on function public.get_player_profile(uuid) to authenticated;
 grant execute on function public.get_head_to_head(uuid) to authenticated;
+grant execute on function public.get_people_you_play_with() to authenticated;
+grant execute on function public.get_invitable_rooms(uuid) to authenticated;
+grant execute on function public.invite_to_room(uuid, uuid) to authenticated;
+grant execute on function public.get_my_room_invites() to authenticated;
+grant execute on function public.respond_to_room_invite(uuid, boolean) to authenticated;
 grant execute on function public.get_room_prediction_history(uuid, integer, timestamp with time zone, uuid, text, text, uuid) to authenticated;
 grant execute on function public.get_room_series(uuid) to authenticated;
 grant execute on function public.get_room_series_selector(uuid, uuid, text) to authenticated;

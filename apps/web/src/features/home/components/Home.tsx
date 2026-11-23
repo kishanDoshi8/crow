@@ -11,6 +11,7 @@ import { ChevronRightIcon, TriangleAlert } from "lucide-react";
 import { usePlayer } from "@/features/home/hooks/player";
 import { AccountSheet, accountInitials } from "./AccountSheet";
 import { RoomCardsList } from "@/features/rooms/components/RoomCardsList";
+import { RoomInvitesList } from "@/features/rooms/components/RoomInvitesList";
 import { ExploreRooms } from "@/features/rooms/components/ExploreRooms";
 import { useCreateRoom } from "@/features/rooms/hooks/room";
 import type { Room } from "@/features/rooms/types/types";
@@ -107,6 +108,7 @@ export default function Home({
 					<TabsTrigger value='create'>Create</TabsTrigger>
 				</TabsList>
 				<TabsContent value='rooms' className='flex flex-col gap-3'>
+					<RoomInvitesList />
 					{playerRooms?.length ? (
 						<div className='flex items-center gap-2'>
 							<h2 className='text-sm font-semibold'>Your rooms</h2>

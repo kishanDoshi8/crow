@@ -24,8 +24,9 @@ works with the previous frontend), then tag.
    templates ("Match: A vs B", A / Draw / B) and "Repeat this event" on the
    set form. Then saved room templates, a series default with its cast,
    a whole round at once, and score entry when closing.
-5. **Profile page** (medium). Stats across rooms, titles, account
-   settings and deletion. Later: add friends and view their profiles.
+5. **Profile page**: done, see Done below. No friend requests: "people
+   you play with" comes from shared rooms. Possible next: their public
+   rooms on a profile.
 
 ## Later (in this order)
 
@@ -55,7 +56,9 @@ Groundwork to lay alongside 7–8: **reporting rooms and members**.
   predictions limit, desktop layout, 1-hour closing reminder (scheduled
   by hand in production), Explore with public/private rooms, join
   requests and a 50-member cap (operator-set), account sheet on the home
-  screen, Monday job split per series with logged, hourly retries.
+  screen, Monday job split per series with logged, hourly retries, player
+  profiles (yours with account settings and Delete account; others' over
+  shared rooms with head to head; people you play with; room invites).
 - Dropped: targeted "nudge people who haven't picked" push; room vs room
   challenges.
 

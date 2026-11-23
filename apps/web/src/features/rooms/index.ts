@@ -8,3 +8,4 @@ export * from "./types/types";
 export * from "./components";
 
 export * from "./hooks/home";
+export * from "./hooks/invites";

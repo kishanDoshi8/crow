@@ -129,7 +129,13 @@ export const profileKeys = {
     [...profileKeys.all, playerId ?? "me"] as const,
   headToHead: (playerId: string) =>
     [...profileKeys.all, playerId, "headToHead"] as const,
+  people: () => [...profileKeys.all, "people"] as const,
+  invitableRooms: (playerId: string) =>
+    [...profileKeys.all, playerId, "invitableRooms"] as const,
 };
+
+// Room invites waiting on you.
+export const roomInvitesKey = ["roomInvites"] as const;
 
 export const localStorageKeys = {
   userPreference: {

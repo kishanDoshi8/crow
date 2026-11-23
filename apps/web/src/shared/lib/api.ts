@@ -245,6 +245,37 @@ export type HeadToHead = {
   }>
 }
 
+// get_people_you_play_with: everyone you share a room with right now.
+export type PersonYouPlayWith = {
+  player_id: string
+  username: string
+  shared_rooms: number
+  rooms: Array<{ room_id: string; name: string }>
+}
+
+// get_invitable_rooms: your rooms you could invite someone to.
+export type InvitableRoom = {
+  room_id: string
+  name: string
+  room_code: string
+  member_count: number
+  // 'unavailable': the owner removed them, or they said no this past week.
+  invite_status: 'available' | 'invited' | 'full' | 'unavailable'
+}
+
+// get_my_room_invites: invites waiting on you. needs_approval: saying yes
+// sends a join request, as the room approves new players.
+export type RoomInvite = {
+  room_id: string
+  room_name: string
+  room_code: string
+  member_count: number
+  invited_by_id: string | null
+  invited_by_username: string | null
+  created_at: string
+  needs_approval: boolean
+}
+
 // ============================================================
 // API — thin wrappers around Supabase RPC functions
 // All functions throw on error so callers can catch uniformly.
@@ -1934,7 +1965,49 @@ export async function getHeadToHead(playerId: string) {
   })
   return assertOk(data, error) as HeadToHead
 }
+
 // #endregion Leaderboard
+// #region People and room invites
+export async function getPeopleYouPlayWith() {
+  const { data, error } = await untypedSupabase.rpc('get_people_you_play_with')
+  return assertOk(data, error) as PersonYouPlayWith[]
+}
+
+export async function getInvitableRooms(playerId: string) {
+  const { data, error } = await untypedSupabase.rpc('get_invitable_rooms', {
+    p_player_id: playerId,
+  })
+  return assertOk(data, error) as InvitableRoom[]
+}
+
+export async function inviteToRoom(roomId: string, playerId: string) {
+  const { error } = await untypedSupabase.rpc('invite_to_room', {
+    p_room_id: roomId,
+    p_player_id: playerId,
+  })
+  if (error) throw error
+}
+
+export async function getMyRoomInvites() {
+  const { data, error } = await untypedSupabase.rpc('get_my_room_invites')
+  return assertOk(data, error) as RoomInvite[]
+}
+
+// Yes joins (or asks to join) the room; no turns the invite down.
+export async function respondToRoomInvite(roomId: string, accept: boolean) {
+  const { data, error } = await untypedSupabase.rpc('respond_to_room_invite', {
+    p_room_id: roomId,
+    p_accept: accept,
+  })
+  return assertOk(data, error) as {
+    room_id: string
+    code?: string
+    name?: string
+    membership: 'member' | 'requested' | null
+  }
+}
+// #endregion People and room invites
+
 
 // Organizers set a prediction's optional description and tags (kept as typed).
 export async function setPredictionDetails(predictionId: string, description: string, tags: string[]) {
