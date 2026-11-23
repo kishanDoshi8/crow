@@ -69,7 +69,7 @@ export default function Home({
 
 	return (
 		<div className='mx-auto flex w-full max-w-md flex-col gap-5 px-4 pt-5 pb-8'>
-			{/* The mark and name, with the account (sign out, delete) beside them. */}
+			{/* The mark and name, with your account menu (profile, sign out) beside them. */}
 			<header className='flex items-center justify-between gap-3'>
 				<div className='flex items-center gap-2.5'>
 					<CrowTile size={40} />

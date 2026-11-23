@@ -181,6 +181,7 @@ export type RoomMemberSeriesRecognition = {
 export type PlayerProfileRoom = {
   room_id: string
   name: string
+  room_code: string
   status: 'active' | 'closed'
   role: 'owner' | 'organizer' | 'resolver' | 'member'
   joined_at: string

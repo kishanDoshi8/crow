@@ -167,7 +167,7 @@ export default function PrivacyPage() {
 			<LegalSection id='keep' title='7. How long we keep it'>
 				<p>
 					We keep your information while you have an account. When you delete your
-					account (Room menu → Delete account), within 30 days we:
+					account (Your profile → Delete account), within 30 days we:
 				</p>
 				<ul>
 					<li>delete your login, email address, notification subscriptions and settings;</li>

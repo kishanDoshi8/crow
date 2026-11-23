@@ -38,7 +38,7 @@ begin
 
   with rooms_in_view as (
     select rm.room_id, rm.role, rm.joined_at, rm.total_won_in_room,
-      rm.rated_predictions_count, rm.highest_streak, r.name, r.status
+      rm.rated_predictions_count, rm.highest_streak, r.name, r.room_code, r.status
     from public.room_members rm
     join public.rooms r on r.id = rm.room_id
     where rm.player_id = v_target_id
@@ -101,7 +101,7 @@ begin
     where m.player_id = v_target_id
   ),
   room_lines as (
-    select v.room_id, v.name, v.status, v.role, v.joined_at,
+    select v.room_id, v.name, v.room_code, v.status, v.role, v.joined_at,
       v.total_won_in_room as points,
       rr.points_rank,
       rr.member_count::int as member_count,

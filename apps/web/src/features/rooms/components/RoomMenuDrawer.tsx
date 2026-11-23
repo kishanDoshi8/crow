@@ -26,7 +26,7 @@ import {
 	SettingsIcon,
 	Share2Icon,
 	ShieldIcon,
-	UserXIcon,
+	UserRoundIcon,
 	UsersIcon,
 	type LucideIcon,
 } from "lucide-react";
@@ -36,7 +36,7 @@ import { toast } from "sonner";
 import type { Room } from "@/features/rooms/types/types";
 import { SettingsRow } from "@/features/series/components/SeriesOrganizerActionsMenu";
 import { useIsPlatformAdmin } from "@/features/admin";
-import { useAuth } from "@/features/auth";
+import { useAuth, useSignOut } from "@/features/auth";
 import { LegalLinks } from "@/features/legal";
 import { copyToClipboard } from "@/shared/lib/clipboard";
 import { InviteSheet } from "./InviteSheet";
@@ -52,7 +52,8 @@ type Props = {
 
 export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 	const navigate = useNavigate();
-	const { user, hasGoogleIdentity, linkGoogle, signOut } = useAuth();
+	const { user, hasGoogleIdentity, linkGoogle } = useAuth();
+	const signOut = useSignOut();
 	const [isInviteSheetOpen, setIsInviteSheetOpen] = useState(false);
 	const [isLeaveOpen, setIsLeaveOpen] = useState(false);
 	const { mutate: leaveRoom, isPending: isLeaving } = useLeaveRoom(room.id);
@@ -101,18 +102,6 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 	};
 
 	const { data: isPlatformAdmin } = useIsPlatformAdmin(open);
-
-	const handleSignOut = async () => {
-		try {
-			await signOut();
-			navigate("/login", { replace: true });
-		} catch (error) {
-			toast.error("Couldn't sign out. Try again.", {
-				description: error instanceof Error ? error.message : undefined,
-				position: "top-center",
-			});
-		}
-	};
 
 	const items: Array<{
 		label: string;
@@ -241,6 +230,13 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 		onClick: () => void;
 		isDanger?: boolean;
 	}> = [
+		// Your profile holds the rest of your account, Delete account included.
+		{
+			label: "Your profile",
+			detail: user?.email ?? undefined,
+			icon: UserRoundIcon,
+			onClick: close(() => navigate("/profile")),
+		},
 		...(hasGoogleIdentity
 			? []
 			: [
@@ -253,16 +249,8 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 				]),
 		{
 			label: "Sign out",
-			detail: user?.email ?? undefined,
 			icon: LogOutIcon,
-			onClick: close(() => void handleSignOut()),
-			isDanger: true,
-		},
-		{
-			label: "Delete account",
-			icon: UserXIcon,
-			onClick: close(() => navigate("/account/delete")),
-			isDanger: true,
+			onClick: close(() => void signOut()),
 		},
 	];
 
