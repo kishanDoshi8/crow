@@ -13,7 +13,7 @@ import {
 } from "@/features/leaderboard";
 import { useCurrentSeries } from "@/features/series";
 import type { Room } from "@/features/rooms";
-import { cn, ordinal } from "@/shared/lib/utils";
+import { cn, formatSignedPoints, ordinal } from "@/shared/lib/utils";
 import { Link } from "react-router-dom";
 import { useAppNavigation } from "@/shared/lib/navigation";
 
@@ -33,7 +33,7 @@ type UserStatsProps = {
 
 function UserStats({
 	title = "Standings",
-	subtitle = "Most points when the series ends takes the title",
+	subtitle = "Most net points when the series ends takes the title",
 	leaderboardEntriesOverride,
 	isLeaderboardLoadingOverride,
 	showSeeAllLink = true,
@@ -84,7 +84,8 @@ function LeaderboardContent({
 		useState<LeaderboardEntry | null>(null);
 	const [gapToNextPlayer, setGapToNextPlayer] =
 		useState<LeaderboardEntry | null>(null);
-	const metricValue = (entry: LeaderboardEntry) => entry.balance ?? 0;
+	// Standings rank by net points, so the gap to the next place does too.
+	const metricValue = (entry: LeaderboardEntry) => entry.net_profit ?? 0;
 	const currentMetric = leaderboardPlayer
 		? metricValue(leaderboardPlayer)
 		: 0;
@@ -186,9 +187,9 @@ function LeaderboardContentView({
 						</div>
 					) : (
 						<FadeContent className='min-w-0 flex-1'>
-							<p className='text-xs text-muted-foreground'>Your points</p>
+							<p className='text-xs text-muted-foreground'>Your net points</p>
 							<p className='text-[1.75rem] font-bold leading-tight tabular-nums'>
-								{currentMetric.toLocaleString()}
+								{formatSignedPoints(currentMetric)}
 							</p>
 							{leaderboardPlayer && !leaderboardPlayer.is_ranked ? (
 								<p className='text-xs text-muted-foreground'>
@@ -333,7 +334,7 @@ function LeaderboardMiniRows({
 									) : null}
 								</span>
 								<span className='shrink-0 text-sm font-semibold tabular-nums'>
-									{metricValue(entry).toLocaleString()}
+									{formatSignedPoints(metricValue(entry))}
 								</span>
 							</button>
 						</li>

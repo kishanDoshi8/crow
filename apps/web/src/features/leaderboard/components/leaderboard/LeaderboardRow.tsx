@@ -153,8 +153,9 @@ export function LeaderboardRow({
 				</>
 			}
 			detail={detail}
-			value={entry.balance.toLocaleString()}
-			valueDetail={<NetPoints value={entry.net_profit} />}
+			// Ranked by net points, like the all-time table; the wallet sits under it.
+			value={<NetPoints value={entry.net_profit} />}
+			valueDetail={`${entry.balance.toLocaleString()} pts`}
 			onClick={() => onClick?.(entry.player_id)}
 		/>
 	);

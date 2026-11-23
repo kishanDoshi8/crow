@@ -2,6 +2,7 @@ import { betsNeededLabel } from "../../lib/standings";
 import type { LeaderboardEntry } from "../../types/types";
 import { Skeleton } from "@/shared/ui";
 import { FlameIcon } from "lucide-react";
+import { formatSignedPoints } from "@/shared/lib/utils";
 
 type Props = {
 	seriesTitle: string;
@@ -37,7 +38,7 @@ export function LiveSeriesStrip({ seriesTitle, entry, isLoading }: Readonly<Prop
 						<span>{betsNeededLabel(entry.bets_needed)}</span>
 					)}
 					<span aria-hidden='true'>·</span>
-					<span>{entry.balance.toLocaleString()} pts</span>
+					<span>{formatSignedPoints(entry.net_profit)} net</span>
 					{entry.current_streak > 0 ? (
 						<>
 							<span aria-hidden='true'>·</span>

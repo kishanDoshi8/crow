@@ -44,7 +44,7 @@ export function LeaderboardList({
 		<div className='flex flex-col gap-5'>
 			{ranked.length > 0 ? (
 				<div className={cn(STANDINGS_TABLE, attachTop && "rounded-t-none")}>
-					<StandingsHeading right='Points' />
+					<StandingsHeading right='Net points' />
 					<ol>
 						{ranked.map((entry) => (
 							<li key={entry.player_id}>

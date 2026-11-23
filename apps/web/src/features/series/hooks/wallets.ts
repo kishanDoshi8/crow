@@ -76,6 +76,9 @@ export function useCurrentSeries(roomId?: string) {
 	const currentSeries =
 		seriesOptions.find((series) => series.id === storedSeriesId) ??
 		seriesOptions.find((series) => series.status === "active") ??
+		// Nothing running: the series that finished last, with its final
+		// standings, rather than one that hasn't started yet or an old one.
+		latestCompleted(seriesOptions) ??
 		seriesOptions[0] ??
 		null;
 
@@ -94,4 +97,17 @@ export function useCurrentSeries(roomId?: string) {
 		hasActiveSeries: seriesOptions.some((series) => series.status === "active"),
 		isPending,
 	};
+}
+
+// The series that finished most recently, if any has. Sorted by when it
+// finished, not when it started: series can overlap.
+function latestCompleted<T extends { status: string; completed_at?: string | null }>(
+	seriesOptions: T[],
+): T | undefined {
+	let latest: T | undefined;
+	for (const series of seriesOptions) {
+		if (series.status !== "completed" || !series.completed_at) continue;
+		if (!latest?.completed_at || series.completed_at > latest.completed_at) latest = series;
+	}
+	return latest;
 }

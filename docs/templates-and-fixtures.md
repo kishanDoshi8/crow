@@ -1,6 +1,8 @@
 # Templates and fixtures: design notes
 
-Status: proposal, nothing here is built yet. It builds on what shipped with
+Status: **dropped** (November 2026). Event packs ([event-packs.md](event-packs.md))
+run on templates and cover what this was for; see the roadmap. Kept for
+reference. Original status: proposal, nothing here built. It builds on what shipped with
 bulk create and close (Nov 2026): a set of predictions can share an **event**
 (`prediction_events`, e.g. "Arsenal vs Chelsea"), is created by one call
 (`create_predictions`) and closed by one call (`resolve_predictions`), with

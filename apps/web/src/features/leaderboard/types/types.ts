@@ -2,7 +2,8 @@ export type LeaderboardEntry = {
   player_id:          string
   username:           string
   total_won_in_room:  number
-  // Series wallet: standings rank by balance; net_profit = balance - granted.
+  // Series wallet. Standings rank by net_profit (won minus put on settled
+  // picks), not balance, so top-ups don't count.
   balance:            number
   available:          number
   granted:            number
@@ -141,6 +142,9 @@ export interface WeeklyRecapEntry {
   rank:        number
   username:    string
   balance:     number
+  // What the rank was decided on; null for weeks ranked by balance (before
+  // standings moved to net points).
+  net_points:  number | null
   rank_change: number | null
   is_new:      boolean
 }

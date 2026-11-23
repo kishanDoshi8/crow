@@ -53,6 +53,7 @@ export function ShareWeeklyButton({
 			rank: entry.rank,
 			username: entry.username,
 			balance: entry.balance,
+			netPoints: entry.net_points,
 			rankChange: entry.rank_change,
 			isNew: entry.is_new,
 		})),

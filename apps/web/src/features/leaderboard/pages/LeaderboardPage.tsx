@@ -13,7 +13,6 @@ import {
 	TopThreePodium,
 	type PodiumEntry,
 } from "@/features/leaderboard/components/leaderboard/TopThreePodium";
-import { NetPoints } from "@/features/leaderboard/components/leaderboard/LeaderboardRow";
 import { RankingRuleHint } from "@/features/leaderboard/components/leaderboard/RankingRuleHint";
 import {
 	SeriesScopeToggle,
@@ -52,8 +51,8 @@ export function LeaderboardPage() {
 					player_id: entry.player_id,
 					username: entry.username,
 					rank: entry.rank,
-					primary: entry.balance.toLocaleString(),
-					secondary: <NetPoints value={entry.net_profit} />,
+					primary: formatSignedPoints(entry.net_profit),
+					secondary: `${entry.balance.toLocaleString()} pts`,
 				}))
 			: overall.slice(0, 3).map((entry) => ({
 					player_id: entry.player_id,
@@ -73,8 +72,8 @@ export function LeaderboardPage() {
 		const requiredBets = leaderboard[0]?.required_bets ?? 0;
 		subtitle =
 			requiredBets > 0
-				? `Most points among players with ${requiredBets}+ picks takes the title.`
-				: "Most points when the series ends takes the title.";
+				? `Most net points among players with ${requiredBets}+ picks takes the title.`
+				: "Most net points when the series ends takes the title.";
 	} else if (currentSeries) {
 		subtitle = "Final standings.";
 	}

@@ -1,6 +1,9 @@
--- A series' points standings: ranked players by balance, then winning bets,
--- then who joined first. Same rule as get_series_leaderboard's points sort
--- (tests keep the two in step). Unranked players get a null rank.
+-- A series' points standings: ranked players by net points (won minus put on
+-- settled picks, so top-ups and starting points don't count), then winning
+-- bets, then who joined first. Same rule as get_series_leaderboard's points
+-- sort (tests keep the two in step). Decides champions, podium trophies and
+-- the weekly snapshots. Unranked players get a null rank. balance is still
+-- returned: snapshots keep it.
 create or replace function private.series_standings(
   p_series_id uuid
 )
@@ -8,7 +11,8 @@ returns table (
   player_id uuid,
   rank integer,
   is_ranked boolean,
-  balance integer
+  balance integer,
+  net_points integer
 )
 language sql
 stable
@@ -30,6 +34,7 @@ as $$
       rm.player_id,
       rm.joined_at,
       coalesce(w.balance, se.starting_stack + coalesce(st.net_profit, 0)::int) as balance,
+      coalesce(st.net_profit, 0) as net_points,
       coalesce(st.winning_bets, 0) as winning_bets,
       coalesce(st.total_bets, 0) >= se.required as is_ranked
     from series se
@@ -41,9 +46,10 @@ as $$
     m.player_id,
     case when m.is_ranked then (rank() over (
       partition by m.is_ranked
-      order by m.balance desc, m.winning_bets desc, m.joined_at asc
+      order by m.net_points desc, m.winning_bets desc, m.joined_at asc
     ))::int end as rank,
     m.is_ranked,
-    m.balance
+    m.balance,
+    m.net_points::int
   from members m;
 $$;

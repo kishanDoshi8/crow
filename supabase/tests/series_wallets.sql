@@ -250,11 +250,11 @@ select throws_ok(
 select public.update_series(pg_temp.setting('cup'), 'World Cup', null, 0, null, null, 0);
 select is(
   (
-    select e->>'rank'
+    select e->>'is_ranked'
     from json_array_elements(public.get_series_leaderboard(pg_temp.setting('room_id'), pg_temp.setting('cup'), 'points')) e
     where e->>'username' = 'carol'
   ),
-  '1',
+  'true',
   'the ranking bar can change while a series runs, and 0 ranks everyone'
 );
 select public.update_series(pg_temp.setting('cup'), 'World Cup', null, 0, null, null, 3);
@@ -273,7 +273,7 @@ reset role;
 select is(
   (select p.username::text from public.series_placements sp join public.players p on p.id = sp.player_id where sp.series_id = pg_temp.setting('cup') and sp.placement = 1),
   'alice',
-  'the top ranked balance wins the series'
+  'the top ranked player wins the series'
 );
 select is(
   (select count(*)::int from public.series_placements sp where sp.series_id = pg_temp.setting('cup')),

@@ -134,8 +134,8 @@ export function InviteCard({
 
 			<span style={{ fontSize: 26, color: app.muted, lineHeight: 1.5 }}>
 				{data.series
-					? `Everyone starts with ${data.series.startingStack.toLocaleString()} pts. Most points takes the title.`
-					: "Same points for everyone. Most points when the series ends takes the title."}
+					? `Everyone starts with ${data.series.startingStack.toLocaleString()} pts. Most net points takes the title.`
+					: "Same points for everyone. Most net points when the series ends takes the title."}
 			</span>
 
 			<div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
