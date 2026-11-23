@@ -1262,6 +1262,29 @@ export async function getRoomCompetitionFixtures(roomId: string, competitionId: 
     fixtures: Omit<Fixture, 'competition_id' | 'competition_name'>[]
   }
 }
+
+// How the match a question came from ended, once an admin has confirmed it
+// (null otherwise, or for a question not from the fixtures). Groundwork for
+// showing the score or scoreboard next to a question's result.
+export type PredictionMatchResult = {
+  sport: 'soccer' | 'cricket'
+  competition: string
+  format: CricketFormat | null
+  label: string | null
+  venue: string | null
+  home: string
+  away: string
+  status: FixtureStatus
+  result: FixtureResult | CricketFixtureResult | null
+  confirmed_at: string
+}
+
+export async function getPredictionMatchResult(predictionId: string) {
+  const { data, error } = await untypedSupabase.rpc('get_prediction_match_result', {
+    p_prediction_id: predictionId,
+  })
+  return assertOk(data, error) as PredictionMatchResult | null
+}
 // #endregion Fixtures
 
 // #region Platform admin (/admin)

@@ -192,9 +192,10 @@ select is(
   array['o-1'],
   'and handed to the sync function'
 );
-select public.sync_competition_fixtures('cricketdata', 'series-123', '2026/27', jsonb_build_array(
+-- A result check (match_info) finds it still being played.
+select public.sync_competition_fixtures('cricketdata', 'series-123', '', jsonb_build_array(
   pg_temp.match('o-1', 'odi', now() - interval '8 hours', '1st ODI', null, 'live')
-));
+), true);
 select is(
   private.fixture_result_due((select id from catalog.fixtures where provider_ref = 'o-1')),
   false,

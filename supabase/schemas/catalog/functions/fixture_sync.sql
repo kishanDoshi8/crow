@@ -125,8 +125,8 @@ as $$
         end as earliest,
         case f.match_format
           when 'test' then interval '7 days'
-          when 'odi' then interval '30 hours'
-          when 't20' then interval '30 hours'
+          when 'odi' then interval '3 days'
+          when 't20' then interval '3 days'
           else interval '6 hours'
         end as latest,
         case f.match_format
@@ -138,7 +138,16 @@ as $$
     ) w
     where f.id = p_fixture_id
       and f.result_confirmed_at is null
-      and not (f.status = 'finished' and f.result is not null)
+      -- Settled: football once it has a final score; cricket once the
+      -- match's own page (match_info) has been read after it ended, since
+      -- the series list carries the winner but not the toss or innings.
+      and not (
+        case
+          when f.match_format is null then f.status = 'finished' and f.result is not null
+          else f.status in ('finished', 'abandoned', 'cancelled', 'postponed')
+            and coalesce((f.result->>'detailed')::boolean, false)
+        end
+      )
       and f.kickoff_at between now() - w.latest and now() - w.earliest
       and (f.result_checked_at is null or f.result_checked_at < now() - w.every)
       and exists (
@@ -287,7 +296,8 @@ begin
         case when jsonb_typeof(v_item->'result') = 'object' then v_item->'result' end,
         case when jsonb_typeof(v_item->'result') = 'object' then 'provider' end,
         now(),
-        case when v_new_kickoff < now() then now() end
+        -- A cricket series list isn't a result check (see below).
+        case when v_new_kickoff < now() and (p_partial or nullif(v_item->>'match_format', '') is null) then now() end
       )
       returning id into v_fixture_id;
     else
@@ -303,13 +313,30 @@ begin
           away_team_id = v_away_id,
           kickoff_at = v_new_kickoff,
           status = v_item->>'status',
-          -- A result an admin set by hand wins over the feed.
-          result = case when result_source = 'manual' then result
-                        when jsonb_typeof(v_item->'result') = 'object' then v_item->'result' end,
-          result_source = case when result_source = 'manual' then 'manual'
-                               when jsonb_typeof(v_item->'result') = 'object' then 'provider' end,
+          -- A result an admin set by hand wins over the feed. A list that
+          -- carries no result (or a less detailed one, like a cricket
+          -- series list without the toss) leaves a fuller one in place.
+          result = case
+            when result_source = 'manual' then result
+            when coalesce(jsonb_typeof(v_item->'result'), '') <> 'object' then
+              case when v_item->>'status' = 'scheduled' then null else result end
+            when coalesce((result->>'detailed')::boolean, false)
+              and not coalesce((v_item->'result'->>'detailed')::boolean, false) then result
+            else v_item->'result'
+          end,
+          result_source = case
+            when result_source = 'manual' then 'manual'
+            when jsonb_typeof(v_item->'result') = 'object' then 'provider'
+            when v_item->>'status' = 'scheduled' then null
+            else result_source
+          end,
           synced_at = now(),
-          result_checked_at = case when v_new_kickoff < now() then now() else result_checked_at end,
+          -- Football's season list carries results, so it counts as a check;
+          -- a cricket series list doesn't (only match_info, a partial sync).
+          result_checked_at = case
+            when v_new_kickoff < now() and (p_partial or nullif(v_item->>'match_format', '') is null) then now()
+            else result_checked_at
+          end,
           updated_at = now()
       where id = v_fixture_id;
 

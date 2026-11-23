@@ -177,7 +177,7 @@ function statusOf(match: CricMatch): FixtureStatus {
 	return match.matchStarted ? "live" : "scheduled";
 }
 
-function resultOf(match: CricMatch): CricketResult | null {
+function resultOf(match: CricMatch, detailed: boolean): CricketResult | null {
 	const teams = match.teams ?? [];
 	const text = match.status ?? "";
 	const side = (name?: string) => {
@@ -211,12 +211,36 @@ function resultOf(match: CricMatch): CricketResult | null {
 			overs: inning.o ?? 0,
 		})),
 		status_text: text,
+		detailed,
 	};
+}
+
+// The match's own name from the provider's long one, which comes in two
+// shapes: "1st Test, India tour of New Zealand, 2026" and "Afghanistan A vs
+// Hong Kong, China, 9th Match, Group A, ACC Mens Asia Cup Rising Stars 2026"
+// (team names can hold commas). → "1st Test", "9th Match".
+const MATCH_NAME =
+	/^(\d+(st|nd|rd|th)\s+(match|test|odi|t20i?|unofficial test)|final|semi[- ]?final.*|quarter[- ]?final.*|qualifier.*|eliminator|play-?off.*|super (four|six|eight|8|6|4).*)$/i;
+
+export function matchLabel(name?: string) {
+	const parts = (name ?? "").split(",").map((part) => part.trim());
+	return parts.find((part) => MATCH_NAME.test(part)) ?? null;
+}
+
+// "Basin Reserve, Wellington" stays; a long one keeps its city: "University
+// of Doha for Science and Technology, Doha" → "Doha".
+export function shortVenue(venue?: string) {
+	const text = venue?.trim();
+	if (!text) return null;
+	if (text.length <= 30) return text;
+	return text.split(",").map((part) => part.trim()).filter(Boolean).at(-1) ?? text;
 }
 
 // One provider match in the catalog's shape, or null for a format Crow has
 // no questions for (T10, first-class...).
-export function toCatalogFixture(match: CricMatch, season: string): CatalogFixture | null {
+// `detailed`: from match_info, which carries the toss and innings (a series
+// list carries only the status).
+export function toCatalogFixture(match: CricMatch, season: string, detailed = false): CatalogFixture | null {
 	const format = FORMATS[(match.matchType ?? "").toLowerCase()];
 	const at = kickoff(match);
 	if (!format || !at) return null;
@@ -243,12 +267,11 @@ export function toCatalogFixture(match: CricMatch, season: string): CatalogFixtu
 		round_label: roundLabel,
 		stage_kind: "league",
 		match_format: format,
-		// "1st Test, India tour of New Zealand, 2026" → "1st Test"
-		label: match.name?.split(",")[0]?.trim() || null,
-		venue: match.venue?.trim() || null,
+		label: matchLabel(match.name),
+		venue: shortVenue(match.venue),
 		home: team(home),
 		away: team(away),
-		result: status === "scheduled" ? null : resultOf(match),
+		result: status === "scheduled" ? null : resultOf(match, detailed),
 	};
 }
 
@@ -288,7 +311,7 @@ export const cricketData: ProviderAdapter = {
 		const fixtures: CatalogFixture[] = [];
 		for (const id of matchIds) {
 			const { data, hitsToday, hitsLimit } = await cricApi<CricMatch>("match_info", { id });
-			const fixture = data ? toCatalogFixture(data, "") : null;
+			const fixture = data ? toCatalogFixture(data, "", true) : null;
 			if (fixture) fixtures.push(fixture);
 			// Stop before the day's calls run out; the rest wait for tomorrow.
 			if (hitsToday !== undefined && hitsLimit !== undefined && hitsToday >= hitsLimit - RESERVE) break;

@@ -506,3 +506,38 @@ begin
   );
 end;
 $$;
+
+-- The match a room question came from, and how it ended, for showing next
+-- to the question's result: its teams, the confirmed result (a football
+-- score, or a cricket scoreboard and toss) and when it was confirmed. Null
+-- for a question that isn't from the fixtures, or before an admin has
+-- confirmed the match. Anyone who can see the question.
+create or replace function public.get_prediction_match_result(p_prediction_id uuid)
+returns json
+language sql
+stable
+security definer
+set search_path = public, private
+as $$
+  select json_build_object(
+    'sport', c.sport,
+    'competition', c.name,
+    'format', f.match_format,
+    'label', f.label,
+    'venue', f.venue,
+    'home', h.short_name,
+    'away', a.short_name,
+    'status', f.status,
+    'result', f.result,
+    'confirmed_at', f.result_confirmed_at
+  )
+  from public.predictions p
+  join catalog.fixture_questions q on q.id = p.fixture_question_id
+  join catalog.fixtures f on f.id = q.fixture_id
+  join catalog.competitions c on c.id = f.competition_id
+  left join catalog.teams h on h.id = f.home_team_id
+  left join catalog.teams a on a.id = f.away_team_id
+  where p.id = p_prediction_id
+    and f.result_confirmed_at is not null
+    and private.can_view_prediction(p.id);
+$$;
