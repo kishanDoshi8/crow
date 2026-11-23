@@ -127,6 +127,8 @@ export const profileKeys = {
   all: ["profile"] as const,
   detail: (playerId: string | null) =>
     [...profileKeys.all, playerId ?? "me"] as const,
+  headToHead: (playerId: string) =>
+    [...profileKeys.all, playerId, "headToHead"] as const,
 };
 
 export const localStorageKeys = {

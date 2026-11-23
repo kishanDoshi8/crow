@@ -139,6 +139,7 @@ export const router = createBrowserRouter([
 					{ path: "/", element: <HomePage /> },
 					{ path: "/create-player", element: withSuspense(<CreatePlayer />) },
 					{ path: "/profile", element: withSuspense(<ProfilePage />) },
+					{ path: "/players/:playerId", element: withSuspense(<ProfilePage />) },
 					{
 						path: "/account/delete",
 						element: withSuspense(<DeleteAccountPage />),

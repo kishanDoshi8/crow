@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence, m } from "framer-motion";
 import {
 	ChevronLeftIcon,
@@ -19,8 +19,8 @@ import {
 	identityToneMeta,
 	styleTitleIcon,
 } from "@/features/leaderboard";
-import { usePlayerProfile } from "@/features/profile/hooks/profile";
-import type { PlayerProfile, PlayerProfileRoom } from "@/shared/lib/api";
+import { useHeadToHead, usePlayerProfile } from "@/features/profile/hooks/profile";
+import type { HeadToHead, PlayerProfile, PlayerProfileRoom } from "@/shared/lib/api";
 import { EASE_OUT } from "@/shared/lib/motion";
 import { buildTrophies, getIdentityTitle } from "@/shared/lib/trophyPrestige";
 import { cn, initialsOf } from "@/shared/lib/utils";
@@ -36,6 +36,9 @@ export default function ProfilePage() {
 	const { playerId = null } = useParams();
 	const { data: profile, isPending, error, refetch } = usePlayerProfile(playerId);
 	const [showCabinet, setShowCabinet] = useState(false);
+
+	// Your own id (say, from your row in the standings) opens your profile.
+	if (playerId && profile?.is_self) return <Navigate to='/profile' replace />;
 
 	const handleBack = () => {
 		if (globalThis.history.length > 1) {
@@ -133,6 +136,12 @@ function ProfileBody({
 				<TrophyShowcase trophies={trophies} isLoading={false} onViewAll={onViewCabinet} />
 				<MilestoneRow milestones={profile.milestones} isLoading={false} />
 			</Section>
+
+			{profile.is_self ? null : (
+				<Section title='Head to head'>
+					<HeadToHeadCard playerId={profile.player.id} username={profile.player.username} />
+				</Section>
+			)}
 
 			<Section title={profile.is_self ? "Your rooms" : "Rooms you share"}>
 				<RoomList rooms={profile.rooms} isSelf={profile.is_self} />
@@ -244,6 +253,67 @@ function RoomList({
 				</li>
 			))}
 		</ul>
+	);
+}
+
+// You against them: the questions only one of you called, as a split bar
+// labelled at each end, then the draws.
+function HeadToHeadCard({ playerId, username }: Readonly<{ playerId: string; username: string }>) {
+	const { data, isPending, error } = useHeadToHead(playerId);
+
+	if (isPending) return <Skeleton aria-hidden='true' className='h-32 rounded-xl' />;
+	if (error) {
+		return <p className='text-sm text-muted-foreground'>Couldn't load head to head. Try again.</p>;
+	}
+	if (data.questions === 0) {
+		return (
+			<p className='rounded-xl border border-dashed border-border/80 px-4 py-5 text-center text-sm text-muted-foreground'>
+				No questions you've both picked yet. Once you have, this is where it gets settled.
+			</p>
+		);
+	}
+
+	return (
+		<div className='flex flex-col gap-3 rounded-xl border p-4'>
+			<HeadToHeadBar data={data} username={username} />
+			<StatStrip
+				stats={[
+					{ label: "Both called", value: data.both_called },
+					{ label: "Both missed", value: data.both_missed },
+					{ label: "Questions", value: data.questions },
+				]}
+			/>
+		</div>
+	);
+}
+
+function HeadToHeadBar({ data, username }: Readonly<{ data: HeadToHead; username: string }>) {
+	const decided = data.you + data.them;
+	// Even split until one of you has called something the other missed.
+	const yourShare = decided > 0 ? (data.you / decided) * 100 : 50;
+
+	return (
+		<div className='flex flex-col gap-2'>
+			<div className='flex items-end justify-between gap-3'>
+				<div className='min-w-0'>
+					<p className='text-xs text-muted-foreground'>You</p>
+					<p className='text-2xl font-bold tabular-nums'>{data.you}</p>
+				</div>
+				<div className='min-w-0 text-right'>
+					<p className='truncate text-xs text-muted-foreground'>{username}</p>
+					<p className='text-2xl font-bold tabular-nums'>{data.them}</p>
+				</div>
+			</div>
+			<div
+				className='flex h-2 gap-0.5 overflow-hidden rounded-full'
+				role='img'
+				aria-label={`You ${data.you}, ${username} ${data.them}`}
+			>
+				<div className='rounded-full bg-primary' style={{ width: `${yourShare}%` }} />
+				<div className='flex-1 rounded-full bg-muted-foreground/40' />
+			</div>
+			<p className='text-xs text-muted-foreground'>Questions only one of you called</p>
+		</div>
 	);
 }
 

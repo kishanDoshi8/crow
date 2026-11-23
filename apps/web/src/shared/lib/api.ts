@@ -224,6 +224,27 @@ export type PlayerProfile = {
   milestones: Array<RoomMemberMilestone & FromRoom>
 }
 
+// get_head_to_head: you against one other player, over the questions you
+// both picked in the rooms you share. you/them are the ones only that
+// player called.
+export type HeadToHead = {
+  player_id: string
+  questions: number
+  you: number
+  them: number
+  both_called: number
+  both_missed: number
+  rooms: Array<{
+    room_id: string
+    name: string
+    questions: number
+    you: number
+    them: number
+    both_called: number
+    both_missed: number
+  }>
+}
+
 // ============================================================
 // API — thin wrappers around Supabase RPC functions
 // All functions throw on error so callers can catch uniformly.
@@ -1904,6 +1925,14 @@ export async function getPlayerProfile(playerId: string | null = null) {
     ...profile,
     milestones: profile.milestones.filter((row) => isMilestoneType(row.milestone_type)),
   }
+}
+
+// You against another player across the rooms you share.
+export async function getHeadToHead(playerId: string) {
+  const { data, error } = await untypedSupabase.rpc('get_head_to_head', {
+    p_player_id: playerId,
+  })
+  return assertOk(data, error) as HeadToHead
 }
 // #endregion Leaderboard
 

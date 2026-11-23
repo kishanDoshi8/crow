@@ -1,2 +1,2 @@
-export { usePlayerProfile } from "./hooks/profile";
-export type { PlayerProfile, PlayerProfileRoom } from "@/shared/lib/api";
+export { useHeadToHead, usePlayerProfile } from "./hooks/profile";
+export type { HeadToHead, PlayerProfile, PlayerProfileRoom } from "@/shared/lib/api";

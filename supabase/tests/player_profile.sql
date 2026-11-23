@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(18);
+select plan(25);
 
 -- ------------------------------------------------------------
 -- Fixtures: Alice runs Room A with Bob and Carol. Carol also runs Room B
@@ -186,6 +186,45 @@ select is((pg_temp.profile('dan')->'totals'->>'rooms')::int, 0, 'a player with n
 
 select pg_temp.login(null);
 select throws_ok('select public.get_player_profile()', 'P0004', 'Not authenticated', 'signed-out callers get nothing');
+
+-- ------------------------------------------------------------
+-- 4. Head to head: questions only one of you called
+-- ------------------------------------------------------------
+create function pg_temp.h2h(p_viewer text, p_target text)
+returns json
+language plpgsql
+as $$
+begin
+  perform pg_temp.login(p_viewer);
+  return public.get_head_to_head(pg_temp.player(p_target));
+end;
+$$;
+
+select is((pg_temp.h2h('alice', 'carol')->>'questions')::int, 3, 'counts the questions you both picked');
+select is(
+  array[(pg_temp.h2h('alice', 'carol')->>'you')::int, (pg_temp.h2h('alice', 'carol')->>'them')::int, (pg_temp.h2h('alice', 'carol')->>'both_called')::int],
+  array[1, 0, 2],
+  'Alice called one Carol missed; both called the other two'
+);
+select is(
+  array[(pg_temp.h2h('carol', 'alice')->>'you')::int, (pg_temp.h2h('carol', 'alice')->>'them')::int],
+  array[0, 1],
+  'the same record seen from Carol''s side'
+);
+select is((pg_temp.h2h('alice', 'bob')->>'you')::int, 3, 'Alice called all three Bob missed');
+select is((pg_temp.h2h('carol', 'eve')->'rooms'->0->>'name'), 'Room B', 'each room you met in is listed');
+
+select pg_temp.login('alice');
+select throws_ok(
+  format('select public.get_head_to_head(%L::uuid)', pg_temp.player('eve')),
+  'P0001', 'Player not found',
+  'no head to head with someone you share no room with'
+);
+select throws_ok(
+  format('select public.get_head_to_head(%L::uuid)', pg_temp.player('alice')),
+  'P0001', 'Head to head needs another player',
+  'no head to head with yourself'
+);
 
 select * from finish();
 rollback;
