@@ -39,6 +39,76 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_deletion_requests: {
+        Row: {
+          closed_at: string | null
+          player_id: string
+          reason: string | null
+          requested_at: string
+          status: string
+        }
+        Insert: {
+          closed_at?: string | null
+          player_id: string
+          reason?: string | null
+          requested_at?: string
+          status?: string
+        }
+        Update: {
+          closed_at?: string | null
+          player_id?: string
+          reason?: string | null
+          requested_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_deletion_requests_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: true
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      app_events: {
+        Row: {
+          created_at: string
+          id: number
+          name: string
+          path: string | null
+          player_id: string | null
+          source: string | null
+          visitor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          name: string
+          path?: string | null
+          player_id?: string | null
+          source?: string | null
+          visitor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          name?: string
+          path?: string | null
+          player_id?: string | null
+          source?: string | null
+          visitor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_events_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bets: {
         Row: {
           amount: number
@@ -46,9 +116,9 @@ export type Database = {
           option_id: string
           payout: number | null
           placed_at: string
-          rating_change: number | null
           player_id: string
           prediction_id: string
+          rating_change: number | null
           updated_at: string
         }
         Insert: {
@@ -57,9 +127,9 @@ export type Database = {
           option_id: string
           payout?: number | null
           placed_at?: string
-          rating_change?: number | null
           player_id: string
           prediction_id: string
+          rating_change?: number | null
           updated_at?: string
         }
         Update: {
@@ -68,9 +138,9 @@ export type Database = {
           option_id?: string
           payout?: number | null
           placed_at?: string
-          rating_change?: number | null
           player_id?: string
           prediction_id?: string
+          rating_change?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -93,6 +163,32 @@ export type Database = {
             columns: ["prediction_id"]
             isOneToOne: false
             referencedRelation: "predictions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_admins: {
+        Row: {
+          added_at: string
+          note: string | null
+          player_id: string
+        }
+        Insert: {
+          added_at?: string
+          note?: string | null
+          player_id: string
+        }
+        Update: {
+          added_at?: string
+          note?: string | null
+          player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_admins_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: true
+            referencedRelation: "players"
             referencedColumns: ["id"]
           },
         ]
@@ -265,6 +361,55 @@ export type Database = {
           },
         ]
       }
+      prediction_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          fixture_id: string | null
+          id: string
+          room_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          fixture_id?: string | null
+          id?: string
+          room_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          fixture_id?: string | null
+          id?: string
+          room_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prediction_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prediction_events_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "player_rooms_by_activity"
+            referencedColumns: ["room_id"]
+          },
+          {
+            foreignKeyName: "prediction_events_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prediction_options: {
         Row: {
           created_at: string
@@ -280,6 +425,7 @@ export type Database = {
           display_order?: number
           id?: string
           label: string
+          option_key?: string | null
           prediction_id: string
           total_bet?: number
         }
@@ -288,6 +434,7 @@ export type Database = {
           display_order?: number
           id?: string
           label?: string
+          option_key?: string | null
           prediction_id?: string
           total_bet?: number
         }
@@ -297,6 +444,125 @@ export type Database = {
             columns: ["prediction_id"]
             isOneToOne: false
             referencedRelation: "predictions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prediction_posts: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          phrase_id: number | null
+          player_id: string
+          prediction_id: string
+          room_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind?: string
+          phrase_id?: number | null
+          player_id: string
+          prediction_id: string
+          room_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          phrase_id?: number | null
+          player_id?: string
+          prediction_id?: string
+          room_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prediction_posts_phrase_id_fkey"
+            columns: ["phrase_id"]
+            isOneToOne: false
+            referencedRelation: "talk_phrases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prediction_posts_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prediction_posts_prediction_id_fkey"
+            columns: ["prediction_id"]
+            isOneToOne: false
+            referencedRelation: "predictions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prediction_posts_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "player_rooms_by_activity"
+            referencedColumns: ["room_id"]
+          },
+          {
+            foreignKeyName: "prediction_posts_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prediction_reactions: {
+        Row: {
+          created_at: string
+          player_id: string
+          prediction_id: string
+          reaction: string
+          room_id: string
+        }
+        Insert: {
+          created_at?: string
+          player_id: string
+          prediction_id: string
+          reaction: string
+          room_id: string
+        }
+        Update: {
+          created_at?: string
+          player_id?: string
+          prediction_id?: string
+          reaction?: string
+          room_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prediction_reactions_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prediction_reactions_prediction_id_fkey"
+            columns: ["prediction_id"]
+            isOneToOne: false
+            referencedRelation: "predictions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prediction_reactions_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "player_rooms_by_activity"
+            referencedColumns: ["room_id"]
+          },
+          {
+            foreignKeyName: "prediction_reactions_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
             referencedColumns: ["id"]
           },
         ]
@@ -337,10 +603,10 @@ export type Database = {
           corrected_by: string | null
           created_at: string
           created_by: string
-          description: string | null
-          fixture_question_id: string | null
-          revealed_by_crow: boolean
           deadline: string
+          description: string | null
+          event_id: string | null
+          fixture_question_id: string | null
           id: string
           no_result_reason: string | null
           notified_1h: boolean
@@ -349,6 +615,7 @@ export type Database = {
           ratings_reversible: boolean
           resolved_at: string | null
           resolved_by: string | null
+          revealed_by_crow: boolean
           room_id: string
           series_id: string | null
           series_prediction_number: number | null
@@ -362,10 +629,10 @@ export type Database = {
           corrected_by?: string | null
           created_at?: string
           created_by: string
-          description?: string | null
-          fixture_question_id?: string | null
-          revealed_by_crow?: boolean
           deadline: string
+          description?: string | null
+          event_id?: string | null
+          fixture_question_id?: string | null
           id?: string
           no_result_reason?: string | null
           notified_1h?: boolean
@@ -374,6 +641,7 @@ export type Database = {
           ratings_reversible?: boolean
           resolved_at?: string | null
           resolved_by?: string | null
+          revealed_by_crow?: boolean
           room_id: string
           series_id?: string | null
           series_prediction_number?: number | null
@@ -387,10 +655,10 @@ export type Database = {
           corrected_by?: string | null
           created_at?: string
           created_by?: string
-          description?: string | null
-          fixture_question_id?: string | null
-          revealed_by_crow?: boolean
           deadline?: string
+          description?: string | null
+          event_id?: string | null
+          fixture_question_id?: string | null
           id?: string
           no_result_reason?: string | null
           notified_1h?: boolean
@@ -399,6 +667,7 @@ export type Database = {
           ratings_reversible?: boolean
           resolved_at?: string | null
           resolved_by?: string | null
+          revealed_by_crow?: boolean
           room_id?: string
           series_id?: string | null
           series_prediction_number?: number | null
@@ -426,6 +695,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "predictions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "prediction_events"
             referencedColumns: ["id"]
           },
           {
@@ -489,6 +765,39 @@ export type Database = {
         }
         Relationships: []
       }
+      result_seen: {
+        Row: {
+          player_id: string
+          prediction_id: string
+          seen_at: string
+        }
+        Insert: {
+          player_id: string
+          prediction_id: string
+          seen_at?: string
+        }
+        Update: {
+          player_id?: string
+          prediction_id?: string
+          seen_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "result_seen_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_seen_prediction_id_fkey"
+            columns: ["prediction_id"]
+            isOneToOne: false
+            referencedRelation: "predictions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       room_activities: {
         Row: {
           activity_tier: number
@@ -540,6 +849,164 @@ export type Database = {
           },
           {
             foreignKeyName: "room_activities_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_competitions: {
+        Row: {
+          competition_id: string
+          created_at: string
+          followed_by: string | null
+          room_id: string
+        }
+        Insert: {
+          competition_id: string
+          created_at?: string
+          followed_by?: string | null
+          room_id: string
+        }
+        Update: {
+          competition_id?: string
+          created_at?: string
+          followed_by?: string | null
+          room_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_competitions_followed_by_fkey"
+            columns: ["followed_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_competitions_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "player_rooms_by_activity"
+            referencedColumns: ["room_id"]
+          },
+          {
+            foreignKeyName: "room_competitions_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_former_members: {
+        Row: {
+          left_at: string
+          member: Json
+          player_id: string
+          removed_by: string | null
+          room_id: string
+          status: string
+        }
+        Insert: {
+          left_at?: string
+          member: Json
+          player_id: string
+          removed_by?: string | null
+          room_id: string
+          status: string
+        }
+        Update: {
+          left_at?: string
+          member?: Json
+          player_id?: string
+          removed_by?: string | null
+          room_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_former_members_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_former_members_removed_by_fkey"
+            columns: ["removed_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_former_members_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "player_rooms_by_activity"
+            referencedColumns: ["room_id"]
+          },
+          {
+            foreignKeyName: "room_former_members_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_join_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          player_id: string
+          room_id: string
+          status: string
+          via: string | null
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          player_id: string
+          room_id: string
+          status?: string
+          via?: string | null
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          player_id?: string
+          room_id?: string
+          status?: string
+          via?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_join_requests_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_join_requests_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_join_requests_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "player_rooms_by_activity"
+            referencedColumns: ["room_id"]
+          },
+          {
+            foreignKeyName: "room_join_requests_room_id_fkey"
             columns: ["room_id"]
             isOneToOne: false
             referencedRelation: "rooms"
@@ -800,36 +1267,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      room_join_requests: {
-        Row: {
-          created_at: string
-          decided_at: string | null
-          decided_by: string | null
-          player_id: string
-          room_id: string
-          status: string
-          via: string | null
-        }
-        Insert: {
-          created_at?: string
-          decided_at?: string | null
-          decided_by?: string | null
-          player_id: string
-          room_id: string
-          status?: string
-          via?: string | null
-        }
-        Update: {
-          created_at?: string
-          decided_at?: string | null
-          decided_by?: string | null
-          player_id?: string
-          room_id?: string
-          status?: string
-          via?: string | null
-        }
-        Relationships: []
       }
       rooms: {
         Row: {
@@ -1320,6 +1757,36 @@ export type Database = {
           },
         ]
       }
+      talk_phrases: {
+        Row: {
+          active: boolean
+          audience: string
+          created_at: string
+          id: number
+          sort_order: number
+          stage: string
+          text: string
+        }
+        Insert: {
+          active?: boolean
+          audience?: string
+          created_at?: string
+          id?: number
+          sort_order?: number
+          stage: string
+          text: string
+        }
+        Update: {
+          active?: boolean
+          audience?: string
+          created_at?: string
+          id?: number
+          sort_order?: number
+          stage?: string
+          text?: string
+        }
+        Relationships: []
+      }
       user_push_subscriptions: {
         Row: {
           created_at: string
@@ -1377,6 +1844,49 @@ export type Database = {
             columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weekly_recap_seen: {
+        Row: {
+          player_id: string
+          seen_at: string
+          series_id: string
+          week_key: string
+        }
+        Insert: {
+          player_id: string
+          seen_at?: string
+          series_id: string
+          week_key: string
+        }
+        Update: {
+          player_id?: string
+          seen_at?: string
+          series_id?: string
+          week_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_recap_seen_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_recap_seen_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "series"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_recap_seen_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "series_with_stats"
             referencedColumns: ["id"]
           },
         ]
@@ -1459,6 +1969,73 @@ export type Database = {
     }
     Functions: {
       activate_series: { Args: { p_series_id: string }; Returns: Json }
+      add_fixture_questions: {
+        Args: {
+          p_fixture_question_ids: string[]
+          p_opens_at?: string
+          p_room_id: string
+          p_series_id: string
+        }
+        Returns: Json
+      }
+      admin_add_competition: {
+        Args: {
+          p_ends_on?: string
+          p_kind: string
+          p_name: string
+          p_provider: string
+          p_provider_ref: string
+          p_region?: string
+          p_sport: string
+          p_starts_on?: string
+        }
+        Returns: Json
+      }
+      admin_add_fixture_extra: {
+        Args: {
+          p_description: string
+          p_fixture_id: string
+          p_options: string[]
+          p_title: string
+        }
+        Returns: Json
+      }
+      admin_confirm_fixture: {
+        Args: { p_fixture_id: string; p_outcomes: Json }
+        Returns: Json
+      }
+      admin_delete_fixture_extra: {
+        Args: { p_question_id: string }
+        Returns: undefined
+      }
+      admin_get_competitions: { Args: never; Returns: Json }
+      admin_get_fixtures: {
+        Args: { p_competition_id?: string; p_days?: number }
+        Returns: Json
+      }
+      admin_get_results: { Args: never; Returns: Json }
+      admin_request_fixture_sync: {
+        Args: { p_provider?: string }
+        Returns: boolean
+      }
+      admin_set_competition_active: {
+        Args: { p_active: boolean; p_competition_id: string }
+        Returns: Json
+      }
+      admin_set_fixture_result: {
+        Args: { p_fixture_id: string; p_result?: Json; p_status: string }
+        Returns: Json
+      }
+      admin_update_fixture_question: {
+        Args: {
+          p_description?: string
+          p_hidden?: boolean
+          p_question_id: string
+          p_reset?: boolean
+          p_title?: string
+        }
+        Returns: Json
+      }
       allow_room_member_back: {
         Args: { p_player_id: string; p_room_id: string }
         Returns: Json
@@ -1491,6 +2068,18 @@ export type Database = {
         }
         Returns: Json
       }
+      create_predictions: {
+        Args: {
+          p_deadline: string
+          p_event_title?: string
+          p_opens_at?: string
+          p_predictions: Json
+          p_room_id: string
+          p_series_id: string
+          p_tags?: string[]
+        }
+        Returns: Json
+      }
       create_room: { Args: { p_room_name: string }; Returns: Json }
       create_series: {
         Args: {
@@ -1516,13 +2105,48 @@ export type Database = {
         Args: { p_prediction_id: string }
         Returns: undefined
       }
-      get_my_account_deletion: { Args: never; Returns: Json }
-      get_my_series_wallets: { Args: { p_room_id: string }; Returns: Json }
+      dismiss_weekly_recap: {
+        Args: { p_series_id: string; p_week_key: string }
+        Returns: undefined
+      }
       get_explore_rooms: {
         Args: { p_limit?: number; p_offset?: number; p_search?: string }
         Returns: Json
       }
+      get_fixture_result_targets: {
+        Args: { p_provider: string }
+        Returns: {
+          competition_ref: string
+          provider_ref: string
+        }[]
+      }
+      get_fixture_sync_targets: {
+        Args: never
+        Returns: {
+          name: string
+          provider: string
+          provider_ref: string
+          synced_at: string
+        }[]
+      }
+      get_head_to_head: { Args: { p_player_id: string }; Returns: Json }
+      get_my_account_deletion: { Args: never; Returns: Json }
+      get_my_platform_admin: { Args: never; Returns: boolean }
+      get_my_series_wallets: { Args: { p_room_id: string }; Returns: Json }
+      get_my_unseen_results: {
+        Args: { p_room_id: string; p_series_id: string }
+        Returns: Json
+      }
+      get_my_weekly_recap: {
+        Args: { p_room_id: string; p_series_id: string }
+        Returns: Json
+      }
       get_player: { Args: never; Returns: Json }
+      get_player_profile: { Args: { p_player_id?: string }; Returns: Json }
+      get_prediction_match_result: {
+        Args: { p_prediction_id: string }
+        Returns: Json
+      }
       get_prediction_talk: { Args: { p_prediction_id: string }; Returns: Json }
       get_preferences: { Args: { p_room_id?: string }; Returns: Json }
       get_room_activities: {
@@ -1537,13 +2161,22 @@ export type Database = {
         Returns: Json
       }
       get_room_by_code: { Args: { p_room_code: string }; Returns: Json }
+      get_room_competition_fixtures: {
+        Args: { p_competition_id: string; p_room_id: string }
+        Returns: Json
+      }
+      get_room_competitions: { Args: { p_room_id: string }; Returns: Json }
+      get_room_fixtures: {
+        Args: { p_days?: number; p_room_id: string }
+        Returns: Json
+      }
       get_room_former_members: { Args: { p_room_id: string }; Returns: Json }
-      get_room_join_requests: { Args: { p_room_id: string }; Returns: Json }
       get_room_has_unseen_activities: {
         Args: { p_room_id: string }
         Returns: boolean
       }
       get_room_invite_preview: { Args: { p_room_code: string }; Returns: Json }
+      get_room_join_requests: { Args: { p_room_id: string }; Returns: Json }
       get_room_manage_queue: { Args: { p_room_id: string }; Returns: Json }
       get_room_member_recent_predictions: {
         Args: {
@@ -1575,6 +2208,10 @@ export type Database = {
         }
         Returns: Json
       }
+      get_room_prediction_history_counts: {
+        Args: { p_room_id: string; p_search?: string; p_series_id?: string }
+        Returns: Json
+      }
       get_room_series: { Args: { p_room_id: string }; Returns: Json }
       get_room_series_selector: {
         Args: {
@@ -1588,6 +2225,7 @@ export type Database = {
         Args: { p_limit?: number; p_room_id: string }
         Returns: Json
       }
+      get_room_tags: { Args: { p_room_id: string }; Returns: Json }
       get_series_active_predictions: {
         Args: { p_room_id: string; p_series_id: string }
         Returns: Json
@@ -1619,8 +2257,21 @@ export type Database = {
       }
       leave_room: { Args: { p_room_id: string }; Returns: Json }
       lock_prediction: { Args: { p_prediction_id: string }; Returns: Json }
+      log_app_event: {
+        Args: {
+          p_name: string
+          p_path?: string
+          p_source?: string
+          p_visitor_id: string
+        }
+        Returns: undefined
+      }
       mark_how_to_play_seen: { Args: never; Returns: undefined }
       mark_ratings_tip_seen: { Args: never; Returns: undefined }
+      mark_results_seen: {
+        Args: { p_prediction_ids: string[] }
+        Returns: undefined
+      }
       mark_room_activities_seen: {
         Args: { p_room_id: string }
         Returns: undefined
@@ -1637,9 +2288,15 @@ export type Database = {
         Args: { p_phrase_id: number; p_prediction_id: string }
         Returns: Json
       }
+      provider_http_get: { Args: { p_url: string }; Returns: number }
+      provider_http_response: { Args: { p_request_id: number }; Returns: Json }
       publish_prediction_now: {
         Args: { p_prediction_id: string }
         Returns: Json
+      }
+      record_fixture_sync_error: {
+        Args: { p_message: string; p_provider: string; p_provider_ref: string }
+        Returns: undefined
       }
       record_share: {
         Args: { p_kind: string; p_room_id: string }
@@ -1654,10 +2311,7 @@ export type Database = {
         Args: { p_suggestion_id: string }
         Returns: undefined
       }
-      request_account_deletion: {
-        Args: { p_reason?: string }
-        Returns: Json
-      }
+      request_account_deletion: { Args: { p_reason?: string }; Returns: Json }
       reset_room_preferences: { Args: { p_room_id: string }; Returns: Json }
       resolve_prediction_v2: {
         Args: {
@@ -1669,17 +2323,43 @@ export type Database = {
         }
         Returns: Json
       }
+      resolve_predictions: {
+        Args: { p_results: Json; p_room_id: string }
+        Returns: Json
+      }
       set_last_visited_room: { Args: { p_room_id: string }; Returns: undefined }
       set_member_role: {
         Args: { p_player_id: string; p_role: string; p_room_id: string }
+        Returns: Json
+      }
+      set_prediction_details: {
+        Args: {
+          p_description: string
+          p_prediction_id: string
+          p_tags: string[]
+        }
         Returns: Json
       }
       set_prediction_reaction: {
         Args: { p_prediction_id: string; p_reaction?: string }
         Returns: Json
       }
+      set_room_competition: {
+        Args: { p_competition_id: string; p_follow: boolean; p_room_id: string }
+        Returns: Json
+      }
       suggest_series: {
         Args: { p_room_id: string; p_title: string }
+        Returns: Json
+      }
+      sync_competition_fixtures: {
+        Args: {
+          p_fixtures: Json
+          p_partial?: boolean
+          p_provider: string
+          p_provider_ref: string
+          p_season: string
+        }
         Returns: Json
       }
       toggle_series_suggestion_vote: {
