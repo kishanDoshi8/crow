@@ -28,6 +28,10 @@ export const roomKeys = {
   prediction: (roomId: string, predictionId: string) =>
     [...roomKeys.detail(roomId), "predictions", predictionId] as const,
 
+  // The match it came from and how it ended; under the prediction's key too.
+  matchResult: (roomId: string, predictionId: string) =>
+    [...roomKeys.detail(roomId), "predictions", predictionId, "matchResult"] as const,
+
   // Under the prediction's key, so refreshing a prediction refreshes its talk.
   talk: (roomId: string, predictionId: string) =>
     [...roomKeys.detail(roomId), "predictions", predictionId, "talk"] as const,

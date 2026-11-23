@@ -188,7 +188,7 @@ select is(
   ),
   array[
     'activate_series', 'add_fixture_questions', 'admin_add_competition', 'admin_add_fixture_extra', 'admin_confirm_fixture', 'admin_delete_fixture_extra', 'admin_get_competitions', 'admin_get_fixtures',
-    'admin_get_results', 'admin_request_fixture_sync', 'admin_set_competition_active', 'admin_set_fixture_result',
+    'admin_get_results', 'admin_request_fixture_sync', 'admin_set_competition_active', 'admin_set_competition_tag', 'admin_set_fixture_result',
     'admin_update_fixture_question', 'allow_room_member_back', 'archive_series', 'cancel_account_deletion', 'cancel_bet', 'cancel_join_request',
     'collect_series_rewards', 'complete_series', 'correct_prediction_result', 'create_prediction', 'create_predictions', 'create_room',
     'create_series',

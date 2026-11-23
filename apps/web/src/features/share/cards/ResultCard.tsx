@@ -16,6 +16,9 @@ export type ResultCardData = {
 	seriesTitle: string | null;
 	predictionNumber: number | null;
 	question: string;
+	// How the match it came from ended, for event pack questions: "ARS 2–1
+	// CHE", "India won by 22 runs". Null otherwise.
+	matchLine?: string | null;
 	winner: string;
 	calledIt: number;
 	participants: number;
@@ -94,6 +97,11 @@ export function ResultCard({
 				>
 					{data.question}
 				</span>
+				{data.matchLine ? (
+					<span style={{ fontSize: 32, color: app.muted, marginTop: -12, ...singleLine }}>
+						{data.matchLine}
+					</span>
+				) : null}
 				<div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 					{shown.map((option) => {
 						let chip: string | null = null;

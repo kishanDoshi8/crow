@@ -10,6 +10,7 @@ import {
 	adminGetResults,
 	adminRequestFixtureSync,
 	adminSetCompetitionActive,
+	adminSetCompetitionTag,
 	adminSetFixtureResult,
 	adminUpdateFixtureQuestion,
 	getMyPlatformAdmin,
@@ -83,6 +84,16 @@ export const useSetCompetitionActive = () => {
 	});
 };
 
+// The tag a competition's questions get; rooms' questions from it follow.
+export const useSetCompetitionTag = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ competitionId, tag }: { competitionId: string; tag: string | null }) =>
+			adminSetCompetitionTag(competitionId, tag),
+		onSettled: () => queryClient.invalidateQueries({ queryKey: adminKeys.competitions() }),
+	});
+};
+
 // Every active competition, or one provider's.
 export const useRequestFixtureSync = () =>
 	useMutation({ mutationFn: (provider?: string) => adminRequestFixtureSync(provider) });
@@ -111,8 +122,8 @@ export const useSearchSeries = () => useMutation({ mutationFn: (query: string) =
 export const useAddCompetition = () => {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: async (series: ProviderSeries) => {
-			const added = await adminAddCompetition(series, "cricket");
+		mutationFn: async ({ series, tag }: { series: ProviderSeries; tag?: string | null }) => {
+			const added = await adminAddCompetition(series, "cricket", tag);
 			await adminRequestFixtureSync(series.provider);
 			return added;
 		},

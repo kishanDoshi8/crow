@@ -30,5 +30,9 @@ create table if not exists catalog.competitions (
   last_sync_error text,
   last_sync_error_at timestamptz,
   created_at timestamptz not null default now(),
+  -- The tag questions from it get in rooms, set by a platform admin (e.g.
+  -- "Asia Cup" for a long tour name). Null: the name when it fits, else the
+  -- sport (private.competition_tag).
+  tag text check (tag is null or (tag = btrim(tag) and length(tag) between 1 and 24)),
   unique (provider, provider_ref)
 );

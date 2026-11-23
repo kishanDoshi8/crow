@@ -1,4 +1,4 @@
-import { correctPredictionResult, createPrediction, createPredictions, deleteScheduledPrediction, getActivePrediction, getActivePredictions, getPrediction, getPredictionNeighbours, getRoomTags, publishPredictionNow, resolvePrediction, resolvePredictions, setPredictionDetails, updatePrediction, type PredictionDraft, type PredictionResult } from "@/shared/lib/api";
+import { correctPredictionResult, createPrediction, createPredictions, deleteScheduledPrediction, getActivePrediction, getActivePredictions, getPrediction, getPredictionMatchResult, getPredictionNeighbours, getRoomTags, publishPredictionNow, resolvePrediction, resolvePredictions, setPredictionDetails, updatePrediction, type PredictionDraft, type PredictionResult } from "@/shared/lib/api";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { roomKeys } from "@/shared/constants/queryKeys";
 import type { Prediction } from "@/features/predictions/types/types";
@@ -248,3 +248,13 @@ const useScheduledAction = (action: (predictionId: string) => Promise<unknown>) 
 
 export const usePublishPredictionNow = () => useScheduledAction(publishPredictionNow);
 export const useDeleteScheduledPrediction = () => useScheduledAction(deleteScheduledPrediction);
+
+// How the match an event pack question came from ended, once Crow has
+// confirmed it (null before that).
+export const usePredictionMatchResult = (roomId: string, predictionId: string, enabled = true) =>
+    useQuery({
+        queryKey: roomKeys.matchResult(roomId, predictionId),
+        queryFn: () => getPredictionMatchResult(predictionId),
+        enabled: !!roomId && !!predictionId && enabled,
+        staleTime: 5 * 60 * 1000,
+    });

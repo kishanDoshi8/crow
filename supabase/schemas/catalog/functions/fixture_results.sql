@@ -705,6 +705,9 @@ begin
     select coalesce(json_agg(json_build_object(
       'id', c.id,
       'name', c.name,
+      -- The tag its questions get, and whether an admin set it.
+      'tag', private.competition_tag(c.tag, c.name, c.sport),
+      'tag_is_custom', c.tag is not null,
       'sport', c.sport,
       'provider', c.provider,
       'provider_ref', c.provider_ref,
@@ -750,6 +753,84 @@ begin
   end if;
 
   return json_build_object('id', p_competition_id, 'active', p_active);
+end;
+$$;
+
+-- Sets the tag a competition's questions get in rooms (null or blank goes
+-- back to the default: the name when it fits, else the sport). Questions
+-- rooms already added from it, still linked to it (a host's edit unlinks
+-- one), swap the old tag for the new one.
+create or replace function public.admin_set_competition_tag(
+  p_competition_id uuid,
+  p_tag            text
+)
+returns json
+language plpgsql
+security definer
+set search_path = public, private
+as $$
+declare
+  v_competition catalog.competitions%rowtype;
+  v_old text;
+  v_new text;
+  v_tag text := nullif(btrim(p_tag), '');
+  v_updated int := 0;
+begin
+  if not private.is_platform_admin() then
+    raise exception 'Only platform admins can do this' using errcode = 'P0012';
+  end if;
+
+  if v_tag is not null and char_length(v_tag) > 24 then
+    raise exception 'A tag is 24 characters at most' using errcode = 'P0001';
+  end if;
+
+  select * into v_competition from catalog.competitions where id = p_competition_id for update;
+  if not found then
+    raise exception 'Competition not found' using errcode = 'P0002';
+  end if;
+
+  v_old := private.competition_tag(v_competition.tag, v_competition.name, v_competition.sport);
+  v_new := private.competition_tag(v_tag, v_competition.name, v_competition.sport);
+
+  update catalog.competitions set tag = v_tag where id = p_competition_id;
+
+  if v_new is distinct from v_old then
+    -- Room questions linked to this competition's matches that carry the old tag.
+    create temporary table _retag on commit drop as
+    select t.id, t.prediction_id
+    from public.prediction_tags t
+    join public.predictions p on p.id = t.prediction_id
+    join catalog.fixture_questions q on q.id = p.fixture_question_id
+    join catalog.fixtures f on f.id = q.fixture_id
+    where f.competition_id = p_competition_id
+      and lower(t.tag) = lower(v_old);
+
+    -- A question that already has the new tag just loses the old one.
+    delete from public.prediction_tags t
+    using _retag r
+    where t.id = r.id
+      and exists (
+        select 1 from public.prediction_tags other
+        where other.prediction_id = r.prediction_id
+          and other.id <> r.id
+          and lower(other.tag) = lower(v_new)
+      );
+
+    update public.prediction_tags t
+    set tag = v_new
+    from _retag r
+    where t.id = r.id;
+    get diagnostics v_updated = row_count;
+
+    drop table _retag;
+  end if;
+
+  return json_build_object(
+    'id', p_competition_id,
+    'tag', v_new,
+    'tag_is_custom', v_tag is not null,
+    'questions_retagged', v_updated
+  );
 end;
 $$;
 
@@ -921,7 +1002,9 @@ create or replace function public.admin_add_competition(
   p_kind         text,
   p_region       text default null,
   p_starts_on    date default null,
-  p_ends_on      date default null
+  p_ends_on      date default null,
+  -- The tag its questions get; null for the default (see competition_tag).
+  p_tag          text default null
 )
 returns json
 language plpgsql
@@ -939,18 +1022,23 @@ begin
     raise exception 'A competition needs a name and the provider''s id' using errcode = 'P0001';
   end if;
 
+  if char_length(btrim(coalesce(p_tag, ''))) > 24 then
+    raise exception 'A tag is 24 characters at most' using errcode = 'P0001';
+  end if;
+
   insert into catalog.competitions (
-    sport, name, format, kind, region, provider, provider_ref, active, display_order, starts_on, ends_on
+    sport, name, format, kind, region, provider, provider_ref, active, display_order, starts_on, ends_on, tag
   )
   values (
     p_sport, left(btrim(p_name), 40),
     case p_kind when 'league' then 'league' when 'cup' then 'knockout' else 'mixed' end,
     p_kind, nullif(btrim(p_region), ''), p_provider, p_provider_ref, true,
     coalesce((select max(display_order) + 1 from catalog.competitions), 1),
-    p_starts_on, p_ends_on
+    p_starts_on, p_ends_on, nullif(btrim(p_tag), '')
   )
   on conflict (provider, provider_ref) do update
     set active = true,
+        tag = coalesce(excluded.tag, catalog.competitions.tag),
         starts_on = coalesce(excluded.starts_on, catalog.competitions.starts_on),
         ends_on = coalesce(excluded.ends_on, catalog.competitions.ends_on)
   returning id into v_id;
