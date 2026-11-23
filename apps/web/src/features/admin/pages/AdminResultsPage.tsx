@@ -11,6 +11,7 @@ import type {
 	FixtureStatus,
 } from "@/shared/lib/api";
 import { describeDeadline } from "@/shared/lib/deadline";
+import { cricketScoreboard } from "@/shared/lib/cricketScore";
 import { cn } from "@/shared/lib/utils";
 import {
 	Button,
@@ -210,21 +211,6 @@ function scoreLines(result: FixtureResult) {
 	return { main: ninety ?? "?", lines: lines.filter(Boolean) as string[] };
 }
 
-// A cricket result as lines: how it ended, then each innings and the toss.
-function cricketLines(fixture: AdminResultFixture, result: CricketFixtureResult) {
-	const name = (side: "home" | "away" | null) =>
-		side === "home" ? fixture.home : side === "away" ? fixture.away : "?";
-	const lines = result.innings.map(
-		(inning) => `${name(inning.team)} ${inning.runs}/${inning.wickets} (${inning.overs} ov)`,
-	);
-	if (result.toss_winner) {
-		lines.push(
-			`Toss: ${name(result.toss_winner)}${result.toss_choice ? `, chose to ${result.toss_choice}` : ""}`,
-		);
-	}
-	return { main: result.status_text || "Finished", lines };
-}
-
 function ResultCard({ fixture }: Readonly<{ fixture: AdminResultFixture }>) {
 	const confirmed = !!fixture.confirmed_at;
 	const [editing, setEditing] = useState(!confirmed);
@@ -249,11 +235,11 @@ function ResultCard({ fixture }: Readonly<{ fixture: AdminResultFixture }>) {
 		fixture.status,
 	);
 	const cricket = fixture.sport === "cricket";
-	const result = !fixture.result
-		? null
-		: cricket
-			? cricketLines(fixture, fixture.result as CricketFixtureResult)
-			: scoreLines(fixture.result as FixtureResult);
+	const result = fixture.result && !cricket ? scoreLines(fixture.result as FixtureResult) : null;
+	const scoreboard =
+		fixture.result && cricket
+			? cricketScoreboard(fixture.result as CricketFixtureResult, fixture.home, fixture.away)
+			: null;
 	const answerLabel = (
 		key: string | undefined,
 		options: { key: string; label: string }[],
@@ -318,14 +304,45 @@ function ResultCard({ fixture }: Readonly<{ fixture: AdminResultFixture }>) {
 				</time>
 			</header>
 
-			<div className='flex items-end justify-between gap-3 px-3 py-3'>
-				<div className='min-w-0'>
+			<div className={cn("flex gap-3 px-3 py-3", cricket ? "flex-col" : "items-end justify-between")}>
+				<div className={cn("min-w-0", cricket && "w-full")}>
 					<p className='text-xs text-muted-foreground'>
 						{cricket && fixture.status === "finished" ? "Finished" : STATUS[fixture.status]}
 					</p>
-					{result ? (
+					{scoreboard ? (
 						<>
-							<p className={cn("font-bold tabular-nums", cricket ? "text-base" : "text-2xl")}>
+							{scoreboard.rows.length > 0 ? (
+								<dl className='mt-1 grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-0.5'>
+									{scoreboard.rows.map((row) => (
+										<div key={row.team} className='contents'>
+											<dt className={cn("truncate text-sm", row.won ? "font-semibold" : "text-muted-foreground")}>
+												{row.team}
+											</dt>
+											<dd className='text-right tabular-nums'>
+												<span className={cn("text-lg font-bold", !row.won && "text-muted-foreground")}>
+													{row.score}
+												</span>
+												{row.overs ? (
+													<span className='ml-1.5 text-xs text-muted-foreground'>{row.overs}</span>
+												) : null}
+											</dd>
+										</div>
+									))}
+								</dl>
+							) : null}
+							{scoreboard.outcome ? (
+								<p className='mt-1.5 text-sm font-medium'>{scoreboard.outcome}</p>
+							) : null}
+							{scoreboard.toss ? (
+								<p className='text-xs text-muted-foreground'>{scoreboard.toss}</p>
+							) : null}
+							<p className='text-xs text-muted-foreground'>
+								{fixture.result_source === "manual" ? "Set by an admin" : "From the feed"}
+							</p>
+						</>
+					) : result ? (
+						<>
+							<p className='text-2xl font-bold tabular-nums'>
 								{result.main}
 							</p>
 							{result.lines.map((line) => (
@@ -354,6 +371,7 @@ function ResultCard({ fixture }: Readonly<{ fixture: AdminResultFixture }>) {
 					<Button
 						variant='outline'
 						size='sm'
+						className={cn(cricket && "self-end")}
 						onClick={() => setIsScoreOpen(true)}
 					>
 						<PencilIcon />

@@ -142,3 +142,4 @@ grant execute on function public.get_fixture_result_targets(text) to service_rol
 -- by the sync-fixtures and catalog-admin edge functions.
 grant execute on function public.provider_http_get(text) to service_role;
 grant execute on function public.provider_http_response(bigint) to service_role;
+grant execute on function public.get_prediction_match_result(uuid) to authenticated;
