@@ -218,16 +218,22 @@ function resultOf(match: CricMatch, detailed: boolean): CricketResult | null {
 // The match's own name from the provider's long one, which comes in two
 // shapes: "1st Test, India tour of New Zealand, 2026" and "Afghanistan A vs
 // Hong Kong, China, 9th Match, Group A, ACC Mens Asia Cup Rising Stars 2026"
-// (team names can hold commas). → "1st Test", "9th Match, Group A".
+// (team names can hold commas). → "1st Test", "9th Match".
 const MATCH_NAME =
 	/^(\d+(st|nd|rd|th)\s+(match|test|odi|t20i?|unofficial test)|final|semi[- ]?final.*|quarter[- ]?final.*|qualifier.*|eliminator|play-?off.*|super (four|six|eight|8|6|4).*)$/i;
 
 export function matchLabel(name?: string) {
 	const parts = (name ?? "").split(",").map((part) => part.trim());
-	const index = parts.findIndex((part) => MATCH_NAME.test(part));
-	if (index < 0) return null;
-	const group = /^group\s+\w+$/i.test(parts[index + 1] ?? "") ? `, ${parts[index + 1]}` : "";
-	return `${parts[index]}${group}`;
+	return parts.find((part) => MATCH_NAME.test(part)) ?? null;
+}
+
+// "Basin Reserve, Wellington" stays; a long one keeps its city: "University
+// of Doha for Science and Technology, Doha" → "Doha".
+export function shortVenue(venue?: string) {
+	const text = venue?.trim();
+	if (!text) return null;
+	if (text.length <= 30) return text;
+	return text.split(",").map((part) => part.trim()).filter(Boolean).at(-1) ?? text;
 }
 
 // One provider match in the catalog's shape, or null for a format Crow has
@@ -262,7 +268,7 @@ export function toCatalogFixture(match: CricMatch, season: string, detailed = fa
 		stage_kind: "league",
 		match_format: format,
 		label: matchLabel(match.name),
-		venue: match.venue?.trim() || null,
+		venue: shortVenue(match.venue),
 		home: team(home),
 		away: team(away),
 		result: status === "scheduled" ? null : resultOf(match, detailed),

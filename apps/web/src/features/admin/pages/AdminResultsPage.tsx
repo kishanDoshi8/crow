@@ -211,6 +211,18 @@ function scoreLines(result: FixtureResult) {
 	return { main: ninety ?? "?", lines: lines.filter(Boolean) as string[] };
 }
 
+// "72/3 (10.2)": runs and wickets, the overs quieter. "Yet to bat" when a
+// side has no innings.
+function CricketSide({ side }: Readonly<{ side: { score: string; overs: string } | null }>) {
+	if (!side) return <span className='text-sm font-normal text-muted-foreground'>Yet to bat</span>;
+	return (
+		<span className='whitespace-nowrap'>
+			{side.score}
+			<span className='ml-1 text-sm font-normal text-muted-foreground'>({side.overs})</span>
+		</span>
+	);
+}
+
 function ResultCard({ fixture }: Readonly<{ fixture: AdminResultFixture }>) {
 	const confirmed = !!fixture.confirmed_at;
 	const [editing, setEditing] = useState(!confirmed);
@@ -284,100 +296,81 @@ function ResultCard({ fixture }: Readonly<{ fixture: AdminResultFixture }>) {
 
 	return (
 		<article className='rounded-2xl border bg-card'>
-			<header className='flex items-start justify-between gap-3 px-3 pt-3'>
-				<div className='min-w-0'>
-					<h3 className='text-sm font-semibold'>
+			{/* The time shares the title's line; the competition and match get the full width. */}
+			<header className='px-3 pt-3'>
+				<div className='flex items-baseline justify-between gap-3'>
+					<h3 className='min-w-0 text-sm font-semibold'>
 						{fixture.home} vs {fixture.away}
 					</h3>
-					<p className='text-xs text-muted-foreground'>
-						{fixture.competition_name}
-						{fixture.label ?? fixture.round_label
-							? `, ${fixture.label ?? fixture.round_label}`
-							: ""}
-					</p>
+					<time
+						dateTime={fixture.kickoff_at}
+						className='shrink-0 text-xs text-muted-foreground'
+					>
+						{describeDeadline(new Date(fixture.kickoff_at)).when}
+					</time>
 				</div>
-				<time
-					dateTime={fixture.kickoff_at}
-					className='shrink-0 text-xs text-muted-foreground'
-				>
-					{describeDeadline(new Date(fixture.kickoff_at)).when}
-				</time>
+				<p className='text-xs text-muted-foreground'>
+					{fixture.competition_name}
+					{fixture.label ?? fixture.round_label
+						? `, ${fixture.label ?? fixture.round_label}`
+						: ""}
+				</p>
 			</header>
 
-			<div className={cn("flex gap-3 px-3 py-3", cricket ? "flex-col" : "items-end justify-between")}>
-				<div className={cn("min-w-0", cricket && "w-full")}>
-					<p className='text-xs text-muted-foreground'>
-						{cricket && fixture.status === "finished" ? "Finished" : STATUS[fixture.status]}
+			{/* The score and its lines take the full width; where it came from
+			    and the button share the last line. */}
+			<div className='space-y-0.5 px-3 py-3'>
+				<p className='text-xs text-muted-foreground'>
+					{cricket && fixture.status === "finished" ? "Finished" : STATUS[fixture.status]}
+				</p>
+				{scoreboard ? (
+					<>
+						{scoreboard.line.home || scoreboard.line.away ? (
+							// Like a football score: home side first, as in the title.
+							<p className='flex flex-wrap items-baseline gap-x-2 text-xl font-bold tabular-nums'>
+								<CricketSide side={scoreboard.line.home} />
+								<span className='font-normal text-muted-foreground'>–</span>
+								<CricketSide side={scoreboard.line.away} />
+							</p>
+						) : null}
+						{scoreboard.outcome ? (
+							<p className='text-xs text-muted-foreground'>{scoreboard.outcome}</p>
+						) : null}
+						{scoreboard.toss ? (
+							<p className='text-xs text-muted-foreground'>{scoreboard.toss}</p>
+						) : null}
+					</>
+				) : result ? (
+					<>
+						<p className='text-2xl font-bold tabular-nums'>{result.main}</p>
+						{result.lines.map((line) => (
+							<p key={line} className='text-xs text-muted-foreground tabular-nums'>
+								{line}
+							</p>
+						))}
+					</>
+				) : (
+					<p className='text-sm text-muted-foreground'>
+						{cricket && fixture.status === "finished"
+							? "No result from the feed: pick each answer"
+							: "No score yet"}
 					</p>
-					{scoreboard ? (
-						<>
-							{scoreboard.rows.length > 0 ? (
-								<dl className='mt-1 grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-0.5'>
-									{scoreboard.rows.map((row) => (
-										<div key={row.team} className='contents'>
-											<dt className={cn("truncate text-sm", row.won ? "font-semibold" : "text-muted-foreground")}>
-												{row.team}
-											</dt>
-											<dd className='text-right tabular-nums'>
-												<span className={cn("text-lg font-bold", !row.won && "text-muted-foreground")}>
-													{row.score}
-												</span>
-												{row.overs ? (
-													<span className='ml-1.5 text-xs text-muted-foreground'>{row.overs}</span>
-												) : null}
-											</dd>
-										</div>
-									))}
-								</dl>
-							) : null}
-							{scoreboard.outcome ? (
-								<p className='mt-1.5 text-sm font-medium'>{scoreboard.outcome}</p>
-							) : null}
-							{scoreboard.toss ? (
-								<p className='text-xs text-muted-foreground'>{scoreboard.toss}</p>
-							) : null}
-							<p className='text-xs text-muted-foreground'>
-								{fixture.result_source === "manual" ? "Set by an admin" : "From the feed"}
-							</p>
-						</>
-					) : result ? (
-						<>
-							<p className='text-2xl font-bold tabular-nums'>
-								{result.main}
-							</p>
-							{result.lines.map((line) => (
-								<p
-									key={line}
-									className='text-xs text-muted-foreground tabular-nums'
-								>
-									{line}
-								</p>
-							))}
-							<p className='text-xs text-muted-foreground'>
-								{fixture.result_source === "manual"
-									? "Set by an admin"
-									: "From the feed"}
-							</p>
-						</>
-					) : (
-						<p className='text-sm text-muted-foreground'>
-							{cricket && fixture.status === "finished"
-								? "No result from the feed: pick each answer"
-								: "No score yet"}
-						</p>
-					)}
+				)}
+				<div className='flex items-center justify-between gap-3'>
+					<p className='text-xs text-muted-foreground'>
+						{fixture.result
+							? fixture.result_source === "manual"
+								? "Set by an admin"
+								: "From the feed"
+							: null}
+					</p>
+					{editing ? (
+						<Button variant='outline' size='sm' onClick={() => setIsScoreOpen(true)}>
+							<PencilIcon />
+							{cricket ? "Set status" : fixture.result ? "Edit score" : "Type score"}
+						</Button>
+					) : null}
 				</div>
-				{editing ? (
-					<Button
-						variant='outline'
-						size='sm'
-						className={cn(cricket && "self-end")}
-						onClick={() => setIsScoreOpen(true)}
-					>
-						<PencilIcon />
-						{cricket ? "Set status" : fixture.result ? "Edit score" : "Type score"}
-					</Button>
-				) : null}
 			</div>
 
 			<ul className='divide-y border-t'>

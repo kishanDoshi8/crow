@@ -439,9 +439,10 @@ matches from a list instead of typing them is most of the saving.
   `match_info` (saved with `"detailed": true`) has been read after it ended;
   a later list sync never replaces that fuller result. Results are looked for
   up to three days after the start. Labels come from the match's own part of
-  the provider's name ("9th Match, Group A").
-- **Scoreboard:** /admin shows each side's innings ("66 all out 21.3 ov",
-  "312 & 245/6" in Tests), the outcome and the toss
+  the provider's name ("9th Match"), and a long venue shortens to its city.
+- **Score:** /admin shows it on one line like a football score, home side
+  first as in the title ("72/3 (10.2) – 66/10 (21.3)", "312/10 & 245/6" in
+  Tests), then the outcome and the toss
   (`apps/web/src/shared/lib/cricketScore.ts`).
 - **For players (groundwork):** `get_prediction_match_result` returns a
   question's match and confirmed result (football score or cricket

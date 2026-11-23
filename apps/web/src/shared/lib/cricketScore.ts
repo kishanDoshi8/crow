@@ -58,5 +58,17 @@ export function cricketScoreboard(result: CricketFixtureResult, home: string, aw
 		? `${name(result.toss_winner)} won the toss${result.toss_choice ? ` and chose to ${result.toss_choice}` : ""}`
 		: null;
 
-	return { rows, outcome, toss };
+	// One line, like a football score, in the title's order (home vs away):
+	// "72/3 (10.2)" and "66/10 (21.3)". A side yet to bat has none.
+	const side = (team: "home" | "away") => {
+		const innings = result.innings.filter((inning) => inning.team === team);
+		const last = innings.at(-1);
+		if (!last) return null;
+		return {
+			score: innings.map((inning) => `${inning.runs}/${inning.wickets}`).join(" & "),
+			overs: `${last.overs}`,
+		};
+	};
+
+	return { rows, outcome, toss, line: { home: side("home"), away: side("away") } };
 }
