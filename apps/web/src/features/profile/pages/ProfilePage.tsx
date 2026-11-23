@@ -8,6 +8,7 @@ import {
 	LinkIcon,
 	LogOutIcon,
 	TriangleAlertIcon,
+	UserPlusIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAccountDeletion } from "@/features/account";
@@ -19,6 +20,8 @@ import {
 	identityToneMeta,
 	styleTitleIcon,
 } from "@/features/leaderboard";
+import { InviteToRoomSheet } from "@/features/profile/components/InviteToRoomSheet";
+import { PeopleYouPlayWith } from "@/features/profile/components/PeopleYouPlayWith";
 import { useHeadToHead, usePlayerProfile } from "@/features/profile/hooks/profile";
 import type { HeadToHead, PlayerProfile, PlayerProfileRoom } from "@/shared/lib/api";
 import { EASE_OUT } from "@/shared/lib/motion";
@@ -148,6 +151,12 @@ function ProfileBody({
 			</Section>
 
 			{profile.is_self ? (
+				<Section title='People you play with'>
+					<PeopleYouPlayWith />
+				</Section>
+			) : null}
+
+			{profile.is_self ? (
 				<>
 					<AccountSection />
 					<DeleteAccountSection />
@@ -195,7 +204,28 @@ function ProfileHero({ profile }: Readonly<{ profile: PlayerProfile }>) {
 				</span>
 			) : null}
 			<p className='text-xs text-muted-foreground'>Playing since {since}</p>
+			{profile.is_self ? null : (
+				<InviteButton playerId={profile.player.id} username={profile.player.username} />
+			)}
 		</section>
+	);
+}
+
+function InviteButton({ playerId, username }: Readonly<{ playerId: string; username: string }>) {
+	const [open, setOpen] = useState(false);
+	return (
+		<>
+			<Button variant='outline' size='sm' className='mt-1' onClick={() => setOpen(true)}>
+				<UserPlusIcon aria-hidden='true' />
+				Invite to a room
+			</Button>
+			<InviteToRoomSheet
+				playerId={playerId}
+				username={username}
+				open={open}
+				onOpenChange={setOpen}
+			/>
+		</>
 	);
 }
 

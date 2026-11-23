@@ -10,7 +10,8 @@ type NotificationEventType =
 	| "result_needed"
 	| "join_request"
 	| "member_joined"
-	| "join_accepted";
+	| "join_accepted"
+	| "room_invite";
 
 const EVENT_TO_COLUMN: Record<NotificationEventType, string> = {
 	prediction_live: "prediction_live",
@@ -24,6 +25,8 @@ const EVENT_TO_COLUMN: Record<NotificationEventType, string> = {
 	join_request: "result_needed",
 	member_joined: "result_needed",
 	join_accepted: "prediction_live",
+	// An invite to a room follows the same general new-activity setting.
+	room_invite: "prediction_live",
 };
 
 const corsHeaders = {
@@ -46,6 +49,7 @@ const DELIVERY: Record<
 	join_request: { ttl: 24 * 3600, urgency: "normal" },
 	member_joined: { ttl: 24 * 3600, urgency: "normal" },
 	join_accepted: { ttl: 24 * 3600, urgency: "normal" },
+	room_invite: { ttl: 24 * 3600, urgency: "normal" },
 };
 // Keeps .in() filters well under URL length limits in big rooms.
 const ID_BATCH_SIZE = 150;
@@ -73,7 +77,10 @@ type RequestBody = {
 		url?: string;
 		/** With room_id: only members with one of these roles, e.g. staff. */
 		roles?: string[];
-		/** With room_id, privileged only: just this player (a member of it). */
+		/**
+		 * Privileged only: just this player. With room_id they must be a
+		 * member of it; without, anyone (an invite to a room they're not in).
+		 */
 		target_player_id?: string;
 		[key: string]: unknown;
 	};
@@ -227,8 +234,16 @@ Deno.serve(async (req) => {
 	let candidateIds: string[] | null = null;
 	let overrideRoomId: string | null = null;
 
+	const privilegedTarget = body.payload?.target_player_id;
 	if (targetPlayerId) {
 		candidateIds = [targetPlayerId];
+	} else if (
+		isPrivilegedRequest &&
+		!body.room_id &&
+		typeof privilegedTarget === "string" &&
+		privilegedTarget
+	) {
+		candidateIds = [privilegedTarget];
 	} else if (isPrivilegedRequest && body.room_id) {
 		let memberQuery = supabase
 			.from("room_members")

@@ -15,6 +15,7 @@ import {
 	RoomMenuDrawer,
 	RoomSwitcherPopover,
 	useManageQueue,
+	useMyRoomInvites,
 	useRoomRole,
 	type Room,
 } from "@/features/rooms";
@@ -61,6 +62,9 @@ export function RoomSidebar({ room, collapsed }: Readonly<Props>) {
 	// Results to reveal, plus people waiting to be let in.
 	const toResolve = (queue?.to_resolve.length ?? 0) + (queue?.join_requests?.length ?? 0);
 	const memberCount = room.members.length;
+	// A dot on the room switcher: invites waiting in it.
+	const { data: invites } = useMyRoomInvites();
+	const hasInvites = !!invites?.length;
 	const seriesLabel = currentSeries?.title ?? (can.organize ? "Start a series" : "No series yet");
 	// Labels fade as the sidebar narrows, and stay out of the tab order.
 	const label = cn(
@@ -84,12 +88,18 @@ export function RoomSidebar({ room, collapsed }: Readonly<Props>) {
 					<button
 						type='button'
 						title={collapsed ? `${room.name} · switch room` : undefined}
-						aria-label={`${room.name}. Switch room`}
+						aria-label={`${room.name}. Switch room${hasInvites ? ". You have invites" : ""}`}
 						className='flex h-11 w-full shrink-0 items-center gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 					>
 						{/* The phone header's room button. */}
-						<span className='flex size-11 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-primary to-accent text-primary-foreground'>
+						<span className='relative flex size-11 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-primary to-accent text-primary-foreground'>
 							<LayoutGridIcon className='size-5' aria-hidden='true' />
+							{hasInvites ? (
+								<span
+									aria-hidden='true'
+									className='absolute -right-1 -top-1 size-3 rounded-full border-2 border-sidebar bg-activity'
+								/>
+							) : null}
 						</span>
 						<span className={cn(label, "leading-tight")}>
 							<span className='block truncate font-bold'>{room.name}</span>
