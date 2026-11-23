@@ -40,6 +40,9 @@ export type CricketResult = {
 	toss_choice: "bat" | "bowl" | null;
 	innings: { team: Side | null; runs: number; wickets: number; overs: number }[];
 	status_text: string;
+	// Read from the match's own page (toss and innings included), not just a
+	// series list: once a finished match has this, it's settled.
+	detailed?: boolean;
 };
 
 export type CatalogResult = FootballResult | CricketResult;

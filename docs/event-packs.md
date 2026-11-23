@@ -434,5 +434,19 @@ matches from a list instead of typing them is most of the saving.
   `matchWinner`, `score[].inning`), which couldn't be verified from the
   build environment. Search for one series, add it, and compare a synced
   match with the API's own response.
+- **Settling a match:** the series list carries the winner but not the toss
+  or innings, so a cricket match counts as settled only once its own
+  `match_info` (saved with `"detailed": true`) has been read after it ended;
+  a later list sync never replaces that fuller result. Results are looked for
+  up to three days after the start. Labels come from the match's own part of
+  the provider's name ("9th Match"), and a long venue shortens to its city.
+- **Score:** /admin shows it on one line like a football score, home side
+  first as in the title ("72/3 (10.2) – 66/10 (21.3)", "312/10 & 245/6" in
+  Tests), then the outcome and the toss
+  (`apps/web/src/shared/lib/cricketScore.ts`).
+- **For players (groundwork):** `get_prediction_match_result` returns a
+  question's match and confirmed result (football score or cricket
+  scoreboard) to anyone who can see the question; `getPredictionMatchResult`
+  in `api.ts` calls it. Nothing shows it yet.
 - **Not yet:** player questions from scorecards (paid data), auto-confirm.
 
