@@ -19,6 +19,8 @@ type Props = {
 	trophies: Trophy[];
 	milestones: RoomMemberMilestone[];
 	onBack: () => void;
+	// What the back link returns to ("Back to card" in the player card).
+	backLabel?: string;
 };
 
 const TIER_HEADING: Record<SeriesTier, string> = {
@@ -71,6 +73,7 @@ export function TrophyCabinet({
 	trophies,
 	milestones,
 	onBack,
+	backLabel = "Back to card",
 }: Readonly<Props>) {
 	const groups = SERIES_TIER_ORDER.map((tier) => ({
 		tier,
@@ -85,7 +88,7 @@ export function TrophyCabinet({
 				className='flex w-fit items-center gap-1 rounded-md py-0.5 pr-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50'
 			>
 				<ChevronLeftIcon className='size-4' />
-				Back to card
+				{backLabel}
 			</button>
 
 			{groups.map((group) => (

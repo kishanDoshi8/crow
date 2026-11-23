@@ -23,25 +23,15 @@ import {
 	useSeriesLeaderboard,
 } from "../../hooks/leaderboard";
 import { useCurrentSeries } from "@/features/series";
-import {
-	buildTrophies,
-	getIdentityTitle,
-	type IdentityTitle,
-	type StyleTitle,
-} from "@/shared/lib/trophyPrestige";
+import { buildTrophies, getIdentityTitle } from "@/shared/lib/trophyPrestige";
 import { EASE_OUT } from "@/shared/lib/motion";
 import { cn, initialsOf } from "@/shared/lib/utils";
 import { AnimatePresence, m } from "framer-motion";
-import {
-	CalendarCheckIcon,
-	CoinsIcon,
-	CrosshairIcon,
-	CrownIcon,
-	MedalIcon,
-	RocketIcon,
-} from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
+import { ChevronRightIcon } from "lucide-react";
 import { CareerStats } from "./CareerStats";
+import { identityToneMeta, styleTitleIcon } from "./identity";
 import { LiveSeriesStrip } from "./LiveSeriesStrip";
 import { MilestoneRow } from "./MilestoneRow";
 import { RecentForm } from "./RecentForm";
@@ -53,38 +43,6 @@ type Props = {
 	playerId: string | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-};
-
-const identityToneMeta: Record<
-	IdentityTitle["tone"],
-	{ chipClassName: string; avatarClassName: string; Icon?: typeof CrownIcon }
-> = {
-	champion: {
-		chipClassName: "bg-rank-1/15 text-rank-1",
-		avatarClassName: "ring-2 ring-rank-1/70",
-		Icon: CrownIcon,
-	},
-	podium: {
-		chipClassName: "bg-rank-2/15 text-rank-2",
-		avatarClassName: "ring-2 ring-rank-2/60",
-		Icon: MedalIcon,
-	},
-	style: {
-		chipClassName: "bg-accent/15 text-accent",
-		avatarClassName: "ring-1 ring-border",
-	},
-	rookie: {
-		chipClassName: "bg-muted text-muted-foreground",
-		avatarClassName: "ring-1 ring-border",
-	},
-};
-
-// Each play-style title carries its own icon.
-const styleTitleIcon: Record<StyleTitle, typeof CrownIcon> = {
-	SHARPSHOOTER: CrosshairIcon,
-	GIANT_KILLER: RocketIcon,
-	HIGH_ROLLER: CoinsIcon,
-	EVER_PRESENT: CalendarCheckIcon,
 };
 
 const viewTransition = { duration: 0.2, ease: EASE_OUT };
@@ -314,6 +272,16 @@ export function PlayerProfileDialog({
 										isLoading={isStatsLoading}
 									/>
 								</CardSection>
+
+								{/* Their career across the rooms you share, and head to head. */}
+								<Link
+									to={`/players/${playerId}`}
+									onClick={() => onOpenChange(false)}
+									className='flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-medium transition-colors hover:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+								>
+									View full profile
+									<ChevronRightIcon className='size-4 text-muted-foreground' aria-hidden='true' />
+								</Link>
 							</m.div>
 						)}
 					</AnimatePresence>

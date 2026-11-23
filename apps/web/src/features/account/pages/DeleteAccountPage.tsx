@@ -23,7 +23,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 // Players ask for their account to be deleted; it's carried out by hand
-// within 30 days for now. The future profile page will host this.
+// within 30 days for now. Reached from the profile page's Delete account section.
 export default function DeleteAccountPage() {
 	const navigate = useNavigate();
 	const { user } = useAuth();

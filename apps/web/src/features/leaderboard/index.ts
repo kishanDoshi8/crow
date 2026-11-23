@@ -12,6 +12,10 @@ export {
 	PredictionHistoryFeedSkeleton,
 } from "./components/leaderboard/PredictionHistoryFeed";
 export { PlayerProfileDialog } from "./components/player/PlayerProfileDialog";
+export { TrophyShowcase } from "./components/player/TrophyShowcase";
+export { TrophyCabinet } from "./components/player/TrophyCabinet";
+export { MilestoneRow } from "./components/player/MilestoneRow";
+export { identityToneMeta, styleTitleIcon } from "./components/player/identity";
 export { RankingRuleHint } from "./components/leaderboard/RankingRuleHint";
 export { ShareStandingsButton } from "./components/ShareStandingsButton";
 export { ShareWeeklyButton } from "./components/ShareWeeklyButton";

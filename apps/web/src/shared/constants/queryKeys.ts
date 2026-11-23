@@ -122,6 +122,15 @@ export const roomKeys = {
     [...roomKeys.detail(roomId), "seriesSuggestions"] as const,
 };
 
+// Player profiles across rooms. "me" is your own; others by player id.
+export const profileKeys = {
+  all: ["profile"] as const,
+  detail: (playerId: string | null) =>
+    [...profileKeys.all, playerId ?? "me"] as const,
+  headToHead: (playerId: string) =>
+    [...profileKeys.all, playerId, "headToHead"] as const,
+};
+
 export const localStorageKeys = {
   userPreference: {
     theme: "theme",

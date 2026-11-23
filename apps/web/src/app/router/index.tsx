@@ -27,6 +27,7 @@ const LandingPage = lazy(() =>
 );
 const PrivacyPage = lazy(() => import("@/features/legal/pages/PrivacyPage"));
 const TermsPage = lazy(() => import("@/features/legal/pages/TermsPage"));
+const ProfilePage = lazy(() => import("@/features/profile/pages/ProfilePage"));
 const DeleteAccountPage = lazy(
 	() => import("@/features/account/pages/DeleteAccountPage"),
 );
@@ -137,6 +138,8 @@ export const router = createBrowserRouter([
 				children: [
 					{ path: "/", element: <HomePage /> },
 					{ path: "/create-player", element: withSuspense(<CreatePlayer />) },
+					{ path: "/profile", element: withSuspense(<ProfilePage />) },
+					{ path: "/players/:playerId", element: withSuspense(<ProfilePage />) },
 					{
 						path: "/account/delete",
 						element: withSuspense(<DeleteAccountPage />),

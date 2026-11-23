@@ -110,7 +110,7 @@ export default function TermsPage() {
 
 			<LegalSection id='ending' title='7. Leaving, suspension and changes to Crow'>
 				<p>
-					You can leave any room or delete your account at any time (Room menu →
+					You can leave any room or delete your account at any time (Your profile →
 					Delete account). We may suspend or close accounts or rooms that break
 					these terms, and where reasonable we'll tell you why.
 				</p>
