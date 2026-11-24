@@ -124,6 +124,25 @@ begin
 end;
 $$;
 
+-- The tag a competition's questions get in rooms: the one a platform admin
+-- set, or else its name when it fits a tag (24 characters), or else the
+-- sport.
+create or replace function private.competition_tag(p_tag text, p_name text, p_sport text)
+returns text
+language sql
+immutable
+set search_path = public, private
+as $$
+  select coalesce(
+    p_tag,
+    case
+      when char_length(p_name) <= 24 then p_name
+      when p_sport = 'soccer' then 'Football'
+      else initcap(p_sport)
+    end
+  );
+$$;
+
 -- Organizers add fixture questions to a series: each becomes a normal
 -- question that closes at kickoff, linked back to its fixture question.
 -- Questions for one match share an event (the one the room already has for
@@ -238,12 +257,7 @@ begin
       f.id as fixture_id, f.kickoff_at,
       f.kickoff_at - make_interval(mins => coalesce(t.close_minutes_before, 0)::int) as closes_at,
       h.short_name || ' vs ' || a.short_name as event_title,
-      -- Tags are 24 characters at most: a longer name (a tour) tags the sport.
-      case
-        when char_length(c.name) <= 24 then c.name
-        when c.sport = 'soccer' then 'Football'
-        else initcap(c.sport)
-      end as competition_name
+      private.competition_tag(c.tag, c.name, c.sport) as competition_name
     from catalog.fixture_questions q
     left join catalog.question_templates t on t.id = q.template_id
     join catalog.fixtures f on f.id = q.fixture_id
@@ -305,7 +319,7 @@ begin
     select v_prediction_id, o.value->>'label', (o.position - 1)::smallint, o.value->>'key'
     from jsonb_array_elements(v_question.options) with ordinality as o(value, position);
 
-    -- The competition's name as a tag, so History can filter by it.
+    -- The competition's tag, so History can filter by it.
     perform public.set_prediction_details(
       v_prediction_id,
       v_question.description,
@@ -508,8 +522,9 @@ end;
 $$;
 
 -- The match a room question came from, and how it ended, for showing next
--- to the question's result: its teams, the confirmed result (a football
--- score, or a cricket scoreboard and toss) and when it was confirmed. Null
+-- to the question's result: its teams (short and full names), round,
+-- venue, the confirmed result (a football score, or a cricket scoreboard
+-- and toss) and when it was confirmed. Null
 -- for a question that isn't from the fixtures, or before an admin has
 -- confirmed the match. Anyone who can see the question.
 create or replace function public.get_prediction_match_result(p_prediction_id uuid)
@@ -524,9 +539,13 @@ as $$
     'competition', c.name,
     'format', f.match_format,
     'label', f.label,
+    'round', f.round_label,
     'venue', f.venue,
+    'kickoff_at', f.kickoff_at,
     'home', h.short_name,
     'away', a.short_name,
+    'home_name', h.name,
+    'away_name', a.name,
     'status', f.status,
     'result', f.result,
     'confirmed_at', f.result_confirmed_at

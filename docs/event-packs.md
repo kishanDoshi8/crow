@@ -450,3 +450,23 @@ matches from a list instead of typing them is most of the saving.
   in `api.ts` calls it. Nothing shows it yet.
 - **Not yet:** player questions from scorecards (paid data), auto-confirm.
 
+
+---
+
+## 15. What players see: tags and match results (November 2026)
+
+- **Tags:** each question added from a pack is tagged with its
+  competition's tag, so History can filter by it. A platform admin sets
+  the tag in /admin → Competitions (Edit tag), or when adding a cricket
+  series (suggested from the name: "Asia Cup 2026 (Sri Lanka and
+  Pakistan)" → "Asia Cup 2026"). With no tag set it's the name when it fits
+  24 characters, else the sport (`private.competition_tag`). Changing it
+  retags the questions rooms already added that are still linked to the
+  competition; a question a host edited keeps its tag.
+- **Match result:** once an admin confirms a match, its questions show a
+  Match result card under the result: the score (football: full time,
+  half time, extra time and the shootout; cricket: each side's total and
+  overs, the result in words and the toss), the round and the venue. A
+  called-off match says so. The shared result card adds one line ("ARS
+  2–2 CHE (2–4 pens)", "India won by 22 runs"). Nothing shows before the
+  admin confirms, even if a host revealed earlier.

@@ -2,6 +2,7 @@ import { CheckIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAddCompetition, useSearchSeries } from "@/features/admin/hooks";
+import { suggestTag, TAG_MAX } from "@/features/admin/lib/tags";
 import type { ProviderSeries } from "@/shared/lib/api";
 import {
 	Button,
@@ -43,6 +44,8 @@ export function AddSeriesDialog({
 	const [query, setQuery] = useState("");
 	const { mutate: search, data: found, isPending: isSearching, reset } = useSearchSeries();
 	const { mutate: add, isPending: isAdding, variables: adding } = useAddCompetition();
+	// The series being added: its questions' tag is checked first.
+	const [tagging, setTagging] = useState<{ ref: string; tag: string } | null>(null);
 
 	const submit = (event: React.FormEvent) => {
 		event.preventDefault();
@@ -95,37 +98,82 @@ export function AddSeriesDialog({
 						<ul className='divide-y rounded-xl border'>
 							{found.map((series) => {
 								const added = existingRefs.has(series.provider_ref);
-								const busy = isAdding && adding?.provider_ref === series.provider_ref;
+								const busy = isAdding && adding?.series.provider_ref === series.provider_ref;
+								const isTagging = tagging?.ref === series.provider_ref;
+								const confirmAdd = () =>
+									add(
+										{ series, tag: tagging?.tag },
+										{
+											onSuccess: () => {
+												setTagging(null);
+												toast.success(`Added ${series.name}`, {
+													description: "Its matches arrive with the sync that just started.",
+													position: "top-center",
+												});
+											},
+											onError: (error) =>
+												toast.error("Couldn't add the series. Try again.", {
+													description: error.message,
+													position: "top-center",
+												}),
+										},
+									);
 								return (
-									<li key={series.provider_ref} className='flex items-start gap-3 px-3 py-2.5'>
-										<div className='min-w-0 flex-1'>
-											<p className='text-sm font-semibold'>{series.name}</p>
-											<p className='text-xs text-muted-foreground'>{formatsLine(series)}</p>
-											{datesLine(series) ? <p className='text-xs text-muted-foreground'>{datesLine(series)}</p> : null}
+									<li key={series.provider_ref} className='flex flex-col gap-2.5 px-3 py-2.5'>
+										<div className='flex items-start gap-3'>
+											<div className='min-w-0 flex-1'>
+												<p className='text-sm font-semibold'>{series.name}</p>
+												<p className='text-xs text-muted-foreground'>{formatsLine(series)}</p>
+												{datesLine(series) ? <p className='text-xs text-muted-foreground'>{datesLine(series)}</p> : null}
+											</div>
+											{isTagging ? null : (
+												<Button
+													variant={added ? "ghost" : "outline"}
+													size='sm'
+													className='shrink-0'
+													disabled={added || isAdding}
+													onClick={() =>
+														setTagging({ ref: series.provider_ref, tag: suggestTag(series.name) })
+													}
+												>
+													{added ? <CheckIcon /> : <PlusIcon />}
+													{added ? "Added" : "Add"}
+												</Button>
+											)}
 										</div>
-										<Button
-											variant={added ? "ghost" : "outline"}
-											size='sm'
-											className='shrink-0'
-											disabled={added || isAdding}
-											onClick={() =>
-												add(series, {
-													onSuccess: () =>
-														toast.success(`Added ${series.name}`, {
-															description: "Its matches arrive with the sync that just started.",
-															position: "top-center",
-														}),
-													onError: (error) =>
-														toast.error("Couldn't add the series. Try again.", {
-															description: error.message,
-															position: "top-center",
-														}),
-												})
-											}
-										>
-											{busy ? <Spinner /> : added ? <CheckIcon /> : <PlusIcon />}
-											{added ? "Added" : "Add"}
-										</Button>
+										{isTagging ? (
+											// The tag its questions get in rooms, suggested from the name.
+											<form
+												className='flex flex-col gap-2'
+												onSubmit={(event) => {
+													event.preventDefault();
+													confirmAdd();
+												}}
+											>
+												<label className='flex flex-col gap-1 text-xs text-muted-foreground'>
+													Tag on its questions
+													<Input
+														value={tagging.tag}
+														maxLength={TAG_MAX}
+														onChange={(event) => setTagging({ ...tagging, tag: event.target.value })}
+														aria-describedby={`tag-hint-${series.provider_ref}`}
+														autoFocus
+													/>
+												</label>
+												<p id={`tag-hint-${series.provider_ref}`} className='text-xs text-muted-foreground'>
+													Up to {TAG_MAX} characters. Leave it empty to use the sport.
+												</p>
+												<div className='flex justify-end gap-2'>
+													<Button type='button' variant='ghost' size='sm' onClick={() => setTagging(null)} disabled={busy}>
+														Cancel
+													</Button>
+													<Button type='submit' size='sm' disabled={isAdding}>
+														{busy ? <Spinner /> : <PlusIcon />}
+														Add series
+													</Button>
+												</div>
+											</form>
+										) : null}
 									</li>
 								);
 							})}

@@ -1,7 +1,8 @@
-import { PlusIcon, RefreshCwIcon, SearchIcon } from "lucide-react";
+import { PlusIcon, RefreshCwIcon, SearchIcon, TagIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AddSeriesDialog } from "@/features/admin/components/AddSeriesDialog";
+import { CompetitionTagDialog } from "@/features/admin/components/CompetitionTagDialog";
 import {
 	useAdminCompetitions,
 	useRequestFixtureSync,
@@ -186,6 +187,7 @@ function ProviderGroup({
 
 function CompetitionRow({ competition }: Readonly<{ competition: AdminCompetition }>) {
 	const { mutate: setActive } = useSetCompetitionActive();
+	const [isTagOpen, setIsTagOpen] = useState(false);
 	const id = `active-${competition.id}`;
 	const synced = competition.synced_at
 		? `synced ${describeDeadline(new Date(competition.synced_at)).relative}`
@@ -193,26 +195,46 @@ function CompetitionRow({ competition }: Readonly<{ competition: AdminCompetitio
 
 	return (
 		<div className='flex items-start gap-3 px-3 py-3'>
-			<label htmlFor={id} className='min-w-0 flex-1 cursor-pointer'>
-				<span className='block text-sm font-semibold'>{competition.name}</span>
-				<span className='block text-xs text-muted-foreground'>
-					{[competition.provider_ref, competition.season, competition.active ? synced : "off"].filter(Boolean).join(", ")}
-				</span>
-				{competition.last_sync_error ? (
-					<span className='block text-xs text-destructive'>
-						Last sync failed
-						{competition.last_sync_error_at
-							? ` ${describeDeadline(new Date(competition.last_sync_error_at)).relative}`
-							: ""}
-						: {competition.last_sync_error}
+			<div className='min-w-0 flex-1'>
+				<label htmlFor={id} className='block cursor-pointer'>
+					<span className='block text-sm font-semibold'>{competition.name}</span>
+					<span className='block text-xs text-muted-foreground'>
+						{[competition.provider_ref, competition.season, competition.active ? synced : "off"].filter(Boolean).join(", ")}
 					</span>
-				) : null}
-				<span className='block text-xs text-muted-foreground'>
-					{competition.active
-						? `Followed by ${competition.rooms} ${competition.rooms === 1 ? "room" : "rooms"}, ${competition.upcoming} upcoming`
-						: "Not offered to rooms"}
+					{competition.last_sync_error ? (
+						<span className='block text-xs text-destructive'>
+							Last sync failed
+							{competition.last_sync_error_at
+								? ` ${describeDeadline(new Date(competition.last_sync_error_at)).relative}`
+								: ""}
+							: {competition.last_sync_error}
+						</span>
+					) : null}
+					<span className='block text-xs text-muted-foreground'>
+						{competition.active
+							? `Followed by ${competition.rooms} ${competition.rooms === 1 ? "room" : "rooms"}, ${competition.upcoming} upcoming`
+							: "Not offered to rooms"}
+					</span>
+				</label>
+				{/* Outside the label, so editing the tag doesn't flip the switch. */}
+				<span className='mt-1 flex items-center gap-2'>
+					<span className='inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs'>
+						<TagIcon className='size-3 text-muted-foreground' aria-hidden='true' />
+						{competition.tag}
+					</span>
+					<Button
+						variant='ghost'
+						size='xs'
+						onClick={() => setIsTagOpen(true)}
+						aria-label={`Edit tag for ${competition.name}`}
+					>
+						Edit tag
+					</Button>
 				</span>
-			</label>
+			</div>
+			{isTagOpen ? (
+				<CompetitionTagDialog competition={competition} open={isTagOpen} onOpenChange={setIsTagOpen} />
+			) : null}
 			<Switch
 				id={id}
 				checked={competition.active}

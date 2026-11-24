@@ -22,6 +22,9 @@ import { useIsDesktop } from "@/shared/lib/useMediaQuery";
 import { cn } from "@/shared/lib/utils";
 import { useBets } from "@/features/predictions/hooks/bet";
 import { ResolvePredictionDrawer } from "@/features/predictions/components/ResolvePredictionDrawer";
+import { MatchResultCard } from "@/features/predictions/components/MatchResultCard";
+import { usePredictionMatchResult } from "@/features/predictions/hooks/prediction";
+import { summarizeMatch } from "@/shared/lib/matchScore";
 import type { Prediction } from "@/features/predictions/types/types";
 import {
 	formatPoints,
@@ -110,6 +113,14 @@ function LoadedPrediction({
 		setIsSheetOpen(true);
 	};
 
+	// An event pack question with a result: the match it came from, once
+	// Crow has confirmed it, for the card under the result and the share card.
+	const hasMatch =
+		!!prediction.fixture_question_id &&
+		(status === "revealed" || status === "no_result");
+	const { data: match } = usePredictionMatchResult(room.id, prediction.id, hasMatch);
+	const matchLine = match ? (summarizeMatch(match)?.shareLine ?? null) : null;
+
 	const resultCard: ResultCardData | null =
 		status === "revealed" && prediction.winning_option_id && !isBetsLoading
 			? {
@@ -119,6 +130,7 @@ function LoadedPrediction({
 					seriesTitle: prediction.seriesTitle ?? null,
 					predictionNumber: prediction.seriesPredictionNumber ?? null,
 					question: prediction.title,
+					matchLine,
 					winner: winnerLabel ?? "",
 					calledIt: bets.filter(
 						(bet) => bet.option_id === prediction.winning_option_id,
@@ -364,6 +376,12 @@ function LoadedPrediction({
 								resultCard={resultCard}
 							/>
 						) : null}
+
+						<MatchResultCard
+							roomId={room.id}
+							predictionId={prediction.id}
+							enabled={hasMatch}
+						/>
 					</div>
 
 					<section>

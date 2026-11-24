@@ -126,6 +126,7 @@ grant execute on function public.admin_set_fixture_result(uuid, text, jsonb) to 
 grant execute on function public.admin_confirm_fixture(uuid, jsonb) to authenticated;
 grant execute on function public.admin_get_competitions() to authenticated;
 grant execute on function public.admin_set_competition_active(uuid, boolean) to authenticated;
+grant execute on function public.admin_set_competition_tag(uuid, text) to authenticated;
 grant execute on function public.admin_request_fixture_sync(text) to authenticated;
 grant execute on function public.admin_get_fixtures(uuid, integer) to authenticated;
 grant execute on function public.admin_update_fixture_question(uuid, boolean, text, text, boolean) to authenticated;
@@ -140,7 +141,7 @@ grant execute on function public.record_fixture_sync_error(text, text, text) to 
 grant execute on function public.log_app_event(text, uuid, text, text) to anon, authenticated;
 
 -- Phase 3: cricket series from the provider's search, and one-off questions.
-grant execute on function public.admin_add_competition(text, text, text, text, text, text, date, date) to authenticated;
+grant execute on function public.admin_add_competition(text, text, text, text, text, text, date, date, text) to authenticated;
 grant execute on function public.admin_add_fixture_extra(uuid, text, text, text[]) to authenticated;
 grant execute on function public.admin_delete_fixture_extra(uuid) to authenticated;
 grant execute on function public.get_fixture_result_targets(text) to service_role;

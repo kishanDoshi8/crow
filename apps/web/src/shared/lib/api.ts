@@ -1317,16 +1317,22 @@ export async function getRoomCompetitionFixtures(roomId: string, competitionId: 
 }
 
 // How the match a question came from ended, once an admin has confirmed it
-// (null otherwise, or for a question not from the fixtures). Groundwork for
-// showing the score or scoreboard next to a question's result.
+// (null otherwise, or for a question not from the fixtures). Shown next to
+// the question's result (MatchResultCard).
 export type PredictionMatchResult = {
   sport: 'soccer' | 'cricket'
   competition: string
   format: CricketFormat | null
+  // The match's own name ("1st Test") and its round ("Matchweek 13").
   label: string | null
+  round: string | null
   venue: string | null
+  kickoff_at: string
+  // Short names ("ARS") and full ones ("Arsenal").
   home: string
   away: string
+  home_name: string | null
+  away_name: string | null
   status: FixtureStatus
   result: FixtureResult | CricketFixtureResult | null
   confirmed_at: string
@@ -1461,6 +1467,10 @@ export async function adminConfirmFixture(fixtureId: string, outcomes: Record<st
 export type AdminCompetition = {
   id: string
   name: string
+  // The tag its questions get in rooms, and whether an admin set it (else
+  // it's the name when it fits, or the sport).
+  tag: string
+  tag_is_custom: boolean
   sport: 'soccer' | 'cricket'
   provider: string
   provider_ref: string
@@ -1584,7 +1594,7 @@ export async function adminSearchSeries(query: string) {
   return (data as { series: ProviderSeries[] }).series
 }
 
-export async function adminAddCompetition(series: ProviderSeries, sport: 'soccer' | 'cricket') {
+export async function adminAddCompetition(series: ProviderSeries, sport: 'soccer' | 'cricket', tag?: string | null) {
   const { data, error } = await untypedSupabase.rpc('admin_add_competition', {
     p_provider: series.provider,
     p_provider_ref: series.provider_ref,
@@ -1594,8 +1604,19 @@ export async function adminAddCompetition(series: ProviderSeries, sport: 'soccer
     p_region: series.region,
     p_starts_on: series.starts_on,
     p_ends_on: series.ends_on,
+    p_tag: tag?.trim() || null,
   })
   return assertOk(data, error) as { id: string }
+}
+
+// The tag a competition's questions get in rooms; null or blank for the
+// default. Questions rooms already added from it get the new tag too.
+export async function adminSetCompetitionTag(competitionId: string, tag: string | null) {
+  const { data, error } = await untypedSupabase.rpc('admin_set_competition_tag', {
+    p_competition_id: competitionId,
+    p_tag: tag?.trim() || null,
+  })
+  return assertOk(data, error) as { id: string; tag: string; tag_is_custom: boolean; questions_retagged: number }
 }
 
 // A one-off question for one match; its answer is picked when confirming.
