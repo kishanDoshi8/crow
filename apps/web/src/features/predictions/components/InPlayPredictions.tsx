@@ -663,7 +663,14 @@ function InPlayPredictions({
 
 	const renderGroup = (group: QuestionGroup) =>
 		group.kind === "set" ? (
-			<MatchCard title={group.title} predictions={group.predictions} picks={picks} roomCode={room.code} />
+			<MatchCard
+				title={group.title}
+				predictions={group.predictions}
+				picks={picks}
+				roomId={room.id}
+				roomCode={room.code}
+				playerId={me?.id}
+			/>
 		) : (
 			<PredictionCard
 				prediction={group.prediction}

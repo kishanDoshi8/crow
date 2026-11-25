@@ -5,23 +5,32 @@ import type { Prediction } from "@/features/predictions/types/types";
 import type { Bet } from "@/features/predictions/types/bet";
 import { useActivePredictions } from "@/features/predictions/hooks/prediction";
 
-// The player's own pick on each question, read from the same per-question
-// cache the cards fill (useBets), so it costs no extra requests on Home and
-// follows placing or taking back a pick straight away.
-export function useMyPicks(roomId: string, predictions: Prediction[], playerId?: string) {
+// Everyone's picks on each question, from the same per-question cache the
+// cards fill (useBets), so it costs no extra requests on Home and follows
+// placing or taking back a pick straight away.
+export function useQuestionBets(roomId: string, predictions: Prediction[], enabled = true) {
 	const results = useQueries({
 		queries: predictions.map((prediction) => ({
 			queryKey: roomKeys.bets(roomId, prediction.id),
 			queryFn: () => getBetsForPrediction(prediction.id),
-			enabled: !!playerId,
+			enabled,
 		})),
 	});
-	const picks = new Map<string, Bet | undefined>();
+	const bets = new Map<string, Bet[]>();
 	predictions.forEach((prediction, index) => {
-		const bets = (results[index]?.data ?? []) as Bet[];
-		picks.set(prediction.id, bets.find((bet) => bet.player_id === playerId));
+		bets.set(prediction.id, (results[index]?.data ?? []) as Bet[]);
 	});
 	const isPending = results.some((result) => result.isPending && result.fetchStatus !== "idle");
+	return { bets, isPending };
+}
+
+// The player's own pick on each question.
+export function useMyPicks(roomId: string, predictions: Prediction[], playerId?: string) {
+	const { bets, isPending } = useQuestionBets(roomId, predictions, !!playerId);
+	const picks = new Map<string, Bet | undefined>();
+	for (const prediction of predictions) {
+		picks.set(prediction.id, bets.get(prediction.id)?.find((bet) => bet.player_id === playerId));
+	}
 	return { picks, isPending };
 }
 
