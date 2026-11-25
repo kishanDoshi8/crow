@@ -53,4 +53,7 @@ export interface Prediction {
   fixture_question_id?: string | null
   // Revealed (or fixed) by Crow from a confirmed match result.
   revealed_by_crow?: boolean
+  // The set it was made in (one match, "Arsenal vs Spurs"), if any.
+  event_id?:         string | null
+  event_title?:      string | null
 }
