@@ -50,6 +50,10 @@ begin
 end;
 $$;
 
+-- Only this test's competitions are on offer: the database may already have
+-- real ones (the migrations add some), and the board depends on what's on.
+update catalog.competitions set active = false;
+
 insert into catalog.competitions (sport, name, format, kind, provider, provider_ref, active, ends_on)
 values
   ('soccer', 'Premier League', 'league', 'league', 'test', 'pl', true, null),
