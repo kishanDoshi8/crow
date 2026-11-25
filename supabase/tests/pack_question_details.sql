@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(14);
+select plan(18);
 
 -- What players see about event pack questions:
 -- 1-2. Competition tags: the tag questions from a competition get in rooms. A
@@ -153,6 +153,39 @@ select is(
 -- Bob isn't in the room, so he can't read it.
 select pg_temp.login('bob');
 select ok(public.get_prediction_match_result(pg_temp.setting('question')) is null, 'someone outside the room sees nothing');
+
+
+-- ------------------------------------------------------------
+-- 4. Archiving a competition
+-- ------------------------------------------------------------
+select pg_temp.login('alice');
+select throws_ok(
+  format('select public.admin_set_competition_archived(%L::uuid, true)', pg_temp.setting('comp')),
+  'P0012', null,
+  'only platform admins archive competitions'
+);
+
+select pg_temp.login('bob');
+select public.admin_set_competition_archived(pg_temp.setting('comp'), true);
+select is(
+  (select active::text || ' ' || (archived_at is not null)::text from catalog.competitions where id = pg_temp.setting('comp')),
+  'false true',
+  'archiving files it away and switches it off'
+);
+select ok(
+  (
+    select max(n) filter (where (c->>'id')::uuid = pg_temp.setting('comp'))
+      > max(n) filter (where c->>'archived_at' is null and (c->>'ends_on' is null or (c->>'ends_on')::date >= current_date))
+    from json_array_elements(public.admin_get_competitions()) with ordinality as x(c, n)
+  ),
+  'archived ones come after every current one in /admin'
+);
+select public.admin_set_competition_active(pg_temp.setting('comp'), true);
+select is(
+  (select active::text || ' ' || (archived_at is not null)::text from catalog.competitions where id = pg_temp.setting('comp')),
+  'true false',
+  'turning it back on takes it out of the archive'
+);
 
 select * from finish();
 rollback;

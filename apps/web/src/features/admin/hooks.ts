@@ -11,6 +11,7 @@ import {
 	adminRequestFixtureSync,
 	adminSetCompetitionActive,
 	adminSetCompetitionTag,
+	adminSetCompetitionArchived,
 	adminGetUpNextDemand,
 	adminSetFixtureResult,
 	adminUpdateFixtureQuestion,
@@ -92,6 +93,18 @@ export const useSetCompetitionTag = () => {
 		mutationFn: ({ competitionId, tag }: { competitionId: string; tag: string | null }) =>
 			adminSetCompetitionTag(competitionId, tag),
 		onSettled: () => queryClient.invalidateQueries({ queryKey: adminKeys.competitions() }),
+	});
+};
+
+export const useSetCompetitionArchived = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ competitionId, archived }: { competitionId: string; archived: boolean }) =>
+			adminSetCompetitionArchived(competitionId, archived),
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: adminKeys.competitions() });
+			queryClient.invalidateQueries({ queryKey: adminKeys.fixtures() });
+		},
 	});
 };
 

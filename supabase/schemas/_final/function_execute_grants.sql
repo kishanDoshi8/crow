@@ -127,6 +127,7 @@ grant execute on function public.admin_confirm_fixture(uuid, jsonb) to authentic
 grant execute on function public.admin_get_competitions() to authenticated;
 grant execute on function public.admin_set_competition_active(uuid, boolean) to authenticated;
 grant execute on function public.admin_set_competition_tag(uuid, text) to authenticated;
+grant execute on function public.admin_set_competition_archived(uuid, boolean) to authenticated;
 grant execute on function public.admin_request_fixture_sync(text) to authenticated;
 grant execute on function public.admin_get_fixtures(uuid, integer) to authenticated;
 grant execute on function public.admin_update_fixture_question(uuid, boolean, text, text, boolean) to authenticated;

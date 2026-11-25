@@ -1471,6 +1471,8 @@ export type AdminCompetition = {
   // it's the name when it fits, or the sport).
   tag: string
   tag_is_custom: boolean
+  // Filed away by an admin (and switched off).
+  archived_at: string | null
   sport: 'soccer' | 'cricket'
   provider: string
   provider_ref: string
@@ -1629,6 +1631,15 @@ export type UpNextDemand = {
 export async function adminGetUpNextDemand() {
   const { data, error } = await untypedSupabase.rpc('admin_get_up_next_demand')
   return assertOk(data, error) as UpNextDemand
+}
+
+// Files a competition away (switching it off), or brings it back.
+export async function adminSetCompetitionArchived(competitionId: string, archived: boolean) {
+  const { error } = await untypedSupabase.rpc('admin_set_competition_archived', {
+    p_competition_id: competitionId,
+    p_archived: archived,
+  })
+  if (error) throw error
 }
 
 // The tag a competition's questions get in rooms; null or blank for the

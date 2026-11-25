@@ -1,5 +1,6 @@
 import { PlusIcon, RefreshCwIcon, SearchIcon, TagIcon } from "lucide-react";
 import { useMemo, useState } from "react";
+import { isFinished } from "@/features/admin/lib/competitions";
 import { toast } from "sonner";
 import { AddSeriesDialog } from "@/features/admin/components/AddSeriesDialog";
 import { CompetitionTagDialog } from "@/features/admin/components/CompetitionTagDialog";
@@ -7,6 +8,7 @@ import {
 	useAdminCompetitions,
 	useRequestFixtureSync,
 	useSetCompetitionActive,
+	useSetCompetitionArchived,
 } from "@/features/admin/hooks";
 import { chipClass, sportLabel } from "@/features/fixtures";
 import type { AdminCompetition } from "@/shared/lib/api";
@@ -14,7 +16,7 @@ import { describeDeadline } from "@/shared/lib/deadline";
 import { Button, Input, Skeleton, Spinner } from "@/shared/ui";
 import { Switch } from "@/shared/ui/switch";
 
-type Filter = "all" | "on" | "off" | "problems";
+type Filter = "current" | "on" | "off" | "problems" | "finished";
 
 // The sites fixtures come from, by catalog.competitions.provider.
 const PROVIDERS: Record<string, string> = {
@@ -23,11 +25,14 @@ const PROVIDERS: Record<string, string> = {
 };
 const providerName = (provider: string) => PROVIDERS[provider] ?? provider;
 
+// Finished ones (ended or archived) only show under Finished, so the list
+// stays about what's running.
 const matches: Record<Filter, (c: AdminCompetition) => boolean> = {
-	all: () => true,
-	on: (c) => c.active,
-	off: (c) => !c.active,
-	problems: (c) => !!c.last_sync_error,
+	current: (c) => !isFinished(c),
+	on: (c) => c.active && !isFinished(c),
+	off: (c) => !c.active && !isFinished(c),
+	problems: (c) => !!c.last_sync_error && !isFinished(c),
+	finished: (c) => isFinished(c),
 };
 
 // Which competitions rooms can follow, by the provider their fixtures come
@@ -36,7 +41,7 @@ const matches: Record<Filter, (c: AdminCompetition) => boolean> = {
 export default function AdminCompetitionsPage() {
 	const { data, isPending, isError, refetch } = useAdminCompetitions();
 	const [query, setQuery] = useState("");
-	const [filter, setFilter] = useState<Filter>("all");
+	const [filter, setFilter] = useState<Filter>("current");
 	const [isAddOpen, setIsAddOpen] = useState(false);
 	const existingRefs = useMemo(
 		() => new Set((data ?? []).filter((c) => c.active).map((c) => c.provider_ref)),
@@ -56,10 +61,11 @@ export default function AdminCompetitionsPage() {
 	}, [data, filter, query]);
 
 	const filters: { value: Filter; label: string }[] = [
-		{ value: "all", label: "All" },
+		{ value: "current", label: "Current" },
 		{ value: "on", label: "On" },
 		{ value: "off", label: "Off" },
 		{ value: "problems", label: "Sync problems" },
+		{ value: "finished", label: "Finished" },
 	];
 
 	return (
@@ -122,7 +128,6 @@ export default function AdminCompetitionsPage() {
 						key={provider}
 						provider={provider}
 						competitions={competitions}
-						total={(data ?? []).filter((c) => c.provider === provider).length}
 						onSynced={() => setTimeout(() => void refetch(), 15_000)}
 					/>
 				))
@@ -136,9 +141,8 @@ export default function AdminCompetitionsPage() {
 function ProviderGroup({
 	provider,
 	competitions,
-	total,
 	onSynced,
-}: Readonly<{ provider: string; competitions: AdminCompetition[]; total: number; onSynced: () => void }>) {
+}: Readonly<{ provider: string; competitions: AdminCompetition[]; onSynced: () => void }>) {
 	const { mutate: requestSync, isPending } = useRequestFixtureSync();
 	const sports = [...new Set(competitions.map((c) => sportLabel(c.sport)))].join(" and ");
 
@@ -168,7 +172,7 @@ function ProviderGroup({
 				<div className='min-w-0'>
 					<h2 className='text-base font-semibold'>{providerName(provider)}</h2>
 					<p className='text-xs text-muted-foreground'>
-						{sports}, {total} {total === 1 ? "competition" : "competitions"}
+						{sports}, {competitions.length} {competitions.length === 1 ? "competition" : "competitions"}
 					</p>
 				</div>
 				<Button variant='outline' size='sm' className='shrink-0' disabled={isPending} onClick={sync}>
@@ -187,7 +191,24 @@ function ProviderGroup({
 
 function CompetitionRow({ competition }: Readonly<{ competition: AdminCompetition }>) {
 	const { mutate: setActive } = useSetCompetitionActive();
+	const { mutate: setArchived, isPending: isArchiving } = useSetCompetitionArchived();
 	const [isTagOpen, setIsTagOpen] = useState(false);
+	const archive = (archived: boolean) =>
+		setArchived(
+			{ competitionId: competition.id, archived },
+			{
+				onSuccess: () =>
+					toast.success(archived ? `${competition.name} archived` : `${competition.name} restored`, {
+						description: archived ? "It's off, and filed under Finished." : "It's still off. Turn it on when you want it.",
+						position: "top-center",
+					}),
+				onError: () => toast.error("Couldn't change the competition. Try again.", { position: "top-center" }),
+			},
+		);
+	const endedOn =
+		!competition.archived_at && competition.ends_on && isFinished(competition)
+			? new Date(competition.ends_on).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })
+			: null;
 	const id = `active-${competition.id}`;
 	const synced = competition.synced_at
 		? `synced ${describeDeadline(new Date(competition.synced_at)).relative}`
@@ -218,9 +239,9 @@ function CompetitionRow({ competition }: Readonly<{ competition: AdminCompetitio
 				</label>
 				{/* Outside the label, so editing the tag doesn't flip the switch. */}
 				<span className='mt-1 flex items-center gap-2'>
-					<span className='inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs'>
-						<TagIcon className='size-3 text-muted-foreground' aria-hidden='true' />
-						{competition.tag}
+					<span className='inline-flex max-w-40 items-center gap-1 whitespace-nowrap rounded-md border px-1.5 py-0.5 text-xs'>
+						<TagIcon className='size-3 shrink-0 text-muted-foreground' aria-hidden='true' />
+						<span className='truncate'>{competition.tag}</span>
 					</span>
 					<Button
 						variant='ghost'
@@ -230,7 +251,23 @@ function CompetitionRow({ competition }: Readonly<{ competition: AdminCompetitio
 					>
 						Edit tag
 					</Button>
+					<Button
+						variant='ghost'
+						size='xs'
+						disabled={isArchiving}
+						onClick={() => archive(!competition.archived_at)}
+						aria-label={`${competition.archived_at ? "Restore" : "Archive"} ${competition.name}`}
+					>
+						{competition.archived_at ? "Restore" : "Archive"}
+					</Button>
 				</span>
+				{competition.archived_at ? (
+					<span className='mt-1 block text-xs text-muted-foreground'>
+						Archived {describeDeadline(new Date(competition.archived_at)).relative}
+					</span>
+				) : endedOn ? (
+					<span className='mt-1 block text-xs text-muted-foreground'>Ended {endedOn}</span>
+				) : null}
 			</div>
 			{isTagOpen ? (
 				<CompetitionTagDialog competition={competition} open={isTagOpen} onOpenChange={setIsTagOpen} />
