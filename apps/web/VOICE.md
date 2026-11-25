@@ -123,6 +123,13 @@ What does follow this file on the server:
 - **Push notification titles** (`supabase/schemas/notifications/…`,
   `create_predictions`, `resolve_predictions`, `publish_scheduled_predictions`,
   `join_room`). Change them in the schema file *and* in a migration.
+  Reminders and results are written for each player
+  (`private_push_personal.sql`): say what's true for *them* ("You've picked
+  1 of 3", "You called it: +120 pts", "India won. Time to eat crow."), and
+  don't push someone about a question that changes nothing for them (a
+  reminder when they've picked everything, a called-off question they
+  didn't pick). New questions say when picks close; locking says who picked
+  what is there to see.
 - **Room talk phrases** (`public.talk_phrases.text`, seeded by migration).
 - **The invite link preview** (`supabase/functions/invite-preview`).
 

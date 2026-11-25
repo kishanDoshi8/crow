@@ -275,9 +275,12 @@ select is(
   'one still open for picks waits'
 );
 select is(
-  (select count(*)::int from private.notification_dispatch_log where event_type = 'result_revealed'),
-  2,
-  'each room gets one push'
+  (select array_agg(pl.username order by pl.username)
+   from private.notification_dispatch_log l
+   join public.players pl on pl.id::text = l.payload->'payload'->>'target_player_id'
+   where l.event_type = 'result_revealed'),
+  array['alice', 'bob'],
+  'each player in room A hears their own result; room B, where nobody picked, gets none'
 );
 select is(
   (select bool_and((metadata->>'byCrow')::boolean) from public.room_activities

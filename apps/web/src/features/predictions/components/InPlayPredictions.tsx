@@ -3,6 +3,7 @@ import { useRoomCompetitions } from "@/features/fixtures";
 import type { Prediction } from "@/features/predictions/types/types";
 import { useActivePredictions } from "@/features/predictions/hooks/prediction";
 import { useBets } from "@/features/predictions/hooks/bet";
+import { pickProgress, useMyPicks } from "@/features/predictions/hooks/picks";
 import { useRoomContext } from "@/shared/lib/roomContext";
 import { Button, Reveal, Skeleton, StatStrip } from "@/shared/ui";
 import { describeDeadline } from "@/shared/lib/deadline";
@@ -350,8 +351,14 @@ function PredictionCardSkeleton() {
 // ── Section header ─────────────────────────────────────────────────────────
 function SectionHeader({
 	predictions,
+	progress,
 	action,
-}: Readonly<{ predictions: Prediction[]; action?: React.ReactNode }>) {
+}: Readonly<{
+	predictions: Prediction[];
+	// Questions open for picks, and how many of them the player has picked.
+	progress: { open: number; picked: number } | null;
+	action?: React.ReactNode;
+}>) {
 	const activeCount = predictions.filter(
 		(p) => p.status === "draft" || p.status === "locked",
 	).length;
@@ -361,9 +368,7 @@ function SectionHeader({
 			<div className={`flex items-center justify-between gap-2 my-4`}>
 				<div className={`flex items-center gap-2`}>
 					<h2 className={`text-lg font-semibold whitespace-nowrap`}>What's hot</h2>
-					<span className='whitespace-nowrap rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-semibold text-primary tabular-nums'>
-						{activeCount} active
-					</span>
+					<PickProgressChip progress={progress} activeCount={activeCount} />
 				</div>
 				{action}
 			</div>
@@ -413,6 +418,36 @@ function SectionHeader({
 			/>
 			No result
 		</h2>
+	);
+}
+
+// Where the player is with this round: "3 of 10 picked" while questions are
+// open, a check once every open one has a pick, and the plain count when
+// nothing is open for picks (everything's locked, waiting on results).
+function PickProgressChip({
+	progress,
+	activeCount,
+}: Readonly<{ progress: { open: number; picked: number } | null; activeCount: number }>) {
+	const chip = "whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums";
+	if (!progress || progress.open === 0) {
+		return (
+			<span className={cn(chip, "bg-primary/15 text-primary")}>
+				{activeCount} {progress ? "locked" : "active"}
+			</span>
+		);
+	}
+	if (progress.picked >= progress.open) {
+		return (
+			<span className={cn(chip, "inline-flex items-center gap-1 bg-win/15 text-win")}>
+				<CheckIcon aria-hidden='true' className='size-3.5' />
+				{progress.open === 1 ? "Picked" : `All ${progress.open} picked`}
+			</span>
+		);
+	}
+	return (
+		<span className={cn(chip, "bg-primary/15 text-primary")}>
+			{progress.picked} of {progress.open} picked
+		</span>
 	);
 }
 
@@ -528,6 +563,10 @@ function InPlayPredictions({
 	const predictions = predictionsOverride ?? queriedPredictions;
 	const isPredictionLoading =
 		predictionsOverride === undefined ? isQueriedPredictionLoading : false;
+	// The player's picks, for the progress chip and the dots under the cards.
+	const { data: me } = usePlayer();
+	const { picks, isPending: isPicksPending } = useMyPicks(room.id, predictions, me?.id);
+	const progress = me && !isPicksPending ? pickProgress(predictions, picks) : null;
 	const refetchPredictions =
 		predictionsOverride === undefined ? refetch : () => {};
 
@@ -701,6 +740,7 @@ function InPlayPredictions({
 				predictions.length > 0 && (
 					<SectionHeader
 						predictions={predictions}
+						progress={progress}
 						action={predictionsOverride === undefined ? headerAction : undefined}
 					/>
 				)}
@@ -742,20 +782,29 @@ function InPlayPredictions({
 							{isPredictionLoading && (
 								<Skeleton className={`h-2 w-6 rounded-full`} />
 							)}
-							{Array.from({ length: predictions.length }).map(
-								(_, index) => (
+							{/* The dots double as progress: filled once you've picked,
+							    a ring while a question still waits for your pick. */}
+							{predictions.map((prediction, index) => {
+								const isOpen = prediction.status === "draft";
+								const isPicked = !!picks.get(prediction.id);
+								const state = !isOpen ? "closed" : isPicked ? "picked" : "to pick";
+								return (
 									<button
-										key={index}
+										key={prediction.id}
 										onClick={() => api?.scrollTo(index)}
-										className={`h-2 rounded-full transition-all duration-300 ${
-											index === current
-												? "w-6 bg-primary"
-												: "w-2 bg-muted-foreground/80"
-										}`}
-										aria-label={`Go to slide ${index + 1}`}
+										className={cn(
+											"h-2 rounded-full transition-all duration-300 motion-reduce:transition-none",
+											index === current ? "w-6" : "w-2",
+											index === current && "bg-primary",
+											index !== current && state === "picked" && "bg-primary/70",
+											index !== current && state === "to pick" && "ring-[1.5px] ring-inset ring-muted-foreground/80",
+											index !== current && state === "closed" && "bg-muted-foreground/40",
+										)}
+										aria-label={`Go to question ${index + 1}${isOpen ? (isPicked ? ", picked" : ", not picked yet") : ""}`}
+										aria-current={index === current ? "true" : undefined}
 									/>
-								),
-							)}
+								);
+							})}
 						</div>
 
 						{predictions.length > 1 && (
