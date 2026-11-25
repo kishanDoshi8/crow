@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { MinusIcon, PlusIcon } from "lucide-react";
+import { CheckIcon, MinusIcon, PlusIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
 	Button,
@@ -19,6 +20,9 @@ import { formatPoints } from "@/features/predictions/lib/predictionView";
 import { useRoomActions } from "@/shared/lib/roomActions";
 import { useOnline } from "@/shared/lib/offline";
 import { needsHomeScreenInstall } from "@/shared/lib/pushNotifications";
+import { useNextUnpicked } from "@/features/predictions/hooks/picks";
+import { useRoomContext } from "@/shared/lib/roomContext";
+import { describeDeadline } from "@/shared/lib/deadline";
 
 const NOTIFICATIONS_OFFERED_KEY = "notifications-offered-after-bet";
 const HOME_SCREEN_OFFERED_KEY = "home-screen-offered-after-bet";
@@ -58,6 +62,16 @@ export function BetSheet({
 	available,
 }: Readonly<Props>) {
 	const { openNotifications } = useRoomActions();
+	const { room } = useRoomContext();
+	const navigate = useNavigate();
+	const { next, remaining, open: openCount, pickedAfter } = useNextUnpicked(
+		roomId,
+		seriesId,
+		predictionId,
+		playerId,
+	);
+	// After a new pick, the sheet stays up to offer the next question.
+	const [lockedIn, setLockedIn] = useState<{ label: string; amount: number } | null>(null);
 	const { mutate: placeBet, isPending: isPlacing } = usePlaceBet();
 	const { mutate: cancelBet, isPending: isCancelling } = useCancelBet();
 
@@ -77,7 +91,23 @@ export function BetSheet({
 	const busy = isPlacing || isCancelling;
 	const online = useOnline();
 
-	const close = () => onOpenChange(false);
+	// Closing from the "Locked in" panel is when the notification offer
+	// (which used to follow the pick) comes up.
+	const handleOpenChange = (nextOpen: boolean) => {
+		if (!nextOpen && lockedIn) {
+			setLockedIn(null);
+			offerNotifications(openNotifications);
+		}
+		onOpenChange(nextOpen);
+	};
+	const close = () => handleOpenChange(false);
+
+	const goToNext = () => {
+		if (!next) return;
+		setLockedIn(null);
+		onOpenChange(false);
+		navigate(`/rooms/${room.code}/predictions/${next.id}`);
+	};
 
 	const handlePlace = () => {
 		if (!optionId) return;
@@ -85,8 +115,22 @@ export function BetSheet({
 			{ roomId, playerId, predictionId, seriesId, optionId, amount },
 			{
 				onSuccess: () => {
+					if (myBet) {
+						close();
+						return;
+					}
+					if (next) {
+						setLockedIn({ label: optionLabel, amount });
+						return;
+					}
 					close();
-					if (!myBet) offerNotifications(openNotifications);
+					if (openCount > 1 && pickedAfter >= openCount) {
+						toast.success(`All ${openCount} picked.`, {
+							description: "Results land on Home as they come in.",
+							position: "top-center",
+						});
+					}
+					offerNotifications(openNotifications);
 				},
 				onError: (error) => {
 					toast.error("Couldn't lock in your pick. Try again.", {
@@ -120,8 +164,63 @@ export function BetSheet({
 	if (isSwitching) primaryLabel = `Switch to ${optionLabel}`;
 	else if (myBet) primaryLabel = "Change pick";
 
+	if (lockedIn && next) {
+		const closes = describeDeadline(new Date(next.deadline));
+		return (
+			<Drawer open={open} onOpenChange={handleOpenChange}>
+				<DrawerContent className='mx-auto sm:max-w-md'>
+					<DrawerHeader className='text-left group-data-[vaul-drawer-direction=bottom]/drawer-content:text-left'>
+						<div className='flex items-center gap-3'>
+							<span className='flex size-10 shrink-0 items-center justify-center rounded-full bg-win/15 text-win motion-safe:animate-in motion-safe:zoom-in-50 motion-safe:duration-300'>
+								<CheckIcon aria-hidden='true' className='size-5' />
+							</span>
+							<div>
+								<DrawerTitle>Pick locked in</DrawerTitle>
+								<DrawerDescription>
+									{formatPoints(lockedIn.amount)} pts on{" "}
+									<span className='font-semibold text-foreground'>{lockedIn.label}</span>
+								</DrawerDescription>
+							</div>
+						</div>
+					</DrawerHeader>
+
+					<div className='px-4'>
+						<button
+							type='button'
+							onClick={goToNext}
+							className='w-full rounded-xl border bg-muted/40 p-4 text-left outline-none transition-colors hover:bg-muted/70 focus-visible:ring-[3px] focus-visible:ring-ring/50'
+						>
+							<span className='flex items-baseline justify-between gap-3 text-xs text-muted-foreground'>
+								<span>Next question</span>
+								<span className='tabular-nums'>
+									{pickedAfter} of {openCount} picked
+								</span>
+							</span>
+							<span className='mt-1.5 block text-base font-semibold leading-snug text-balance'>
+								{next.title}
+							</span>
+							<span className='mt-1 block text-[13px] text-muted-foreground'>
+								Picks close {closes.when}
+								{remaining > 1 ? `, ${remaining - 1} more after this` : ""}
+							</span>
+						</button>
+					</div>
+
+					<DrawerFooter className='flex-row gap-2.5'>
+						<Button variant='outline' size='lg' onClick={close}>
+							Done
+						</Button>
+						<Button variant='linear' size='lg' className='flex-1' onClick={goToNext}>
+							Next question
+						</Button>
+					</DrawerFooter>
+				</DrawerContent>
+			</Drawer>
+		);
+	}
+
 	return (
-		<Drawer open={open} onOpenChange={onOpenChange}>
+		<Drawer open={open} onOpenChange={handleOpenChange}>
 			<DrawerContent className='mx-auto sm:max-w-md'>
 				<DrawerHeader className='text-left group-data-[vaul-drawer-direction=bottom]/drawer-content:text-left'>
 					<DrawerTitle className='sr-only'>Your pick: {optionLabel}</DrawerTitle>

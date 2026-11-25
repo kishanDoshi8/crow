@@ -1,5 +1,6 @@
 export * from "./hooks/prediction";
 export * from "./hooks/bet";
+export * from "./hooks/picks";
 export * from "./types/types";
 export * from "./types/bet";
 

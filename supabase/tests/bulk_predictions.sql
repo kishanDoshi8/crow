@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(48);
+select plan(52);
 
 -- Push config is set, so pushes are dispatched and logged.
 insert into private.notification_config (key, value)
@@ -61,6 +61,20 @@ as $$
   )::text
   from private.notification_dispatch_log
   where event_type = p_event_type
+$$;
+
+-- One player's own push for an event (pushes written for each player).
+create function pg_temp.push_to(p_event_type text, p_username text)
+returns text
+language sql
+as $$
+  select row(
+    payload->'payload'->>'title',
+    payload->'payload'->>'body'
+  )::text
+  from private.notification_dispatch_log
+  where event_type = p_event_type
+    and payload->'payload'->>'target_player_id' = (select id::text from public.players where username = p_username)
 $$;
 
 -- Alice owns the room; Bob is a member; Cara resolves; Dave is outside.
@@ -150,8 +164,8 @@ select is(
 );
 select is(
   pg_temp.pushes('prediction_live'),
-  row(1::bigint, false, '🎯 3 new questions', 'Cricket Fever · India vs Australia', current_setting('test.room_url'))::text,
-  'members get one push for the set, naming the event'
+  row(1::bigint, false, '🎯 3 new questions', 'Cricket Fever · India vs Australia · closes in a day', current_setting('test.room_url'))::text,
+  'members get one push for the set, naming the event and when picks close'
 );
 
 -- A set of one is the usual push, opening the prediction.
@@ -165,7 +179,7 @@ select lives_ok(
 reset role;
 select is(
   pg_temp.pushes('prediction_live'),
-  row(1::bigint, true, '🎯 New question', 'Cricket Fever · Solo',
+  row(1::bigint, true, '🎯 New question', 'Cricket Fever · Solo · closes in 3 days',
     current_setting('test.room_url') || '/predictions/' || pg_temp.prediction('Solo'))::text,
   'one prediction gets the usual push'
 );
@@ -263,7 +277,7 @@ select is(
 );
 select is(
   pg_temp.pushes('prediction_live'),
-  row(1::bigint, false, '🎯 2 new questions', 'Cricket Fever · Final', current_setting('test.room_url'))::text,
+  row(1::bigint, false, '🎯 2 new questions', 'Cricket Fever · Final · closes in a day', current_setting('test.room_url'))::text,
   'with one push when they do'
 );
 
@@ -276,14 +290,14 @@ where id in (pg_temp.prediction('Who wins?'), pg_temp.prediction('Toss winner?')
 select private.fire_push_notification_for_deadline_1h();
 select is(
   pg_temp.pushes('deadline_1h'),
-  row(1::bigint, false, '⏰ 1 hour left on 3 questions', 'Cricket Fever · India vs Australia', current_setting('test.room_url'))::text,
-  'three closing within the hour are one reminder'
+  row(3::bigint, false, '⏰ 3 questions close in an hour', 'Cricket Fever · You''ve picked 0 of 3', current_setting('test.room_url'))::text,
+  'three closing within the hour are one reminder for each player, saying how far they are'
 );
 select private.fire_push_notification_for_deadline_1h();
 select is(
   (select count(*)::int from private.notification_dispatch_log where event_type = 'deadline_1h'),
-  1,
-  'sent once'
+  3,
+  'sent once to each'
 );
 
 -- Picks, so the results below move points.
@@ -304,7 +318,7 @@ where id in (pg_temp.prediction('Who wins?'), pg_temp.prediction('Toss winner?')
 update public.predictions set status = 'locked' where status = 'draft' and deadline <= now();
 select is(
   pg_temp.pushes('prediction_locked'),
-  row(1::bigint, false, '🔒 Picks locked on 3 questions', 'Cricket Fever · India vs Australia', current_setting('test.room_url'))::text,
+  row(1::bigint, false, '🔒 Picks locked on 3 questions', 'Cricket Fever · India vs Australia. See who picked what.', current_setting('test.room_url'))::text,
   'three locking together are one push'
 );
 
@@ -313,7 +327,7 @@ select pg_temp.login('00000000-0000-0000-0000-00000000a11c');
 select public.lock_prediction(pg_temp.prediction('Solo'));
 select is(
   pg_temp.pushes('prediction_locked'),
-  row(1::bigint, true, '🔒 Picks locked', 'Cricket Fever · Solo',
+  row(1::bigint, true, '🔒 Picks locked: see who picked what', 'Cricket Fever · Solo',
     current_setting('test.room_url') || '/predictions/' || pg_temp.prediction('Solo'))::text,
   'one locking on its own gets the usual push'
 );
@@ -410,9 +424,24 @@ select is(
   'each result is posted to the room feed'
 );
 select is(
-  pg_temp.pushes('result_revealed'),
-  row(1::bigint, false, '🏆 3 results are in', 'Cricket Fever · India vs Australia', current_setting('test.room_url'))::text,
-  'members get one push for all three'
+  (select count(*)::int from private.notification_dispatch_log where event_type = 'result_revealed'),
+  3,
+  'each player gets one push for all three'
+);
+select is(
+  pg_temp.push_to('result_revealed', 'bob'),
+  row('🏆 3 results are in: you called 1', 'Cricket Fever · +100 pts')::text,
+  'a winner hears what they called and their points'
+);
+select is(
+  pg_temp.push_to('result_revealed', 'cara'),
+  row('🏆 3 results are in', 'Cricket Fever · −100 pts')::text,
+  'a loser hears their points'
+);
+select is(
+  pg_temp.push_to('result_revealed', 'alice'),
+  row('🏆 3 results are in', 'Cricket Fever · India vs Australia')::text,
+  'someone with no picks hears which questions'
 );
 
 set local role authenticated;
@@ -441,9 +470,9 @@ select is(
 );
 reset role;
 select is(
-  pg_temp.pushes('result_revealed'),
-  row(1::bigint, false, '↩️ 2 questions called off · points back', 'Cricket Fever · Final', current_setting('test.room_url'))::text,
-  'with one push saying they''re off'
+  (select count(*)::int from private.notification_dispatch_log where event_type = 'result_revealed'),
+  0,
+  'nobody had picks on them, so nobody is pushed'
 );
 
 -- Closing one through the set is the usual single push.
@@ -459,10 +488,9 @@ select is(
 );
 reset role;
 select is(
-  pg_temp.pushes('result_revealed'),
-  row(1::bigint, true, '🏆 Result''s in', 'Cricket Fever · Solo',
-    current_setting('test.room_url') || '/predictions/' || pg_temp.prediction('Solo'))::text,
-  'and gets the usual push'
+  (select count(*)::int from private.notification_dispatch_log where event_type = 'result_revealed'),
+  0,
+  'and with no picks on it, no push'
 );
 
 -- Closing one the old way still pushes once.
@@ -470,6 +498,9 @@ select pg_temp.login('00000000-0000-0000-0000-00000000a11c');
 set local role authenticated;
 select set_config('test.single', (public.create_prediction(pg_temp.setting('room_id'), 'Single', array['Yes', 'No'], now() + interval '1 day', pg_temp.setting('cup'))->>'prediction_id'), true);
 reset role;
+select pg_temp.login('00000000-0000-0000-0000-000000000b0b');
+select public.place_bet(pg_temp.setting('single'), (select id from public.prediction_options where prediction_id = pg_temp.setting('single') and label = 'Yes'), 10);
+select pg_temp.login('00000000-0000-0000-0000-00000000a11c');
 delete from private.notification_dispatch_log;
 set local role authenticated;
 select public.resolve_prediction_v2(pg_temp.setting('single'), pg_temp.setting('room_id'), 'cancel');
@@ -477,7 +508,12 @@ reset role;
 select is(
   (select count(*)::int from private.notification_dispatch_log where event_type = 'result_revealed' and prediction_id = pg_temp.setting('single')),
   1,
-  'closing one prediction on its own still sends its push'
+  'closing one prediction on its own still pushes, to the player who picked it'
+);
+select is(
+  pg_temp.push_to('result_revealed', 'bob'),
+  row('↩️ No result. Your points are back.', 'Cricket Fever · Single')::text,
+  'telling them their points are back'
 );
 
 -- ------------------------------------------------------------
