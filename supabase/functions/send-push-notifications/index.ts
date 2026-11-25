@@ -11,7 +11,8 @@ type NotificationEventType =
 	| "join_request"
 	| "member_joined"
 	| "join_accepted"
-	| "room_invite";
+	| "room_invite"
+	| "admin_alert";
 
 const EVENT_TO_COLUMN: Record<NotificationEventType, string> = {
 	prediction_live: "prediction_live",
@@ -27,6 +28,9 @@ const EVENT_TO_COLUMN: Record<NotificationEventType, string> = {
 	join_accepted: "prediction_live",
 	// An invite to a room follows the same general new-activity setting.
 	room_invite: "prediction_live",
+	// Crow admins: results to confirm, syncs that failed. Same switch as a
+	// host's "Result needed".
+	admin_alert: "result_needed",
 };
 
 const corsHeaders = {
@@ -50,6 +54,7 @@ const DELIVERY: Record<
 	member_joined: { ttl: 24 * 3600, urgency: "normal" },
 	join_accepted: { ttl: 24 * 3600, urgency: "normal" },
 	room_invite: { ttl: 24 * 3600, urgency: "normal" },
+	admin_alert: { ttl: 12 * 3600, urgency: "high" },
 };
 // Keeps .in() filters well under URL length limits in big rooms.
 const ID_BATCH_SIZE = 150;

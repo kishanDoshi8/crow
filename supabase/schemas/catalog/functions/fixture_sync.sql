@@ -395,7 +395,8 @@ begin
   set current_season = coalesce(nullif(p_season, ''), current_season),
       synced_at = case when p_partial then synced_at else now() end,
       last_sync_error = null,
-      last_sync_error_at = null
+      last_sync_error_at = null,
+      sync_error_alerted_at = null
   where id = v_competition.id;
 
   return json_build_object(

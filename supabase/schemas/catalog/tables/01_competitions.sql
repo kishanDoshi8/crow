@@ -29,6 +29,9 @@ create table if not exists catalog.competitions (
   -- The last sync that failed for it, cleared by the next one that works.
   last_sync_error text,
   last_sync_error_at timestamptz,
+  -- When Crow admins got a push about the current sync error, so a
+  -- competition that keeps failing alerts once. Cleared with the error.
+  sync_error_alerted_at timestamptz,
   created_at timestamptz not null default now(),
   -- The tag questions from it get in rooms, set by a platform admin (e.g.
   -- "Asia Cup" for a long tour name). Null: the name when it fits, else the

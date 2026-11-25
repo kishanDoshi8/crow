@@ -37,6 +37,10 @@ create table if not exists catalog.fixtures (
   -- result checks (one provider call per match for cricket) aren't repeated
   -- too often. See private.fixture_result_due.
   result_checked_at timestamptz,
+  -- Pushes to Crow admins about this match waiting to be confirmed: when it
+  -- was first ready, and the one reminder if it's still waiting 6 hours on.
+  admin_alerted_at timestamptz,
+  admin_reminded_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (competition_id, provider_ref)
