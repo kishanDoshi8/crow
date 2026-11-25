@@ -376,8 +376,8 @@ matches from a list instead of typing them is most of the saving.
 - **`/admin` → Fixtures:** hide or show a match's question, reword it
   (`customized_at` keeps the wording through syncs), or reset it.
 - **`/admin` → Competitions:** turn one on or off, and Sync now.
-- **Not yet:** auto-confirm, cricket, one-off extra questions per match,
-  alerts to admins when results are waiting.
+- **Not yet:** auto-confirm, cricket, one-off extra questions per match.
+  (Cricket and extras came in phase 3; admin alerts in §15.)
 
 
 ---
@@ -477,3 +477,12 @@ matches from a list instead of typing them is most of the saving.
   brings it back, still off; turning one on, or adding it again, takes it
   out of the archive. Questions rooms already have still get their results.
   Fixtures in /admin lists only current ones.
+- **Alerts for Crow admins:** the 15-minute results job
+  (`private.send_admin_alerts`) pushes every platform admin when matches
+  rooms have questions on are ready to confirm (a score is in, or the match
+  was called off): one push per run, each match once, and one reminder if
+  it's still waiting 6 hours later. A competition whose sync starts failing
+  sends one push with the error (CricketData's daily limit shows up this
+  way), and again only after a sync has worked. They open /admin, use the
+  `admin_alert` push type, and follow each admin's "Result needed" setting,
+  so an admin needs push turned on in the app to get them.

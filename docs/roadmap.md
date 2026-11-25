@@ -67,10 +67,12 @@ weeks. That's the "week-4 rooms" number in `analytics.room_cohorts`.
    ask for, things Crow doesn't have first. Later: drop the old
    `suggest_series` and `toggle_series_suggestion_vote` once every client
    has the new app.
-3. **Alerts for Crow admins.** A push to platform admins when match
-   results are waiting to be confirmed in /admin (one per job run, not one
-   per match). **(proposed)** Also when a competition's sync fails, or
-   when the day's CricketData calls are nearly used up.
+3. **Alerts for Crow admins.** Built, waiting to be released (migration
+   `20261208090000_admin_alerts.sql` and the `send-push-notifications`
+   function). A push to every platform admin when match results are ready
+   to confirm (one per 15-minute run, each match once, one reminder after 6
+   hours), and when a competition starts failing to sync, which includes
+   CricketData's daily limit running low.
 4. **(proposed) Room health in /admin.** One page listing the rooms not run
    by Crow admins: players, last pick, open questions, results waiting on a
    host, and days since the last revealed result. The analytics views

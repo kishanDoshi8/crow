@@ -340,6 +340,9 @@ begin
   end if;
 
   perform private.reveal_confirmed_fixture_questions();
+
+  -- Tell Crow admins about results waiting on them and syncs that failed.
+  perform private.send_admin_alerts();
 end;
 $$;
 
