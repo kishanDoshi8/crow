@@ -34,5 +34,8 @@ create table if not exists catalog.competitions (
   -- "Asia Cup" for a long tour name). Null: the name when it fits, else the
   -- sport (private.competition_tag).
   tag text check (tag is null or (tag = btrim(tag) and length(tag) between 1 and 24)),
+  -- Filed away by a platform admin (and switched off): /admin lists it under
+  -- Finished with the ones that have ended.
+  archived_at timestamptz,
   unique (provider, provider_ref)
 );

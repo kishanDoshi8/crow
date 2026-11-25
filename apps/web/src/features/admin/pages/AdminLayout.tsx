@@ -1,5 +1,6 @@
 import { ChevronLeftIcon } from "lucide-react";
-import { Link, Navigate, NavLink, Outlet } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { Link, Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAdminResults, useIsPlatformAdmin } from "@/features/admin/hooks";
 import { isReady } from "@/features/admin/lib/results";
 import { cn } from "@/shared/lib/utils";
@@ -9,6 +10,7 @@ const TABS = [
 	{ to: "/admin", label: "Results", end: true, count: true },
 	{ to: "/admin/fixtures", label: "Fixtures", end: false },
 	{ to: "/admin/competitions", label: "Competitions", end: false },
+	{ to: "/admin/up-next", label: "Up next", end: false },
 ];
 
 // /admin: the Crow team's tools for event packs. Players who open it go
@@ -17,6 +19,14 @@ export default function AdminLayout() {
 	const { data: isAdmin, isPending } = useIsPlatformAdmin();
 	const { data: results } = useAdminResults(isAdmin === true);
 	const toConfirm = results?.to_confirm.filter(isReady).length ?? 0;
+	// On a phone the tabs scroll sideways: keep the open one in view.
+	const navRef = useRef<HTMLElement>(null);
+	const { pathname } = useLocation();
+	useEffect(() => {
+		navRef.current
+			?.querySelector('[aria-current="page"]')
+			?.scrollIntoView({ block: "nearest", inline: "nearest" });
+	}, [pathname, isAdmin]);
 
 	if (isPending) {
 		return (
@@ -47,7 +57,7 @@ export default function AdminLayout() {
 						<span className='text-xs text-muted-foreground'>Event packs</span>
 					</div>
 				</div>
-				<nav aria-label='Admin' className='mx-auto flex w-full max-w-2xl gap-1 px-4 pb-2'>
+				<nav ref={navRef} aria-label='Admin' className='no-scrollbar mx-auto flex w-full max-w-2xl gap-1 overflow-x-auto px-4 pb-2'>
 					{TABS.map((tab) => (
 						<NavLink
 							key={tab.to}
@@ -55,7 +65,7 @@ export default function AdminLayout() {
 							end={tab.end}
 							className={({ isActive }) =>
 								cn(
-									"inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+									"inline-flex shrink-0 items-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
 									isActive
 										? "bg-secondary text-foreground"
 										: "text-muted-foreground hover:text-foreground",

@@ -1471,6 +1471,8 @@ export type AdminCompetition = {
   // it's the name when it fits, or the sport).
   tag: string
   tag_is_custom: boolean
+  // Filed away by an admin (and switched off).
+  archived_at: string | null
   sport: 'soccer' | 'cricket'
   provider: string
   provider_ref: string
@@ -1607,6 +1609,37 @@ export async function adminAddCompetition(series: ProviderSeries, sport: 'soccer
     p_tag: tag?.trim() || null,
   })
   return assertOk(data, error) as { id: string }
+}
+
+// What rooms ask to predict next (Up next), last 90 days, leaving out rooms
+// Crow admins own.
+export type UpNextDemandRow = {
+  name: string
+  // Rooms whose open ideas include it, and the picks on those.
+  rooms: number
+  picks: number
+  // Series started from it.
+  started: number
+  last_asked_at: string
+}
+
+export type UpNextDemand = {
+  competitions: Array<UpNextDemandRow & { id: string; sport: 'soccer' | 'cricket'; on_offer: boolean }>
+  requests: UpNextDemandRow[]
+}
+
+export async function adminGetUpNextDemand() {
+  const { data, error } = await untypedSupabase.rpc('admin_get_up_next_demand')
+  return assertOk(data, error) as UpNextDemand
+}
+
+// Files a competition away (switching it off), or brings it back.
+export async function adminSetCompetitionArchived(competitionId: string, archived: boolean) {
+  const { error } = await untypedSupabase.rpc('admin_set_competition_archived', {
+    p_competition_id: competitionId,
+    p_archived: archived,
+  })
+  if (error) throw error
 }
 
 // The tag a competition's questions get in rooms; null or blank for the
@@ -2102,39 +2135,72 @@ export async function dismissWeeklyRecap(seriesId: string, weekKey: string) {
 }
 // #endregion Home
 
-// #region Series suggestions ("Up next")
-export type SeriesSuggestion = {
-  id: string
+// #region Up next
+// The room answers "What should we predict next?": one pick each, from Crow's
+// competitions or something Crow doesn't have yet.
+export type UpNextOption = {
+  // Null for a competition suggested to start from (nobody has picked it).
+  id: string | null
+  competition_id: string | null
   title: string
-  created_at: string
-  created_by_username: string
+  sport: 'soccer' | 'cricket' | null
+  // A competition Crow has on offer now (rooms can follow it).
+  on_crow: boolean
+  picks: number
+  picked_by_me: boolean
+  // The room already follows it.
+  followed: boolean
   created_by_me: boolean
-  vote_count: number
-  voted_by_me: boolean
-  // Who backed it, for organizers only.
-  voters: string[] | null
+  is_seed: boolean
+  // Who picked it, for hosts only.
+  pickers: string[] | null
 }
 
-export async function getSeriesSuggestions(roomId: string) {
-  const { data, error } = await untypedSupabase.rpc('get_series_suggestions', {
+export type UpNextCompetition = {
+  id: string
+  name: string
+  sport: 'soccer' | 'cricket'
+  kind: CompetitionKind
+  region: string | null
+}
+
+export type UpNextBoard = {
+  options: UpNextOption[]
+  total_picks: number
+  // Everything on offer, for "Something else".
+  catalog: UpNextCompetition[]
+}
+
+export async function getUpNext(roomId: string) {
+  const { data, error } = await untypedSupabase.rpc('get_up_next', { p_room_id: roomId })
+  return assertOk(data, error) as UpNextBoard
+}
+
+// Your pick: a competition, or by name something Crow doesn't have. It
+// replaces any pick you had. Returns the board.
+export async function pickUpNext(roomId: string, pick: { competitionId: string } | { title: string }) {
+  const { data, error } = await untypedSupabase.rpc('pick_up_next', {
     p_room_id: roomId,
+    p_competition_id: 'competitionId' in pick ? pick.competitionId : null,
+    p_title: 'title' in pick ? pick.title : null,
   })
-  return assertOk(data, error) as SeriesSuggestion[]
+  return assertOk(data, error) as UpNextBoard
 }
 
-export async function suggestSeries(roomId: string, title: string) {
-  const { data, error } = await untypedSupabase.rpc('suggest_series', {
-    p_room_id: roomId,
-    p_title: title,
-  })
-  return assertOk(data, error) as { id: string; existing: boolean }
+export async function clearUpNextPick(roomId: string) {
+  const { data, error } = await untypedSupabase.rpc('clear_up_next_pick', { p_room_id: roomId })
+  return assertOk(data, error) as UpNextBoard
 }
 
-export async function toggleSeriesSuggestionVote(suggestionId: string) {
-  const { data, error } = await untypedSupabase.rpc('toggle_series_suggestion_vote', {
+// Hosts: the next series from an idea, with the last series' points, and
+// following its competition when Crow has it.
+export async function startSeriesFromIdea(suggestionId: string, title: string, follow: boolean) {
+  const { data, error } = await untypedSupabase.rpc('start_series_from_idea', {
     p_suggestion_id: suggestionId,
+    p_title: title,
+    p_follow: follow,
   })
-  return assertOk(data, error) as boolean
+  return assertOk(data, error) as { series_id: string; competition_id: string | null }
 }
 
 export async function removeSeriesSuggestion(suggestionId: string) {
@@ -2151,7 +2217,7 @@ export async function markSeriesSuggestionPlayed(suggestionId: string, seriesId:
   })
   if (error) throw error
 }
-// #endregion Series suggestions
+// #endregion Up next
 
 export type PredictionNeighbour = {
   id: string

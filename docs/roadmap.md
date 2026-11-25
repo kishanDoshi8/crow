@@ -55,16 +55,18 @@ weeks. That's the "week-4 rooms" number in `analytics.room_cohorts`.
    Plus a short "How hosting works" guide next to How to play: what a
    series is, how results come in by themselves for event pack questions,
    and when you'd reveal a result yourself.
-2. **Up next, reworked into a signal for the Crow team.** Up next is a vote
-   by players on what the room plays next. The idea is to make it quicker
-   to answer and harder to skip (asked on Home when a series ends or none
-   is running), and to make it about competitions. **(proposed)**
-   - Players pick from Crow's competitions, or name one Crow doesn't have
-     yet.
-   - Hosts see their room's answer and can start the next series following
-     that competition in a tap.
-   - /admin shows what's being asked for across rooms, so the team knows
-     which event packs to add next.
+2. **Up next, reworked into a signal for the Crow team.** Built, waiting
+   to be released (migration `20261206090000_up_next_rework.sql`). The room
+   answers "What should we predict next?" like one of its questions: one
+   pick each, from Crow's competitions (a few are suggested, the ones the
+   room follows first) or something Crow doesn't have, typed in. It's asked
+   near the top of Home while no series is running, and waits at the bottom
+   while one is. Hosts see who picked what and start the next series from
+   the favourite in one go (same points as the last series, following the
+   competition, then on to its Fixtures). /admin → Up next lists what rooms
+   ask for, things Crow doesn't have first. Later: drop the old
+   `suggest_series` and `toggle_series_suggestion_vote` once every client
+   has the new app.
 3. **Alerts for Crow admins.** A push to platform admins when match
    results are waiting to be confirmed in /admin (one per job run, not one
    per match). **(proposed)** Also when a competition's sync fails, or

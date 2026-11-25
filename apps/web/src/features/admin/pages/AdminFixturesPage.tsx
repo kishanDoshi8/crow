@@ -1,6 +1,7 @@
 import { ChevronRightIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAdminCompetitions } from "@/features/admin/hooks";
+import { isFinished } from "@/features/admin/lib/competitions";
 import { CompetitionMark } from "@/features/fixtures";
 import { Skeleton } from "@/shared/ui";
 
@@ -22,7 +23,8 @@ export default function AdminFixturesPage() {
 		);
 	}
 
-	const active = data.filter((c) => c.active);
+	// What's running: on, and not ended or archived.
+	const active = data.filter((c) => c.active && !isFinished(c));
 
 	return (
 		<div className='space-y-2'>

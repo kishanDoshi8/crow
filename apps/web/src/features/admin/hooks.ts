@@ -11,6 +11,8 @@ import {
 	adminRequestFixtureSync,
 	adminSetCompetitionActive,
 	adminSetCompetitionTag,
+	adminSetCompetitionArchived,
+	adminGetUpNextDemand,
 	adminSetFixtureResult,
 	adminUpdateFixtureQuestion,
 	getMyPlatformAdmin,
@@ -94,6 +96,18 @@ export const useSetCompetitionTag = () => {
 	});
 };
 
+export const useSetCompetitionArchived = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ competitionId, archived }: { competitionId: string; archived: boolean }) =>
+			adminSetCompetitionArchived(competitionId, archived),
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: adminKeys.competitions() });
+			queryClient.invalidateQueries({ queryKey: adminKeys.fixtures() });
+		},
+	});
+};
+
 // Every active competition, or one provider's.
 export const useRequestFixtureSync = () =>
 	useMutation({ mutationFn: (provider?: string) => adminRequestFixtureSync(provider) });
@@ -160,3 +174,7 @@ export const useDeleteFixtureExtra = () => {
 		onSettled: () => queryClient.invalidateQueries({ queryKey: adminKeys.fixtures() }),
 	});
 };
+
+// What rooms ask to predict next, across rooms (Up next).
+export const useUpNextDemand = () =>
+	useQuery({ queryKey: adminKeys.upNextDemand(), queryFn: adminGetUpNextDemand });

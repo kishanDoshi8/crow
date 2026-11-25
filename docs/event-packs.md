@@ -470,3 +470,10 @@ matches from a list instead of typing them is most of the saving.
   called-off match says so. The shared result card adds one line ("ARS
   2–2 CHE (2–4 pens)", "India won by 22 runs"). Nothing shows before the
   admin confirms, even if a host revealed earlier.
+- **Archiving (/admin → Competitions):** the list shows current
+  competitions first (leagues, then series newest first). Finished holds
+  the ones that ended (their last day has passed) and the ones an admin
+  archived. Archive switches a competition off and files it away; Restore
+  brings it back, still off; turning one on, or adding it again, takes it
+  out of the archive. Questions rooms already have still get their results.
+  Fixtures in /admin lists only current ones.

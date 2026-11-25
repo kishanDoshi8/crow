@@ -13,7 +13,7 @@ import { cn } from "@/shared/lib/utils";
 import type { Series } from "@/features/series/types/series";
 import { Button, Reveal, SkeletonList } from "@/shared/ui";
 import { PlusIcon } from "lucide-react";
-import { UpNextCard } from "@/features/series/components/UpNextCard";
+import { UpNextBallot } from "@/features/series/components/UpNextBallot";
 
 type SeriesListViewProps = {
 	isPending: boolean;
@@ -102,7 +102,7 @@ export function SeriesListView({
 						)}
 					</section>
 
-					<UpNextCard roomId={roomId} roomCode={roomCode} />
+					<UpNextBallot roomId={roomId} roomCode={roomCode} variant='compact' isHost={isOrganizer} />
 
 					<section className='space-y-3'>
 						<SeriesSectionHeader

@@ -708,6 +708,7 @@ begin
       -- The tag its questions get, and whether an admin set it.
       'tag', private.competition_tag(c.tag, c.name, c.sport),
       'tag_is_custom', c.tag is not null,
+      'archived_at', c.archived_at,
       'sport', c.sport,
       'provider', c.provider,
       'provider_ref', c.provider_ref,
@@ -725,9 +726,47 @@ begin
         select count(*)::int from catalog.fixtures f
         where f.competition_id = c.id and f.status = 'scheduled' and f.kickoff_at > now()
       )
-    ) order by c.display_order, c.name), '[]'::json)
+    -- Current first: leagues (no dates), then series newest first; then the
+    -- finished ones (ended or archived), latest first.
+    ) order by
+      -- coalesce: no end date means not over (a null would sort last).
+      (c.archived_at is not null or coalesce(c.ends_on < current_date, false)),
+      c.starts_on desc nulls first,
+      c.display_order,
+      c.name
+    ), '[]'::json)
     from catalog.competitions c
   );
+end;
+$$;
+
+-- Files a competition away, or brings it back. Archiving switches it off
+-- (not synced or offered); questions rooms already have still get their
+-- results. Brought back, it stays off until an admin turns it on.
+create or replace function public.admin_set_competition_archived(
+  p_competition_id uuid,
+  p_archived       boolean
+)
+returns json
+language plpgsql
+security definer
+set search_path = public, private
+as $$
+begin
+  if not private.is_platform_admin() then
+    raise exception 'Only platform admins can do this' using errcode = 'P0012';
+  end if;
+
+  update catalog.competitions
+  set archived_at = case when p_archived then coalesce(archived_at, now()) end,
+      active = case when p_archived then false else active end
+  where id = p_competition_id;
+
+  if not found then
+    raise exception 'Competition not found' using errcode = 'P0002';
+  end if;
+
+  return json_build_object('id', p_competition_id, 'archived', p_archived);
 end;
 $$;
 
@@ -747,7 +786,11 @@ begin
     raise exception 'Only platform admins can do this' using errcode = 'P0012';
   end if;
 
-  update catalog.competitions set active = p_active where id = p_competition_id;
+  -- Turning one on brings it out of the archive too.
+  update catalog.competitions
+  set active = p_active,
+      archived_at = case when p_active then null else archived_at end
+  where id = p_competition_id;
   if not found then
     raise exception 'Competition not found' using errcode = 'P0002';
   end if;
@@ -1038,6 +1081,7 @@ begin
   )
   on conflict (provider, provider_ref) do update
     set active = true,
+        archived_at = null,
         tag = coalesce(excluded.tag, catalog.competitions.tag),
         starts_on = coalesce(excluded.starts_on, catalog.competitions.starts_on),
         ends_on = coalesce(excluded.ends_on, catalog.competitions.ends_on)
