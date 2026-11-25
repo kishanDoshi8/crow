@@ -11,6 +11,7 @@ import {
 	adminRequestFixtureSync,
 	adminSetCompetitionActive,
 	adminSetCompetitionTag,
+	adminGetUpNextDemand,
 	adminSetFixtureResult,
 	adminUpdateFixtureQuestion,
 	getMyPlatformAdmin,
@@ -160,3 +161,7 @@ export const useDeleteFixtureExtra = () => {
 		onSettled: () => queryClient.invalidateQueries({ queryKey: adminKeys.fixtures() }),
 	});
 };
+
+// What rooms ask to predict next, across rooms (Up next).
+export const useUpNextDemand = () =>
+	useQuery({ queryKey: adminKeys.upNextDemand(), queryFn: adminGetUpNextDemand });

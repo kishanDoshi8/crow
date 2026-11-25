@@ -157,7 +157,7 @@ export default function SeriesCreatePage() {
 			<div>
 				<h2 className='text-lg font-semibold'>New series</h2>
 				<p className='mt-1 text-sm text-muted-foreground'>
-					Everyone starts the series with the same points. Most
+					Everyone starts the series with the same points. Most net
 					points when it ends takes the title.
 				</p>
 			</div>

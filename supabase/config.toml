@@ -74,6 +74,7 @@ schema_paths = [
   "./schemas/catalog/tables/04_question_templates.sql",
   "./schemas/catalog/tables/05_fixture_questions.sql",
   "./schemas/catalog/tables/06_room_competitions.sql",
+  "./schemas/catalog/tables/07_series_suggestion_competitions.sql",
   "./schemas/activities/tables/room_activities.sql",
   "./schemas/notifications/tables/notification_config.sql",
   "./schemas/notifications/tables/notification_dispatch_log.sql",

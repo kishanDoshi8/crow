@@ -151,3 +151,10 @@ grant execute on function public.get_fixture_result_targets(text) to service_rol
 grant execute on function public.provider_http_get(text) to service_role;
 grant execute on function public.provider_http_response(bigint) to service_role;
 grant execute on function public.get_prediction_match_result(uuid) to authenticated;
+
+-- Up next (up_next.sql).
+grant execute on function public.get_up_next(uuid) to authenticated;
+grant execute on function public.pick_up_next(uuid, uuid, text) to authenticated;
+grant execute on function public.clear_up_next_pick(uuid) to authenticated;
+grant execute on function public.start_series_from_idea(uuid, text, boolean) to authenticated;
+grant execute on function public.admin_get_up_next_demand() to authenticated;

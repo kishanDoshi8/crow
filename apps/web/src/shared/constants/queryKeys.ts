@@ -154,5 +154,6 @@ export const adminKeys = {
   isAdmin: () => [...adminKeys.all, "isAdmin"] as const,
   results: () => [...adminKeys.all, "results"] as const,
   competitions: () => [...adminKeys.all, "competitions"] as const,
+  upNextDemand: () => [...adminKeys.all, "upNextDemand"] as const,
   fixtures: (competitionId?: string) => [...adminKeys.all, "fixtures", ...(competitionId ? [competitionId] : [])] as const,
 };

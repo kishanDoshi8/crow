@@ -12,4 +12,4 @@ export { SeriesSelector } from "./SeriesSelector";
 export { SeriesPickerDrawer, SeriesPickerPopover } from "./SeriesPickerDrawer";
 export { WalletPopover } from "./WalletPopover";
 export { SeriesScopeToggle, type SeriesScope } from "./SeriesScopeToggle";
-export { UpNextCard } from "./UpNextCard";
+export { UpNextBallot } from "./UpNextBallot";
