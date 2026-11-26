@@ -15,11 +15,13 @@ export type InviteCardData = {
 	livePredictions: number;
 	// The active series, if there is one: what a new player would join.
 	series: { title: string; startingStack: number } | null;
-	// The open prediction that locks soonest, as a taste of what's live.
+	// The open prediction that locks soonest, as a taste of what's live. No
+	// split: who picked what stays hidden until it locks.
 	teaser: {
 		question: string;
 		locks: string;
-		options: Array<{ label: string; share: number }>;
+		options: string[];
+		picks: number;
 	} | null;
 };
 
@@ -47,7 +49,6 @@ export function InviteCard({
 }: Readonly<{ data: InviteCardData; format: CardFormat }>) {
 	const { teaser } = data;
 	const options = teaser?.options.slice(0, MAX_TEASER_OPTIONS) ?? [];
-	const hasCalls = options.some((option) => option.share > 0);
 
 	return (
 		<CardCanvas format={format} gap={format === "story" ? 56 : 44}>
@@ -107,15 +108,14 @@ export function InviteCard({
 						{teaser.question}
 					</span>
 					<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-						{options.map((option) => (
-							<OptionRow
-								key={option.label}
-								label={option.label}
-								value={hasCalls ? `${Math.round(option.share)}%` : "No calls yet"}
-								share={option.share}
-								compact
-							/>
+						{options.map((label) => (
+							<OptionRow key={label} label={label} compact />
 						))}
+						<span style={{ fontSize: 24, color: app.muted }}>
+							{teaser.picks > 0
+								? `${plural(teaser.picks, "pick", "picks")} in · hidden until it locks`
+								: "No calls yet"}
+						</span>
 					</div>
 				</div>
 			) : (

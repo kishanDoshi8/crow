@@ -6,6 +6,7 @@ import type { Bet } from "@/features/predictions/types/bet";
 import { formatPoints } from "@/features/predictions/lib/predictionView";
 import { previewWinnings } from "@/features/predictions/lib/payoutPreview";
 import { useQuestionBets } from "@/features/predictions/hooks/picks";
+import { usePickCounts } from "@/features/predictions/hooks/bet";
 import { PredictionTags } from "@/features/predictions/components/PredictionTags";
 import { describeDeadline } from "@/shared/lib/deadline";
 import { capitalize, cn } from "@/shared/lib/utils";
@@ -55,15 +56,22 @@ export function MatchCard({
 	const firstClose = open[0] ? new Date(open[0].deadline) : null;
 	const first = predictions[0];
 
-	// The room's numbers for the whole match.
+	// The room's numbers for the whole match. While any question is open its
+	// bets hold only your own pick, so the totals come from the server.
+	const anyOpen = open.length > 0;
+	const { data: counts } = usePickCounts(
+		roomId,
+		predictions.map((prediction) => prediction.id),
+		anyOpen,
+	);
 	const allBets = predictions.flatMap((prediction) => bets.get(prediction.id) ?? []);
-	const inPlay = allBets.reduce((sum, bet) => sum + bet.amount, 0);
-	const players = new Set(allBets.map((bet) => bet.player_id)).size;
+	const inPlay = anyOpen ? (counts?.pool ?? 0) : allBets.reduce((sum, bet) => sum + bet.amount, 0);
+	const players = anyOpen ? (counts?.players ?? 0) : new Set(allBets.map((bet) => bet.player_id)).size;
 
-	// Your points on the match, and what they'd win if every pick comes in
-	// (changes as others pick, until picks close).
+	// Your points on the match, and what they'd win if every pick comes in.
+	// Only once picks close: before that it would show how the others picked.
 	const myPoints = myPicks.reduce((sum, prediction) => sum + (picks.get(prediction.id)?.amount ?? 0), 0);
-	const upside = playerId
+	const upside = playerId && !anyOpen
 		? myPicks.reduce((sum, prediction) => {
 				const pick = picks.get(prediction.id);
 				if (!pick) return sum;
@@ -159,7 +167,7 @@ export function MatchCard({
 								: "You sat this one out"}
 					</span>
 					{upside > 0 ? (
-						<span className='whitespace-nowrap text-xs text-muted-foreground' title='If all your picks win. Changes as others pick, until picks close.'>
+						<span className='whitespace-nowrap text-xs text-muted-foreground' title='If all your picks win.'>
 							Up to <span className='font-semibold text-win tabular-nums'>≈ +{formatPoints(upside)} pts</span>
 						</span>
 					) : null}

@@ -38,6 +38,10 @@ export const roomKeys = {
 
   bets: (roomId: string, predictionId: string) =>
     [...roomKeys.detail(roomId), "predictions", predictionId, "bets"] as const,
+  // How many picks, points and players, for open predictions (their bets
+  // are hidden). One question or a match's worth.
+  pickCounts: (roomId: string, predictionIds: string[] = []) =>
+    [...roomKeys.detail(roomId), "pickCounts", ...predictionIds] as const,
 
   myBet: (roomId: string, predictionId: string, playerId: string) =>
     [...roomKeys.detail(roomId), "predictions", predictionId, "myBet", playerId] as const,

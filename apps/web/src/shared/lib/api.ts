@@ -920,22 +920,13 @@ export async function createPrediction(
     series_prediction_number: number | null
   }
 
+  // A new prediction has no picks yet.
   const predictionOptions = prediction.option_ids.map((optionId, index) => ({
     id: optionId,
     prediction_id: prediction.prediction_id,
     label: options[index],
     display_order: index,
-    total_bet: 0,
   }))
-
-  const bets = await getBetsForPrediction(prediction.prediction_id)
-
-  for (const bet of bets) {
-    const option = predictionOptions.find((opt) => opt.id === bet.option_id)
-    if (option) {
-      option.total_bet += bet.amount
-    }
-  }
 
   return {
     ...prediction,
@@ -989,6 +980,10 @@ export async function createPredictions(
   }
 }
 
+// Every option column players can read. total_bet isn't one: on an open
+// prediction it would show how the picks split (getPickCounts).
+const PREDICTION_OPTION_COLUMNS = 'id, prediction_id, label, display_order, created_at, option_key'
+
 export async function getPrediction(predictionId: string) {
   const { data, error } = await supabase
     .from('predictions')
@@ -1001,7 +996,7 @@ export async function getPrediction(predictionId: string) {
 
   const { data: predictionOptions, error: optionsError } = await supabase
     .from('prediction_options')
-    .select('*')
+    .select(PREDICTION_OPTION_COLUMNS)
     .eq('prediction_id', data.id)
     .order('display_order', { ascending: true })
   if (optionsError) throw optionsError
@@ -1035,7 +1030,7 @@ export async function getActivePrediction(roomId: string) {
 
   const { data: predictionOptions, error: optionsError } = await supabase
     .from('prediction_options')
-    .select('*')
+    .select(PREDICTION_OPTION_COLUMNS)
     .eq('prediction_id', data.id)
     .order('display_order', { ascending: true })
 
@@ -1074,7 +1069,7 @@ export async function getActivePredictions(roomId: string, seriesId?: string): P
       activeRows.map(async (row: typeof activeRows[0]) => {
         const { data: opts, error: optsErr } = await supabase
           .from('prediction_options')
-          .select('*')
+          .select(PREDICTION_OPTION_COLUMNS)
           .eq('prediction_id', row.id)
           .order('display_order', { ascending: true })
         if (optsErr) throw optsErr
@@ -1113,7 +1108,7 @@ export async function getActivePredictions(roomId: string, seriesId?: string): P
   const fallback = fallbackRows[0]
   const { data: fallbackOpts, error: fallbackOptsErr } = await supabase
     .from('prediction_options')
-    .select('*')
+    .select(PREDICTION_OPTION_COLUMNS)
     .eq('prediction_id', fallback.id)
     .order('display_order', { ascending: true })
   if (fallbackOptsErr) throw fallbackOptsErr
@@ -1672,6 +1667,8 @@ export async function adminDeleteFixtureExtra(questionId: string) {
 
 // #region Bets
 // -------------------------------------------------------
+// Everyone's bets once picks lock. While the prediction is open the database
+// returns only the player's own.
 export async function getBetsForPrediction(predictionId: string) {
   const { data, error } = await supabase
     .from('bets')
@@ -1693,6 +1690,16 @@ export async function getBetsForPrediction(predictionId: string) {
 
   if (error) throw error
   return data ?? []
+}
+
+// How many picks, points and players some predictions have, without who
+// picked what. While one is open, getBetsForPrediction returns only the
+// player's own bet.
+export async function getPickCounts(predictionIds: string[]) {
+  const { data, error } = await untypedSupabase.rpc('get_pick_counts', {
+    p_prediction_ids: predictionIds,
+  })
+  return assertOk(data, error) as { picks: number; pool: number; players: number }
 }
 
 export async function placeBet(

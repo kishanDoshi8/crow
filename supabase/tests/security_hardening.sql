@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(49);
+select plan(56);
 
 -- ------------------------------------------------------------
 -- Fixtures: Alice organizes a room, Bob joins it, Carol is an outsider.
@@ -194,7 +194,7 @@ select is(
     'create_series',
     'decide_join_request', 'delete_my_push_subscription', 'delete_scheduled_prediction', 'dismiss_weekly_recap',
     'get_explore_rooms', 'get_head_to_head', 'get_invitable_rooms', 'get_my_account_deletion', 'get_my_platform_admin', 'get_my_room_invites', 'get_my_series_wallets', 'get_my_unseen_results', 'get_my_weekly_recap',
-    'get_people_you_play_with', 'get_player', 'get_player_profile', 'get_prediction_match_result', 'get_prediction_talk', 'get_preferences', 'get_room_activities', 'get_room_by_code', 'get_room_competition_fixtures', 'get_room_competitions', 'get_room_fixtures', 'get_room_former_members',
+    'get_people_you_play_with', 'get_pick_counts', 'get_player', 'get_player_profile', 'get_prediction_match_result', 'get_prediction_talk', 'get_preferences', 'get_room_activities', 'get_room_by_code', 'get_room_competition_fixtures', 'get_room_competitions', 'get_room_fixtures', 'get_room_former_members',
     'get_room_has_unseen_activities', 'get_room_join_requests', 'get_room_manage_queue', 'get_room_member_recent_predictions',
     'get_room_member_stats', 'get_room_member_style', 'get_room_overall_standings', 'get_room_prediction_history',
     'get_room_prediction_history_counts',
@@ -246,6 +246,11 @@ select is((select count(*)::int from public.room_members), 0, 'an outsider sees 
 select is((select count(*)::int from public.predictions), 0, 'an outsider sees no predictions');
 select is((select count(*)::int from public.prediction_options), 0, 'an outsider sees no prediction options');
 select is((select count(*)::int from public.bets), 0, 'an outsider sees no bets');
+select throws_ok(
+  format($$ select public.get_pick_counts(array[%L::uuid]) $$, pg_temp.setting('prediction_id')),
+  'P0002', null,
+  'an outsider cannot read the pick count'
+);
 select is((select count(*)::int from public.series_wallets), 0, 'an outsider sees no series wallets');
 select is((select count(*)::int from public.player_rooms_by_activity), 0, 'an outsider sees no room list rows');
 select is((select array_agg(username::text) from public.players), array['carol'], 'an outsider sees only their own player');
@@ -285,7 +290,26 @@ select is((select count(*)::int from public.rooms), 1, 'a member sees their room
 select is((select count(*)::int from public.room_members), 2, 'a member sees everyone in their room');
 select is((select count(*)::int from public.predictions), 1, 'a member sees the room''s predictions');
 select is((select count(*)::int from public.prediction_options), 2, 'a member sees prediction options');
-select is((select count(*)::int from public.bets), 2, 'a member sees the room''s bets');
+select is(
+  (select array_agg(p.username::text) from public.bets b join public.players p on p.id = b.player_id),
+  array['bob'],
+  'while picks are open a member sees only their own bet'
+);
+select is(
+  (select count(*)::int from public.bets where player_id = (select id from public.players where username = 'alice')),
+  0,
+  'while picks are open a member cannot read another player''s pick'
+);
+select throws_ok(
+  $$ select total_bet from public.prediction_options $$,
+  '42501', null,
+  'option totals, which would show the split, are not readable'
+);
+select is(
+  public.get_pick_counts(array[pg_temp.setting('prediction_id')])::jsonb,
+  '{"picks": 2, "pool": 200, "players": 2}'::jsonb,
+  'a member gets the pick count and points in play without the split'
+);
 select is((select count(*)::int from public.series_wallets), 2, 'a member sees the series wallets in their room');
 select is(
   (select array_agg(username::text order by username) from public.players),
@@ -303,6 +327,15 @@ select is(
   'the invite lookup tells a member they are a member'
 );
 
+reset role;
+
+select pg_temp.login('00000000-0000-0000-0000-00000000a11c');
+set local role authenticated;
+select is(
+  (select array_agg(p.username::text) from public.bets b join public.players p on p.id = b.player_id),
+  array['alice'],
+  'while picks are open the organizer also sees only their own bet'
+);
 reset role;
 
 -- ------------------------------------------------------------
@@ -342,6 +375,21 @@ reset role;
 
 -- Same statement the auto-lock-predictions cron job runs at the deadline.
 update public.predictions set status = 'locked' where id = pg_temp.setting('prediction_id');
+
+select pg_temp.login('00000000-0000-0000-0000-000000000b0b');
+set local role authenticated;
+select is(
+  (select array_agg(p.username::text order by p.username) from public.bets b join public.players p on p.id = b.player_id),
+  array['alice', 'bob'],
+  'once picks lock a member sees everyone''s bets'
+);
+select is(
+  (select o.label from public.bets b join public.prediction_options o on o.id = b.option_id
+   where b.player_id = (select id from public.players where username = 'alice')),
+  'No',
+  'once picks lock a member sees what another player picked'
+);
+reset role;
 
 select pg_temp.login('00000000-0000-0000-0000-00000000a11c');
 set local role authenticated;

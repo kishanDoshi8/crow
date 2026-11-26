@@ -4,6 +4,7 @@ import {
 	formatPoints,
 	optionTone,
 	shownWinnerId,
+	splitHidden,
 	type OptionTally,
 } from "@/features/predictions/lib/predictionView";
 import { cn } from "@/shared/lib/utils";
@@ -20,8 +21,9 @@ type Props = {
 };
 
 // Every option with its share of the points. While the prediction is open
-// each is a card to tap; afterwards they share one read-only panel, marking
-// your pick and the winner.
+// each is a card to tap, without the shares (nobody sees the split until
+// picks close); afterwards they share one read-only panel, marking your pick
+// and the winner.
 export function OptionsBoard({
 	status,
 	options,
@@ -33,6 +35,7 @@ export function OptionsBoard({
 	const open = status === "draft" && !!onPick;
 	const settled = status === "revealed";
 	const voided = status === "no_result" || status === "cancelled";
+	const hideSplit = splitHidden(status);
 
 	// Open: each option its own card, a radio to tap. Afterwards: one panel
 	// of rows, read-only.
@@ -107,19 +110,25 @@ export function OptionsBoard({
 									</span>
 								) : null}
 							</span>
-							<span className='shrink-0 text-base font-semibold tabular-nums'>
-								{percent}%
-							</span>
+							{hideSplit ? null : (
+								<span className='shrink-0 text-base font-semibold tabular-nums'>
+									{percent}%
+								</span>
+							)}
 						</span>
-						<span className={cn("block h-1.5 overflow-hidden rounded-full bg-secondary", indent)} aria-hidden>
-							<span
-								className={cn("block h-full rounded-full transition-[width] duration-500", barClass)}
-								style={{ width: `${percent}%` }}
-							/>
-						</span>
-						<span className={cn("text-xs text-muted-foreground tabular-nums", indent)}>
-							{formatPoints(points)} pts
-						</span>
+						{hideSplit ? null : (
+							<>
+								<span className={cn("block h-1.5 overflow-hidden rounded-full bg-secondary", indent)} aria-hidden>
+									<span
+										className={cn("block h-full rounded-full transition-[width] duration-500", barClass)}
+										style={{ width: `${percent}%` }}
+									/>
+								</span>
+								<span className={cn("text-xs text-muted-foreground tabular-nums", indent)}>
+									{formatPoints(points)} pts
+								</span>
+							</>
+						)}
 					</>
 				);
 

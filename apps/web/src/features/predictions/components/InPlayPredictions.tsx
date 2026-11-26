@@ -2,7 +2,7 @@ import { RoomNextSteps, useRoomRole } from "@/features/rooms";
 import { useRoomCompetitions } from "@/features/fixtures";
 import type { Prediction } from "@/features/predictions/types/types";
 import { useActivePredictions } from "@/features/predictions/hooks/prediction";
-import { useBets } from "@/features/predictions/hooks/bet";
+import { useBets, useTally } from "@/features/predictions/hooks/bet";
 import { pickProgress, useMyPicks } from "@/features/predictions/hooks/picks";
 import { MatchCard } from "@/features/predictions/components/MatchCard";
 import {
@@ -44,7 +44,7 @@ import {
 	formatPoints,
 	optionTone,
 	shownWinnerId,
-	tallyOptions,
+	splitHidden,
 	type OptionTally,
 } from "@/features/predictions/lib/predictionView";
 import { capitalize, cn } from "@/shared/lib/utils";
@@ -72,7 +72,7 @@ function PredictionCard({
 	const { data: player } = usePlayer();
 	const { data: talk } = usePredictionTalk(roomId, prediction.id);
 
-	const { options, pool, picks } = tallyOptions(prediction, bets);
+	const { options, pool, picks } = useTally(roomId, prediction, bets);
 	const myBet = bets.find((b) => b.player_id === player?.id);
 	const winnerLabel =
 		prediction.prediction_options.find((o) => o.id === prediction.winning_option_id)?.label ?? null;
@@ -179,8 +179,10 @@ function cardRows(options: OptionTally[], keep: (string | null)[]) {
 }
 
 // One compact row per option: its colour, label, your pick, and its share of
-// the points. Once revealed the winner turns green and the rest go grey.
+// the points (not while picks are open). Once revealed the winner turns green
+// and the rest go grey.
 function CardOptions({ status, options, winningOptionId, myOptionId }: Readonly<CardOptionsProps>) {
+	const hideSplit = splitHidden(status);
 	const settled = status === "revealed";
 	const voided = status === "no_result" || status === "cancelled";
 	const { shown, hidden } = cardRows(options, [myOptionId, shownWinnerId(status, winningOptionId)]);
@@ -208,24 +210,28 @@ function CardOptions({ status, options, winningOptionId, myOptionId }: Readonly<
 									You
 								</span>
 							) : null}
-							<span
-								className={cn(
-									"ml-auto shrink-0 font-semibold tabular-nums",
-									isWinner && settled && "text-win",
-								)}
-							>
-								{percent}%
+							{hideSplit ? null : (
+								<span
+									className={cn(
+										"ml-auto shrink-0 font-semibold tabular-nums",
+										isWinner && settled && "text-win",
+									)}
+								>
+									{percent}%
+								</span>
+							)}
+						</span>
+						{hideSplit ? null : (
+							<span className='block h-1 overflow-hidden rounded-full bg-secondary' aria-hidden>
+								<span
+									className={cn(
+										"block h-full rounded-full transition-[width] duration-500",
+										isWinner && settled ? "bg-win" : muted ? "bg-muted-foreground/60" : tone.bar,
+									)}
+									style={{ width: `${percent}%` }}
+								/>
 							</span>
-						</span>
-						<span className='block h-1 overflow-hidden rounded-full bg-secondary' aria-hidden>
-							<span
-								className={cn(
-									"block h-full rounded-full transition-[width] duration-500",
-									isWinner && settled ? "bg-win" : muted ? "bg-muted-foreground/60" : tone.bar,
-								)}
-								style={{ width: `${percent}%` }}
-							/>
-						</span>
+						)}
 					</li>
 				);
 			})}

@@ -200,7 +200,6 @@ export default function ManagePage() {
 						prediction_options: revealing.options.map((option) => ({
 							...option,
 							prediction_id: revealing.id,
-							total_bet: 0,
 						})),
 					}}
 					roomId={room.id}

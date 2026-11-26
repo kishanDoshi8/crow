@@ -17,6 +17,7 @@ grant execute on function private.is_room_member(uuid) to authenticated;
 grant execute on function private.is_room_organizer(uuid) to authenticated;
 grant execute on function private.shares_room_with(uuid) to authenticated;
 grant execute on function private.can_view_prediction(uuid) to authenticated;
+grant execute on function private.can_view_bet(uuid, uuid) to authenticated;
 grant execute on function private.can_view_series(uuid) to authenticated;
 
 -- RPCs the web app calls.
@@ -41,6 +42,7 @@ grant execute on function public.get_room_member_stats(uuid, uuid) to authentica
 grant execute on function public.get_room_overall_standings(uuid) to authenticated;
 grant execute on function public.get_room_member_style(uuid, uuid) to authenticated;
 grant execute on function public.get_player_profile(uuid) to authenticated;
+grant execute on function public.get_pick_counts(uuid[]) to authenticated;
 grant execute on function public.get_head_to_head(uuid) to authenticated;
 grant execute on function public.get_people_you_play_with() to authenticated;
 grant execute on function public.get_invitable_rooms(uuid) to authenticated;

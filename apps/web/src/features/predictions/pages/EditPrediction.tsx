@@ -1,6 +1,7 @@
 import { useRoomContext } from "@/shared/lib/roomContext";
 import { useAppNavigation } from "@/shared/lib/navigation";
 import { usePrediction, useUpdatePrediction } from "@/features/predictions/hooks/prediction";
+import { usePickCounts } from "@/features/predictions/hooks/bet";
 import { PredictionForm } from "@/features/predictions/components/PredictionForm";
 import { useRoomRole } from "@/features/rooms";
 import { Alert, AlertDescription, Skeleton } from "@/shared/ui";
@@ -17,6 +18,12 @@ export default function EditPrediction() {
 	const { predictionId } = useParams<{ predictionId: string }>();
 	const { back } = useAppNavigation();
 	const { data: prediction, isPending } = usePrediction(room.id, predictionId);
+	// Options are fixed once anyone picks. Bets are hidden while it's open,
+	// so ask for the count.
+	const { data: counts, isLoading: isCountLoading } = usePickCounts(
+		room.id,
+		predictionId ? [predictionId] : [],
+	);
 	const { mutate: updatePrediction, isPending: isSaving } =
 		useUpdatePrediction();
 	const predictionPath = `/rooms/${room.code}/predictions/${predictionId}`;
@@ -25,7 +32,7 @@ export default function EditPrediction() {
 		return <Navigate to={predictionPath} replace />;
 	}
 
-	if (isPending) {
+	if (isPending || isCountLoading) {
 		return (
 			<div className='mx-auto w-full max-w-md space-y-4 p-4'>
 				<Skeleton className='h-24 w-full rounded-xl' />
@@ -42,7 +49,7 @@ export default function EditPrediction() {
 	const options = [...prediction.prediction_options].sort(
 		(a, b) => a.display_order - b.display_order,
 	);
-	const hasBets = options.some((option) => option.total_bet > 0);
+	const hasBets = (counts?.picks ?? 0) > 0;
 
 	return (
 		<>

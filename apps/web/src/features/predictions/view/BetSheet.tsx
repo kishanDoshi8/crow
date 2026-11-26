@@ -15,7 +15,6 @@ import {
 import { Slider } from "@/shared/ui/slider";
 import type { Bet } from "@/features/predictions/types/bet";
 import { useCancelBet, usePlaceBet } from "@/features/predictions/hooks/bet";
-import { previewWinnings } from "@/features/predictions/lib/payoutPreview";
 import { formatPoints } from "@/features/predictions/lib/predictionView";
 import { useRoomActions } from "@/shared/lib/roomActions";
 import { useOnline } from "@/shared/lib/offline";
@@ -40,7 +39,6 @@ type Props = {
 	optionLabel: string;
 	myBet: Bet | null;
 	myBetLabel: string;
-	bets: Bet[];
 	// Points free in the series wallet (not counting this prediction's bet).
 	available: number;
 };
@@ -58,7 +56,6 @@ export function BetSheet({
 	optionLabel,
 	myBet,
 	myBetLabel,
-	bets,
 	available,
 }: Readonly<Props>) {
 	const { openNotifications } = useRoomActions();
@@ -87,7 +84,6 @@ export function BetSheet({
 	const clamp = (value: number) => Math.max(1, Math.min(value, Math.max(balance, 1)));
 	const isSwitching = !!myBet && optionId !== myBet.option_id;
 	const hasChanges = !myBet || isSwitching || amount !== myBet.amount;
-	const gain = optionId ? previewWinnings(bets, playerId, optionId, amount) : 0;
 	const busy = isPlacing || isCancelling;
 	const online = useOnline();
 
@@ -299,15 +295,9 @@ export function BetSheet({
 						</Button>
 					</div>
 					<p className='text-[13px] text-muted-foreground' aria-live='polite'>
-						{gain > 0 ? (
-							<>
-								If {optionLabel} wins:{" "}
-								<span className='font-semibold text-win tabular-nums'>≈ +{formatPoints(gain)} pts</span>
-								{" "}· changes as others pick. Fixed when picks close.
-							</>
-						) : (
-							"Nobody's picked against you yet. Fixed when picks close."
-						)}
+						{/* No estimate: it would show how the others picked, which stays
+						    hidden until picks close. */}
+						If {optionLabel} wins, you share the points picked against you. The split shows when picks close.
 					</p>
 				</div>
 
