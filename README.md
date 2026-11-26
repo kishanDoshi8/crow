@@ -1,205 +1,115 @@
 # Crow
 
-Private prediction game. Friends play series of predictions on real-life outcomes; everyone starts each series with the same points.
+**A prediction game for friend groups.** Someone asks a question ("Who wins the derby on Sunday?"), everyone makes a call before the deadline, and Crow keeps score across a season. No money, just bragging rights.
 
-## Stack
-- **Frontend**: React + Vite + TypeScript (PWA)
-- **Backend**: Supabase (Postgres + Realtime)
-- **Hosting**: DigitalOcean droplet with nginx (see `docs/server-setup.md`) + Supabase Cloud
+**Live at [playcrow.app](https://playcrow.app)** · built and run by [Kishan Doshi](https://kishandoshi.me)
 
----
+<p>
+  <img src="docs/images/landing.webp" alt="Crow's home screen: 'Call it. Crow about it.' with buttons to start a room or join with a code" width="280">
+  &nbsp;
+  <img src="docs/images/standings.webp" alt="Weekly standings for a room: four players ranked by points, with movement since last week" width="360">
+</p>
 
-## Setup
+## At a glance
 
-### 1. Supabase project
+- **In production** with about 15 regular players, running weekly series on Premier League, Champions League, World Cup, IPL and ICC fixtures.
+- **Built solo, end to end:** product and UI design, the React app, the Postgres data model and security rules, background jobs, and the server it runs on.
+- **No API server.** The browser talks to Postgres directly; the database enforces every game rule.
+- **Installable PWA** with push notifications for deadlines, results and weekly standings.
 
-1. Go to [supabase.com](https://supabase.com) and create a new project
-2. In the dashboard: **Database > Extensions** — enable `pgcrypto` and `pg_cron`
-3. Copy your project URL and anon key from **Settings > API**
+## How it works
 
-### 2. Run migrations
+```mermaid
+flowchart LR
+    App["React PWA<br/>(browser / home screen)"]
+    subgraph Supabase
+        RPC["RPC functions<br/>(all writes)"]
+        Views["Row-level-secured<br/>tables and views (reads)"]
+        RT["Realtime"]
+        Cron["pg_cron jobs"]
+        Edge["Edge Functions"]
+    end
+    Providers["Fixture providers<br/>(football-data.org, CricketData)"]
+    Push["Web Push"]
 
-```bash
-# Install Supabase CLI
-npm install -g supabase
-
-# Link to your project
-supabase login
-supabase link --project-ref your-project-ref
-
-# Push all migrations
-supabase db push
+    App -- "picks, questions" --> RPC
+    App -- "rooms, standings" --> Views
+    RT -- "live updates" --> App
+    Cron -- "every 3 h / 15 min" --> Edge
+    Edge -- "fetch each match once" --> Providers
+    Cron --> Push
+    Push -- "reminders, results" --> App
 ```
 
-Or run each file manually in the Supabase SQL editor in order:
-- `001_initial_schema.sql`
-- `002_rls_policies.sql`
-- `003_rpc_functions.sql`
-- `004_resolve_and_payout.sql`
+The static build is served by nginx on a DigitalOcean droplet. Data, auth and jobs run on Supabase.
 
-### 3. Enable the auto-lock cron job
+## Engineering highlights
 
-In the Supabase SQL editor, run the cron schedule from the bottom of `004_resolve_and_payout.sql` (it's commented out — uncomment and run it once).
+**1. The database is the referee.**
+Players use the public anon key, so nothing in the browser can be trusted. Every write goes through a `security definer` RPC function that checks membership, deadlines and balances. Reads go through row-level security, so players only ever see the rooms they belong to. The rules are listed in [docs/database-security.md](docs/database-security.md) and tested in CI.
 
-### 4. Frontend
-
-```bash
-# Install dependencies
-npm install
-
-# Copy env template and fill in your Supabase values
-cp apps/web/.env.example apps/web/.env.local
-
-# Start dev server
-npm run dev
-```
-
-### 5. Generate TypeScript types (optional but recommended)
-
-```bash
-npm run db:types
-```
-
-This generates `apps/web/src/types/supabase.ts` from your live DB schema.
-
-### 6. Browser push notifications
-
-1. Generate VAPID keys:
-
-```bash
-npx web-push generate-vapid-keys
-```
-
-2. Add the public key in `apps/web/.env.local`:
-
-```bash
-VITE_WEB_PUSH_PUBLIC_KEY=YOUR_PUBLIC_VAPID_KEY
-```
-
-3. Set Edge Function secrets:
-
-```bash
-supabase secrets set WEB_PUSH_PUBLIC_KEY=YOUR_PUBLIC_VAPID_KEY
-supabase secrets set WEB_PUSH_PRIVATE_KEY=YOUR_PRIVATE_VAPID_KEY
-supabase secrets set WEB_PUSH_SUBJECT=mailto:you@example.com
-supabase secrets set NOTIFICATION_FUNCTION_SECRET=YOUR_STRONG_RANDOM_SECRET
-```
-
-4. Deploy the function (JWT verification is now enabled):
-
-```bash
-supabase functions deploy send-push-notifications
-```
-
-5. Populate the notification config table (run once in the Supabase SQL editor):
+A trimmed excerpt from [`place_bet.sql`](supabase/schemas/predictions/functions/place_bet.sql), the function behind making a pick:
 
 ```sql
-insert into private.notification_config (key, value)
-values
-  ('supabase_url',                 'https://YOUR_PROJECT_REF.supabase.co'),
-  ('notification_function_secret', 'YOUR_NOTIFICATION_FUNCTION_SECRET'),
-  ('app_url',                      'https://YOUR_APP_URL'),
-  ('service_role_key',             'YOUR_SERVICE_ROLE_KEY')
-on conflict (key) do update set value = excluded.value;
+-- Only open questions, only before the deadline, only for room members.
+select * into v_prediction
+from public.predictions
+where id = p_prediction_id and status = 'draft'
+for share;
+
+if v_prediction.deadline <= now() then
+  raise exception 'Betting deadline has passed' using errcode = 'P0007';
+end if;
+
+-- Lock the wallet so two picks sent at once can't spend the same points.
+select * into v_wallet
+from public.series_wallets
+where series_id = v_prediction.series_id and player_id = v_player.id
+for update;
 ```
 
-   - `supabase_url` — your project URL (same as `SUPABASE_URL` in the dashboard)
-   - `notification_function_secret` — the same value used for `NOTIFICATION_FUNCTION_SECRET` in step 3
-   - `app_url` — the public URL of your deployed frontend (e.g. `https://predict.vercel.app`)
-   - `service_role_key` — the **service_role** JWT from **Settings > API** in the Supabase dashboard; allows database triggers to authenticate when calling the edge function with JWT verification enabled
+**2. One fetch per match, however many rooms follow it.**
+Fixtures sync every 3 hours and live results every 15 minutes into a shared `catalog` schema, and every room that follows a competition reads from it. This keeps the app within the providers' rate limits (10 requests a minute on football-data.org) as rooms grow. Each provider sits behind a small adapter, which is how cricket was added next to football without touching the game logic.
 
-   > **Security note**: the `service_role_key` grants full admin access to your project. The `private` schema is not exposed through PostgREST, so this value cannot be read by normal API calls. For higher-security deployments, consider using [Supabase Vault](https://supabase.com/docs/guides/database/vault) to store this secret instead of the `notification_config` table.
+**3. Automation instead of an admin.**
+`pg_cron` locks questions at their deadline, publishes scheduled questions, settles results, pays the weekly points top-up and posts weekly standings. `pg_net` and an Edge Function turn those events into Web Push notifications.
 
-6. Enable the cron jobs (run once in the SQL editor, requires `pg_cron` extension):
+**4. Installed apps never run a stale build.**
+PWAs on home screens kept opening old versions. The fix spans nginx (`no-cache` for HTML and the service worker, one-year immutable caching for hashed assets), a service worker that revalidates, and a build-ID check that reloads silently or offers a refresh. Details are in [docs/deployment-caching.md](docs/deployment-caching.md).
 
-```sql
--- Poll every minute for predictions whose deadline is within the next hour.
-select cron.schedule(
-  'push-deadline-1h',
-  '* * * * *',
-  $cron$
-    select private.fire_push_notification_for_deadline_1h();
-  $cron$
-);
+**5. Releases are boring on purpose.**
+Pushing a version tag runs a GitHub Actions workflow: it builds, checks the build reports that tag, precompresses assets for nginx, rsyncs them to a new release folder on the server and switches a symlink to it. The last five releases are kept, so a rollback is one command. See [docs/server-setup.md](docs/server-setup.md).
 
--- Weekly standings snapshots and series top-ups run from the
--- 'series-weekly-topup' job, which the migrations schedule.
-```
+## Quality checks
 
-7. Frontend test trigger example:
+Every pull request runs:
 
-```ts
-import { sendPushNotificationTrigger } from "@/lib/api";
+- TypeScript type-check, ESLint and a production build
+- **34 database test files** (`supabase/tests/`), run against a real local Postgres, covering security rules, scoring, payouts, roles, scheduling and notifications
+- A drift check that the readable schema files in `supabase/schemas/` match what the migrations produce
 
-await sendPushNotificationTrigger({
-  event_type: "prediction_live",
-  payload: {
-    title: "Crow test notification",
-    body: "Push notifications are working.",
-    url: window.location.pathname,
-  },
-});
-```
+## Tech stack
 
-8. Inspect notification delivery:
+| Area | Tools |
+| --- | --- |
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS v4, TanStack Query, React Router, Radix UI |
+| Data and backend | Supabase: PostgreSQL (RLS, RPC functions, pg_cron, pg_net), Realtime, Auth, Edge Functions (Deno) |
+| Delivery | GitHub Actions, nginx, DigitalOcean, Sentry for error reporting |
 
-```sql
--- Recent dispatch attempts (shows pg_net request IDs)
-select * from private.notification_dispatch_log order by created_at desc limit 20;
-
--- Cross-reference with actual HTTP responses
-select l.event_type, l.created_at, r.status_code, r.content
-from private.notification_dispatch_log l
-join net._http_response r on r.id = l.http_request_id
-order by l.created_at desc
-limit 20;
-```
-
----
-
-## Project Structure
+## Repository tour
 
 ```
-crow/
-├── apps/
-│   └── web/                      # React PWA
-│       └── src/
-│           ├── components/
-│           │   ├── ui/           # Generic primitives (Button, Input, Modal...)
-│           │   ├── room/         # Room-level UI (PlayerList, ClaimBanner...)
-│           │   ├── prediction/   # Prediction lifecycle (DraftView, LockedView...)
-│           │   └── leaderboard/  # Leaderboard components
-│           ├── hooks/
-│           │   ├── useRoomRealtime.ts   # Supabase Realtime subscriptions
-│           ├── lib/
-│           │   ├── supabase.ts   # Supabase client
-│           │   ├── api.ts        # All API calls (RPC wrappers)
-│           │   └── storage.ts    # localStorage helpers (tokens, auto-claim)
-│           ├── pages/            # Route-level components
-│           ├── store/
-│           │   └── useAppStore.ts  # Zustand global state
-│           └── types/
-│               └── supabase.ts   # Auto-generated from DB (npm run db:types)
-└── supabase/
-    ├── config.toml
-    ├── seed.sql
-    └── migrations/
-        ├── 001_initial_schema.sql    # Tables + indexes
-        ├── 002_rls_policies.sql      # RLS + safe views
-        ├── 003_rpc_functions.sql     # Game logic RPCs
-        └── 004_resolve_and_payout.sql # Resolution + payout + cron
+apps/web/src/
+  app/          app shell, routing, providers
+  features/     one folder per area (rooms, predictions, leaderboard, fixtures, ...)
+  shared/       UI kit, hooks and libraries used across features
+supabase/
+  schemas/      the database as it is now, one file per table, function or policy set
+  migrations/   the ordered changes that build it
+  functions/    Edge Functions: fixture sync, push notifications, link previews
+  tests/        SQL tests run in CI
+deploy/nginx/   production server config
+docs/           design notes and how-tos
 ```
 
----
-
-## Key Decisions
-
-| Decision | Choice | Reason |
-|----------|--------|--------|
-| Auth | Token-based (localStorage) | No login friction |
-| Identity | player_token + organizer_token | Separate concerns |
-| Writes | Via RPC only | Enforces game rules server-side |
-| Reads | Via safe views | Strips tokens, hides draft bets |
-| Realtime | Postgres Changes + Presence | Live pool updates, online status |
-| Points | Additive drip, never reset | No deadline pressure, natural retention |
-| Payout rounding | `floor()` always | Avoids floating point drift |
+Design and writing guidelines for the app are in [`apps/web/DESIGN.md`](apps/web/DESIGN.md) and [`apps/web/VOICE.md`](apps/web/VOICE.md). Running Crow locally is covered in [docs/development.md](docs/development.md).
