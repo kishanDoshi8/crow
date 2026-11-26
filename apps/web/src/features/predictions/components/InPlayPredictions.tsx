@@ -14,7 +14,6 @@ import {
 } from "@/features/predictions/lib/matchGroups";
 import { useRoomContext } from "@/shared/lib/roomContext";
 import { Button, Reveal, Skeleton, StatStrip } from "@/shared/ui";
-import { describeDeadline } from "@/shared/lib/deadline";
 import type {
 	CarouselApi} from "@/shared/ui/carousel";
 import {
@@ -47,7 +46,8 @@ import {
 	splitHidden,
 	type OptionTally,
 } from "@/features/predictions/lib/predictionView";
-import { capitalize, cn } from "@/shared/lib/utils";
+import { cn } from "@/shared/lib/utils";
+import { ClosesAt } from "@/features/predictions/components/ClosesAt";
 import { ShareOpenPredictionsButton } from "@/features/predictions/components/ShareOpenPredictionsButton";
 
 const PREDICTION_CARD_SHELL =
@@ -119,17 +119,10 @@ function PredictionCard({
 						{ label: "Picks", value: picks },
 						...(prediction.status === "draft"
 							? [
-									{
-										label: "Closes",
-										// "Today 8:00 PM": the label already says what it is.
-										value: capitalize(
-											describeDeadline(new Date(prediction.deadline)).when.replace(" at ", " "),
-										),
-										grow: 1.8,
-									},
+									{ label: "Closes", value: <ClosesAt deadline={prediction.deadline} /> },
 								]
 							: prediction.status === "locked"
-								? [{ label: "Result", value: "Awaited", grow: 1.8 }]
+								? [{ label: "Result", value: "Awaited" }]
 								: []),
 					]}
 				/>
