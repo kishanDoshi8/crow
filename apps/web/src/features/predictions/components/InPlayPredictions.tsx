@@ -4,6 +4,14 @@ import type { Prediction } from "@/features/predictions/types/types";
 import { useActivePredictions } from "@/features/predictions/hooks/prediction";
 import { useBets } from "@/features/predictions/hooks/bet";
 import { pickProgress, useMyPicks } from "@/features/predictions/hooks/picks";
+import { MatchCard } from "@/features/predictions/components/MatchCard";
+import {
+	type GroupProgress,
+	type QuestionGroup,
+	groupByMatch,
+	groupProgress,
+	groupQuestions,
+} from "@/features/predictions/lib/matchGroups";
 import { useRoomContext } from "@/shared/lib/roomContext";
 import { Button, Reveal, Skeleton, StatStrip } from "@/shared/ui";
 import { describeDeadline } from "@/shared/lib/deadline";
@@ -451,6 +459,27 @@ function PickProgressChip({
 	);
 }
 
+const DOT_STYLE: Record<GroupProgress, string> = {
+	none: "ring-[1.5px] ring-inset ring-muted-foreground/80",
+	some: "bg-[linear-gradient(90deg,var(--accent)_50%,transparent_50%)] ring-[1.5px] ring-inset ring-accent",
+	all: "bg-primary",
+	closed: "bg-muted-foreground/40",
+};
+
+const DOT_LABEL: Record<GroupProgress, (group: QuestionGroup, picks: Map<string, Bet | undefined>) => string> = {
+	none: () => "not picked yet",
+	some: (group, picks) => {
+		const open = groupQuestions(group).filter((p) => p.status === "draft");
+		return `${open.filter((p) => picks.get(p.id)).length} of ${open.length} picked`;
+	},
+	all: () => "all picked",
+	closed: () => "picks closed",
+};
+
+function dotName(group: QuestionGroup, index: number) {
+	return group.kind === "set" ? group.title : `question ${index + 1}`;
+}
+
 type InPlayPredictionsProps = {
 	predictionsOverride?: Prediction[];
 	emptyMessage?: string;
@@ -567,6 +596,8 @@ function InPlayPredictions({
 	const { data: me } = usePlayer();
 	const { picks, isPending: isPicksPending } = useMyPicks(room.id, predictions, me?.id);
 	const progress = me && !isPicksPending ? pickProgress(predictions, picks) : null;
+	// A set of questions about one match is one card; others stand alone.
+	const groups = groupByMatch(predictions);
 	const refetchPredictions =
 		predictionsOverride === undefined ? refetch : () => {};
 
@@ -594,7 +625,7 @@ function InPlayPredictions({
 		if (!api) return;
 
 		const storageKey = `room-${room.id}-predictions-carousel-index`;
-		const maxIndex = Math.max(predictions.length - 1, 0);
+		const maxIndex = Math.max(groups.length - 1, 0);
 
 		let initialIndex = 0;
 
@@ -628,7 +659,26 @@ function InPlayPredictions({
 		return () => {
 			api.off("select", onSelect);
 		};
-	}, [api, room.id, predictions.length]);
+	}, [api, room.id, groups.length]);
+
+	const renderGroup = (group: QuestionGroup) =>
+		group.kind === "set" ? (
+			<MatchCard
+				title={group.title}
+				predictions={group.predictions}
+				picks={picks}
+				roomId={room.id}
+				roomCode={room.code}
+				playerId={me?.id}
+			/>
+		) : (
+			<PredictionCard
+				prediction={group.prediction}
+				roomId={room.id}
+				roomCode={room.code}
+				refetchPredictions={refetchPredictions}
+			/>
+		);
 
 	let carouselContent;
 	if (isPredictionLoading) {
@@ -693,11 +743,11 @@ function InPlayPredictions({
 		// With more than one card, each takes most of the width so the next
 		// one peeks in from the side: a hint that there's more to swipe to.
 		// The cards you're not on fade back a little.
-		const hasMore = predictions.length > 1;
-		carouselContent = predictions.map((prediction, index) => (
+		const hasMore = groups.length > 1;
+		carouselContent = groups.map((group, index) => (
 			<CarouselItem
-				key={prediction.id}
-				aria-label={`Question ${index + 1} of ${predictions.length}`}
+				key={group.key}
+				aria-label={`${group.kind === "set" ? group.title : "Question"}, ${index + 1} of ${groups.length}`}
 				className={cn(
 					hasMore && "basis-[88%] transition-opacity duration-300 sm:basis-[85%]",
 					hasMore && index !== current && "opacity-50",
@@ -711,12 +761,7 @@ function InPlayPredictions({
 					api?.scrollTo(index);
 				}}
 			>
-				<PredictionCard
-					prediction={prediction}
-					roomId={room.id}
-					roomCode={room.code}
-					refetchPredictions={refetchPredictions}
-				/>
+				{renderGroup(group)}
 			</CarouselItem>
 		));
 	}
@@ -747,14 +792,8 @@ function InPlayPredictions({
 
 			{layout === "grid" && !isPredictionLoading && predictions.length > 0 ? (
 				<div className='grid gap-4'>
-					{predictions.map((prediction) => (
-						<PredictionCard
-							key={prediction.id}
-							prediction={prediction}
-							roomId={room.id}
-							roomCode={room.code}
-							refetchPredictions={refetchPredictions}
-						/>
+					{groups.map((group) => (
+						<React.Fragment key={group.key}>{renderGroup(group)}</React.Fragment>
 					))}
 				</div>
 			) : (
@@ -768,7 +807,7 @@ function InPlayPredictions({
 					</Carousel>
 
 					<div className={`flex justify-between items-center  px-2`}>
-						{predictions.length > 1 && (
+						{groups.length > 1 && (
 							<button
 								onClick={() => api?.scrollPrev()}
 								aria-label='Previous'
@@ -782,32 +821,29 @@ function InPlayPredictions({
 							{isPredictionLoading && (
 								<Skeleton className={`h-2 w-6 rounded-full`} />
 							)}
-							{/* The dots double as progress: filled once you've picked,
-							    a ring while a question still waits for your pick. */}
-							{predictions.map((prediction, index) => {
-								const isOpen = prediction.status === "draft";
-								const isPicked = !!picks.get(prediction.id);
-								const state = !isOpen ? "closed" : isPicked ? "picked" : "to pick";
+							{/* The dots double as progress, one per card: a ring while
+							    nothing's picked, half filled (amber) part way through a
+							    match, filled once it's all picked. Wide on the card
+							    you're on. Shape carries it as much as colour. */}
+							{groups.map((group, index) => {
+								const state = groupProgress(group, picks);
 								return (
 									<button
-										key={prediction.id}
+										key={group.key}
 										onClick={() => api?.scrollTo(index)}
 										className={cn(
 											"h-2 rounded-full transition-all duration-300 motion-reduce:transition-none",
 											index === current ? "w-6" : "w-2",
-											index === current && "bg-primary",
-											index !== current && state === "picked" && "bg-primary/70",
-											index !== current && state === "to pick" && "ring-[1.5px] ring-inset ring-muted-foreground/80",
-											index !== current && state === "closed" && "bg-muted-foreground/40",
+											DOT_STYLE[state],
 										)}
-										aria-label={`Go to question ${index + 1}${isOpen ? (isPicked ? ", picked" : ", not picked yet") : ""}`}
+										aria-label={`Go to ${dotName(group, index)}, ${DOT_LABEL[state](group, picks)}`}
 										aria-current={index === current ? "true" : undefined}
 									/>
 								);
 							})}
 						</div>
 
-						{predictions.length > 1 && (
+						{groups.length > 1 && (
 							<button onClick={() => api?.scrollNext()} aria-label='Next'>
 								<ChevronRightIcon className={`text-foreground/75`} />
 							</button>

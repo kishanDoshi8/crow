@@ -1057,7 +1057,7 @@ export async function getActivePredictions(roomId: string, seriesId?: string): P
   // First: fetch all active (draft/locked) predictions ordered by deadline asc
   let activeQuery = supabase
     .from('predictions')
-    .select('*, series:series_id(title), prediction_tags(id, prediction_id, tag, created_at)')
+    .select('*, series:series_id(title), event:event_id(title), prediction_tags(id, prediction_id, tag, created_at)')
     .eq('room_id', roomId)
     .in('status', ['draft', 'locked'])
     .order('deadline', { ascending: true })
@@ -1087,6 +1087,7 @@ export async function getActivePredictions(roomId: string, seriesId?: string): P
           tags: row.prediction_tags ?? [],
           status: row.status as PredictionStatus,
           prediction_options: opts ?? [],
+          event_title: row.event?.title ?? null,
         }
       })
     )

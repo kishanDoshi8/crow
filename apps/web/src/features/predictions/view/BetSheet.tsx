@@ -64,7 +64,7 @@ export function BetSheet({
 	const { openNotifications } = useRoomActions();
 	const { room } = useRoomContext();
 	const navigate = useNavigate();
-	const { next, remaining, open: openCount, pickedAfter } = useNextUnpicked(
+	const { next, nextMatch, remaining, open: openCount, pickedAfter } = useNextUnpicked(
 		roomId,
 		seriesId,
 		predictionId,
@@ -191,7 +191,7 @@ export function BetSheet({
 							className='w-full rounded-xl border bg-muted/40 p-4 text-left outline-none transition-colors hover:bg-muted/70 focus-visible:ring-[3px] focus-visible:ring-ring/50'
 						>
 							<span className='flex items-baseline justify-between gap-3 text-xs text-muted-foreground'>
-								<span>Next question</span>
+								<span className='truncate'>{nextMatch ? `Next in ${nextMatch}` : "Next question"}</span>
 								<span className='tabular-nums'>
 									{pickedAfter} of {openCount} picked
 								</span>
