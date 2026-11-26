@@ -20,6 +20,7 @@ import { useRoomActions } from "@/shared/lib/roomActions";
 import { useOnline } from "@/shared/lib/offline";
 import { needsHomeScreenInstall } from "@/shared/lib/pushNotifications";
 import { useNextUnpicked } from "@/features/predictions/hooks/picks";
+import { usePrefetchPrediction } from "@/features/predictions/hooks/prefetch";
 import { useRoomContext } from "@/shared/lib/roomContext";
 import { describeDeadline } from "@/shared/lib/deadline";
 
@@ -70,6 +71,7 @@ export function BetSheet({
 	// After a new pick, the sheet stays up to offer the next question.
 	const [lockedIn, setLockedIn] = useState<{ label: string; amount: number } | null>(null);
 	const { mutate: placeBet, isPending: isPlacing } = usePlaceBet();
+	const prefetchPrediction = usePrefetchPrediction(roomId);
 	const { mutate: cancelBet, isPending: isCancelling } = useCancelBet();
 
 	// The existing bet's stake can be moved, so it counts as available here.
@@ -107,6 +109,9 @@ export function BetSheet({
 
 	const handlePlace = () => {
 		if (!optionId) return;
+		// A first pick offers the next question, so start loading it now:
+		// it's ready by the time "Next" is tapped.
+		if (!myBet && next) prefetchPrediction(next.id);
 		placeBet(
 			{ roomId, playerId, predictionId, seriesId, optionId, amount },
 			{

@@ -78,6 +78,18 @@ function distance(a: Date, b: Date, forced?: Unit) {
 	}
 }
 
+// A deadline short enough for one line in a small stat cell, next to a
+// countdown that already gives the time left: "8:30 PM" today, then
+// "Tomorrow", "Thu" this week and "Nov 28" after that. Past deadlines read
+// as their time.
+export function shortDeadline(deadline: Date, now = new Date()) {
+	const daysAway = calendarDaysBetween(deadline, now);
+	if (daysAway <= 0) return format(formatters.time, deadline);
+	if (daysAway === 1) return "Tomorrow";
+	if (daysAway < 7) return format(formatters.weekdayShort, deadline);
+	return format(formatters.monthDay, deadline);
+}
+
 // Describes a deadline the way a person would say it, keeping the exact
 // date alongside for anything beyond today.
 export function describeDeadline(deadline: Date, now = new Date()): DeadlineParts {

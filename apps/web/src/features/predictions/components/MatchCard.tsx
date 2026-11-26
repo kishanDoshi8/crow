@@ -9,7 +9,8 @@ import { useQuestionBets } from "@/features/predictions/hooks/picks";
 import { usePickCounts } from "@/features/predictions/hooks/bet";
 import { PredictionTags } from "@/features/predictions/components/PredictionTags";
 import { describeDeadline } from "@/shared/lib/deadline";
-import { capitalize, cn } from "@/shared/lib/utils";
+import { cn } from "@/shared/lib/utils";
+import { ClosesAt } from "@/features/predictions/components/ClosesAt";
 import {
 	Drawer,
 	DrawerContent,
@@ -147,12 +148,8 @@ export function MatchCard({
 					{ label: "In play", value: formatPoints(inPlay) },
 					{ label: "Players", value: players },
 					firstClose
-						? {
-								label: "Closes",
-								value: capitalize(describeDeadline(firstClose).when.replace(" at ", " ")),
-								grow: 1.8,
-							}
-						: { label: "Result", value: "Awaited", grow: 1.8 },
+						? { label: "Closes", value: <ClosesAt deadline={firstClose} /> }
+						: { label: "Result", value: "Awaited" },
 				]}
 			/>
 
