@@ -11,6 +11,7 @@ import {
 	DrawerDescription,
 	DrawerHeader,
 	DrawerTitle,
+	SheetLink,
 	Skeleton,
 } from "@/shared/ui";
 import {
@@ -28,7 +29,6 @@ import { EASE_OUT } from "@/shared/lib/motion";
 import { cn, initialsOf } from "@/shared/lib/utils";
 import { AnimatePresence, m } from "framer-motion";
 import { useMemo, useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
 import { ChevronRightIcon } from "lucide-react";
 import { CareerStats } from "./CareerStats";
 import { identityToneMeta, styleTitleIcon } from "./identity";
@@ -274,14 +274,14 @@ export function PlayerProfileDialog({
 								</CardSection>
 
 								{/* Their career across the rooms you share, and head to head. */}
-								<Link
+								<SheetLink
 									to={`/players/${playerId}`}
 									onClick={() => onOpenChange(false)}
 									className='flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-medium transition-colors hover:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 								>
 									View full profile
 									<ChevronRightIcon className='size-4 text-muted-foreground' aria-hidden='true' />
-								</Link>
+								</SheetLink>
 							</m.div>
 						)}
 					</AnimatePresence>

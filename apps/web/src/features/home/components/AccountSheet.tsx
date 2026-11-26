@@ -6,7 +6,6 @@ import {
 	ShieldIcon,
 	type LucideIcon,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { useIsPlatformAdmin } from "@/features/admin";
 import { useSignOut } from "@/features/auth";
 import { usePlayer } from "@/features/home/hooks/player";
@@ -17,6 +16,7 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from "@/shared/ui";
+import { useAppNavigation } from "@/shared/lib/navigation";
 import { cn, initialsOf } from "@/shared/lib/utils";
 
 type Props = {
@@ -29,7 +29,7 @@ type Props = {
 // your account settings and Delete account; inside a room, the room menu has
 // the same items.
 export function AccountSheet({ open, onOpenChange, onHowToPlay }: Readonly<Props>) {
-	const navigate = useNavigate();
+	const { open: openPage } = useAppNavigation();
 	const signOut = useSignOut();
 	const { data: player } = usePlayer();
 	const { data: isPlatformAdmin } = useIsPlatformAdmin(open);
@@ -40,10 +40,10 @@ export function AccountSheet({ open, onOpenChange, onHowToPlay }: Readonly<Props
 
 	const items: Array<{ label: string; icon: LucideIcon; onClick: () => void; isDanger?: boolean }> = [
 		{ label: "How to play", icon: CircleQuestionMarkIcon, onClick: close(onHowToPlay) },
-		{ label: "Terms & privacy", icon: FileTextIcon, onClick: close(() => navigate("/terms")) },
+		{ label: "Terms & privacy", icon: FileTextIcon, onClick: close(() => openPage("/terms")) },
 		// The Crow team only.
 		...(isPlatformAdmin
-			? [{ label: "Crow admin", icon: ShieldIcon, onClick: close(() => navigate("/admin")) }]
+			? [{ label: "Crow admin", icon: ShieldIcon, onClick: close(() => openPage("/admin")) }]
 			: []),
 		{ label: "Sign out", icon: LogOutIcon, onClick: close(() => void signOut()) },
 	];
@@ -54,7 +54,7 @@ export function AccountSheet({ open, onOpenChange, onHowToPlay }: Readonly<Props
 				<DrawerHeader className='p-2 group-data-[vaul-drawer-direction=bottom]/drawer-content:text-left'>
 					<button
 						type='button'
-						onClick={close(() => navigate("/profile"))}
+						onClick={close(() => openPage("/profile"))}
 						className='flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 					>
 						<span className='flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold'>

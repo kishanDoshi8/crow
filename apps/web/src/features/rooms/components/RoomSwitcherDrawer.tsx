@@ -12,7 +12,7 @@ import {
 } from "@/shared/ui";
 import { CircleQuestionMarkIcon, CompassIcon, PlusIcon, UsersIcon } from "lucide-react";
 import React, { Suspense, lazy, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { useAppNavigation } from "@/shared/lib/navigation";
 import { RoomCardsList } from "./RoomCardsList";
 import { RoomInvitesList } from "./RoomInvitesList";
 
@@ -104,12 +104,12 @@ function RoomSwitcher({
 	onOpenChange: (open: boolean) => void;
 	children: (actions: ReactNode) => ReactNode;
 }>) {
-	const navigate = useNavigate();
+	const { open: openPage } = useAppNavigation();
 	const [openHowToPlay, setOpenHowToPlay] = React.useState(false);
 
 	const handleOpenTab = (tab: "explore" | "join" | "create") => {
 		onOpenChange(false);
-		navigate(`/?tab=${tab}`);
+		openPage(`/?tab=${tab}`);
 	};
 
 	const handleHowToPlay = () => {

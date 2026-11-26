@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useStartSeriesFromIdea } from "@/features/series/hooks/suggestions";
 import { useCurrentSeries } from "@/features/series/hooks/wallets";
 import type { UpNextOption } from "@/shared/lib/api";
+import { useAppNavigation } from "@/shared/lib/navigation";
 import {
 	Button,
 	Checkbox,
@@ -15,6 +15,7 @@ import {
 	Field,
 	FieldLabel,
 	Input,
+	SheetLink,
 	Spinner,
 } from "@/shared/ui";
 
@@ -32,7 +33,7 @@ type Props = {
 // as the last series; following the competition brings its matches into
 // Fixtures, which is where it goes next.
 export function StartSeriesSheet({ roomId, roomCode, idea, open, onOpenChange }: Readonly<Props>) {
-	const navigate = useNavigate();
+	const { open: openPage } = useAppNavigation();
 	const { setCurrentSeriesId } = useCurrentSeries(roomId);
 	const { mutate: start, isPending } = useStartSeriesFromIdea(roomId);
 	const [title, setTitle] = useState(idea.title);
@@ -50,7 +51,7 @@ export function StartSeriesSheet({ roomId, roomCode, idea, open, onOpenChange }:
 						description: competition_id ? "Add its first matches." : undefined,
 						position: "top-center",
 					});
-					navigate(
+					openPage(
 						competition_id
 							? `/rooms/${roomCode}/manage/fixtures/${competition_id}`
 							: `/rooms/${roomCode}/series/${series_id}`,
@@ -123,13 +124,13 @@ export function StartSeriesSheet({ roomId, roomCode, idea, open, onOpenChange }:
 						</Button>
 						{/* Other points or a ranking bar: the full form, starting from this idea. */}
 						<Button variant='ghost' asChild>
-							<Link
+							<SheetLink
 								to={`/rooms/${roomCode}/series/new`}
 								state={{ suggestionId: idea.id, title: title.trim() }}
 								onClick={() => onOpenChange(false)}
 							>
 								Change the points first
-							</Link>
+							</SheetLink>
 						</Button>
 					</div>
 				</form>
