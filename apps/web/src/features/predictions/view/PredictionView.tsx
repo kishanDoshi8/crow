@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { EyeOffIcon, MessageCircleIcon } from "lucide-react";
-import { Button, Skeleton } from "@/shared/ui";
+import { Button, Skeleton, StepIn } from "@/shared/ui";
 import { usePlayer } from "@/features/home";
 import { PlayerProfileDialog } from "@/features/leaderboard";
 import {
@@ -20,6 +20,7 @@ import { useRoomContext } from "@/shared/lib/roomContext";
 import { useOnline } from "@/shared/lib/offline";
 import { useIsDesktop } from "@/shared/lib/useMediaQuery";
 import { cn } from "@/shared/lib/utils";
+import type { StepDirection } from "@/shared/lib/motion";
 import { useBets, useTally } from "@/features/predictions/hooks/bet";
 import { ResolvePredictionDrawer } from "@/features/predictions/components/ResolvePredictionDrawer";
 import { MatchResultCard } from "@/features/predictions/components/MatchResultCard";
@@ -52,6 +53,19 @@ export function PredictionView({
 	isLoading,
 	onDeadline,
 }: Readonly<Props>) {
+	// Which way the reader moved from the question shown before (Next, the
+	// arrows), so the new one steps in from that side. Kept from render to
+	// render here, since the page below remounts for each question.
+	const [shown, setShown] = useState<{ id: string; order: number; direction: StepDirection } | null>(null);
+	if (prediction && prediction.id !== shown?.id) {
+		const order = predictionOrder(prediction);
+		setShown({
+			id: prediction.id,
+			order,
+			direction: shown ? (Math.sign(order - shown.order) as StepDirection) : 0,
+		});
+	}
+
 	if (!prediction) {
 		return isLoading ? (
 			<PredictionViewSkeleton />
@@ -62,13 +76,31 @@ export function PredictionView({
 		);
 	}
 	// Keyed, so stepping to another prediction starts with nothing open.
-	return <LoadedPrediction key={prediction.id} prediction={prediction} onDeadline={onDeadline} />;
+	return (
+		<LoadedPrediction
+			key={prediction.id}
+			prediction={prediction}
+			direction={shown?.id === prediction.id ? shown.direction : 0}
+			onDeadline={onDeadline}
+		/>
+	);
+}
+
+// Where a prediction sits in the room's run of questions: its number in the
+// series, or when it was made.
+function predictionOrder(prediction: Prediction) {
+	return (
+		prediction.seriesPredictionNumber ??
+		prediction.series_prediction_number ??
+		Date.parse(prediction.created_at ?? "")
+	) || 0;
 }
 
 function LoadedPrediction({
 	prediction,
+	direction,
 	onDeadline,
-}: Readonly<{ prediction: Prediction; onDeadline: () => void }>) {
+}: Readonly<{ prediction: Prediction; direction: StepDirection; onDeadline: () => void }>) {
 	const { room } = useRoomContext();
 	const { can } = useRoomRole(room);
 	const { data: player } = usePlayer();
@@ -296,7 +328,9 @@ function LoadedPrediction({
 		) : null;
 
 	return (
-		<div className='flex min-h-[calc(100dvh-3.5rem)] flex-col'>
+		// Clipped sideways so sections stepping in don't widen the page for a
+		// moment (clip, unlike hidden, keeps the sticky action bar working).
+		<div className='flex min-h-[calc(100dvh-3.5rem)] flex-col overflow-x-clip'>
 			{/* Desktop: the prediction on the left, Room talk on the right. */}
 			<div
 				className={
@@ -312,8 +346,9 @@ function LoadedPrediction({
 							: "mx-auto flex w-full max-w-md flex-1 flex-col gap-7 px-4 pt-4 pb-8"
 					}
 				>
-					{/* The question, where it stands, and your stake in it, close together. */}
-					<div className='flex flex-col gap-4'>
+					{/* The question, where it stands, and your stake in it, close together.
+					    Each section steps in, a beat apart, when the question changes. */}
+					<StepIn direction={direction} index={0} className='flex flex-col gap-4'>
 						<PredictionHeading
 							prediction={prediction}
 							roomCode={room.code}
@@ -378,9 +413,9 @@ function LoadedPrediction({
 							predictionId={prediction.id}
 							enabled={hasMatch}
 						/>
-					</div>
+					</StepIn>
 
-					<section>
+					<StepIn as='section' direction={direction} index={1}>
 						<h2 className='mb-2.5 flex items-baseline justify-between gap-3 text-sm font-semibold'>
 							{isOpen ? "Make your call" : isScheduled ? "Options" : "The split"}
 							<span className='text-xs font-normal text-muted-foreground tabular-nums'>
@@ -405,23 +440,32 @@ function LoadedPrediction({
 								onPick={showBetBar && online ? openSheet : undefined}
 							/>
 						)}
-					</section>
+					</StepIn>
 
-					{isBetsLoading && !isScheduled ? <PicksSkeleton /> : null}
-					{!isBetsLoading && !isScheduled ? (
-						<PicksList
-							status={status}
-							bets={bets}
-							pickCount={picks}
-							options={options}
-							winningOptionId={prediction.winning_option_id}
-							viewerId={player?.id ?? null}
-							nameOf={nameOf}
-							onOpenPlayer={setProfileId}
-						/>
-					) : null}
+					{isScheduled ? null : (
+						<StepIn direction={direction} index={2}>
+							{isBetsLoading ? (
+								<PicksSkeleton />
+							) : (
+								<PicksList
+									status={status}
+									bets={bets}
+									pickCount={picks}
+									options={options}
+									winningOptionId={prediction.winning_option_id}
+									viewerId={player?.id ?? null}
+									nameOf={nameOf}
+									onOpenPlayer={setProfileId}
+								/>
+							)}
+						</StepIn>
+					)}
 
-					{isDesktop ? null : roomTalk}
+					{isDesktop || !roomTalk ? null : (
+						<StepIn direction={direction} index={3}>
+							{roomTalk}
+						</StepIn>
+					)}
 					{isDesktop ? actionBar : null}
 				</div>
 				{isDesktop && roomTalk ? (
