@@ -227,11 +227,27 @@ export function useAppNavigation() {
 		[navigate, up],
 	);
 
+	// Opens a page on top of this one. From inside an open sheet the sheet's
+	// markers come off first and the page is pushed once that pop lands, so
+	// the page underneath stays put instead of flashing back on the way
+	// (a plain push there is tidied up by NavigationSync with a visible hop).
+	const open = useCallback(
+		(to: string) => {
+			const { depth, sheets } = current();
+			if (sheets > 0) {
+				navCoordinator.go(-sheets, { kind: "push", to });
+			} else {
+				navigate(to, { state: { depth: depth + 1 } });
+			}
+		},
+		[navigate],
+	);
+
 	// Rooms are top-level: the new room's Home replaces everything.
 	const switchRoom = useCallback(
 		(code: string) => up(`/rooms/${code}`),
 		[up],
 	);
 
-	return { back, up, switchTab, switchRoom };
+	return { back, up, open, switchTab, switchRoom };
 }

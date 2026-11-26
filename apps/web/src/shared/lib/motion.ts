@@ -32,6 +32,31 @@ export type RevealCustom = {
 	delay?: number;
 };
 
+// Moving through a sequence: 1 forward, -1 back, 0 no direction.
+export type StepDirection = -1 | 0 | 1;
+
+export type StepCustom = RevealCustom & { direction?: StepDirection };
+
+// How far a section travels when it steps in. Small: enough to say which way
+// you moved, not so much that the page seems to swing.
+const STEP_DISTANCE = 20;
+
+// Slide from the side you're moving towards and fade in; a plain lift when
+// there's no direction. Same timing and stagger as revealVariants.
+export const stepVariants: Variants = {
+	hidden: ({ direction = 0 }: StepCustom = {}) => ({
+		opacity: 0,
+		x: direction * STEP_DISTANCE,
+		y: direction === 0 ? 6 : 0,
+	}),
+	visible: ({ index = 0, delay = 0 }: StepCustom = {}) => ({
+		opacity: 1,
+		x: 0,
+		y: 0,
+		transition: { ...revealTransition, delay: delay + staggerDelay(index) },
+	}),
+};
+
 // Fade and lift in. `custom` places the item in its list and sequence.
 export const revealVariants: Variants = {
 	hidden: { opacity: 0, y: 6 },

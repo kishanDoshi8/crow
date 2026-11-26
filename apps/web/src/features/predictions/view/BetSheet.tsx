@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { CheckIcon, MinusIcon, PlusIcon } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
 	Button,
@@ -22,6 +21,7 @@ import { needsHomeScreenInstall } from "@/shared/lib/pushNotifications";
 import { useNextUnpicked } from "@/features/predictions/hooks/picks";
 import { usePrefetchPrediction } from "@/features/predictions/hooks/prefetch";
 import { useRoomContext } from "@/shared/lib/roomContext";
+import { useAppNavigation } from "@/shared/lib/navigation";
 import { describeDeadline } from "@/shared/lib/deadline";
 
 const NOTIFICATIONS_OFFERED_KEY = "notifications-offered-after-bet";
@@ -61,7 +61,7 @@ export function BetSheet({
 }: Readonly<Props>) {
 	const { openNotifications } = useRoomActions();
 	const { room } = useRoomContext();
-	const navigate = useNavigate();
+	const { open: openPage } = useAppNavigation();
 	const { next, nextMatch, remaining, open: openCount, pickedAfter } = useNextUnpicked(
 		roomId,
 		seriesId,
@@ -100,11 +100,13 @@ export function BetSheet({
 	};
 	const close = () => handleOpenChange(false);
 
+	// The sheet keeps its "Locked in" panel while it closes (the page is
+	// replaced underneath, which resets it), and the move goes through
+	// openPage so the question just left doesn't flash back on the way.
 	const goToNext = () => {
 		if (!next) return;
-		setLockedIn(null);
+		openPage(`/rooms/${room.code}/predictions/${next.id}`);
 		onOpenChange(false);
-		navigate(`/rooms/${room.code}/predictions/${next.id}`);
 	};
 
 	const handlePlace = () => {
