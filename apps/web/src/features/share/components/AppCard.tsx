@@ -173,8 +173,10 @@ export function OptionRow({
 	compact = false,
 }: Readonly<{
 	label: string;
-	value: string;
-	share: number;
+	// The option's share of the points. Left out on an open question, where
+	// the split stays hidden: just the label then.
+	value?: string;
+	share?: number;
 	isWinner?: boolean;
 	chip?: string | null;
 	// Losing options on a settled prediction fade back.
@@ -213,18 +215,22 @@ export function OptionRow({
 						</span>
 					) : null}
 				</span>
-				<span style={{ color: isWinner ? app.win : app.muted, whiteSpace: "nowrap" }}>{value}</span>
+				{value === undefined ? null : (
+					<span style={{ color: isWinner ? app.win : app.muted, whiteSpace: "nowrap" }}>{value}</span>
+				)}
 			</div>
-			<div style={{ height: compact ? 12 : 14, borderRadius: 999, background: app.raised }}>
-				<div
-					style={{
-						width: `${Math.max(0, Math.min(100, share))}%`,
-						height: "100%",
-						borderRadius: 999,
-						background: muted ? app.faint : app.gradient,
-					}}
-				/>
-			</div>
+			{share === undefined ? null : (
+				<div style={{ height: compact ? 12 : 14, borderRadius: 999, background: app.raised }}>
+					<div
+						style={{
+							width: `${Math.max(0, Math.min(100, share))}%`,
+							height: "100%",
+							borderRadius: 999,
+							background: muted ? app.faint : app.gradient,
+						}}
+					/>
+				</div>
+			)}
 		</div>
 	);
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { EyeOffIcon, MessageCircleIcon } from "lucide-react";
 import { Button, Skeleton } from "@/shared/ui";
 import { usePlayer } from "@/features/home";
@@ -20,16 +20,13 @@ import { useRoomContext } from "@/shared/lib/roomContext";
 import { useOnline } from "@/shared/lib/offline";
 import { useIsDesktop } from "@/shared/lib/useMediaQuery";
 import { cn } from "@/shared/lib/utils";
-import { useBets } from "@/features/predictions/hooks/bet";
+import { useBets, useTally } from "@/features/predictions/hooks/bet";
 import { ResolvePredictionDrawer } from "@/features/predictions/components/ResolvePredictionDrawer";
 import { MatchResultCard } from "@/features/predictions/components/MatchResultCard";
 import { usePredictionMatchResult } from "@/features/predictions/hooks/prediction";
 import { summarizeMatch } from "@/shared/lib/matchScore";
 import type { Prediction } from "@/features/predictions/types/types";
-import {
-	formatPoints,
-	tallyOptions,
-} from "@/features/predictions/lib/predictionView";
+import { formatPoints } from "@/features/predictions/lib/predictionView";
 import { PredictionHeading } from "./PredictionHeading";
 import { PredictionStatusLine } from "./PredictionStatusLine";
 import { OptionsBoard } from "./OptionsBoard";
@@ -93,10 +90,9 @@ function LoadedPrediction({
 		? Math.max(0, talk.post_limit - talk.my_post_count)
 		: 0;
 
-	const { options, pool, picks } = useMemo(
-		() => tallyOptions(prediction, bets),
-		[prediction, bets],
-	);
+	// While picks are open the bets hold only your own pick, so the pool and
+	// pick count come from the server and the split stays hidden.
+	const { options, pool, picks } = useTally(room.id, prediction, bets);
 	const labelOf = (optionId: string | null | undefined) =>
 		options.find((tally) => tally.option.id === optionId)?.option.label ??
 		"";
@@ -416,6 +412,7 @@ function LoadedPrediction({
 						<PicksList
 							status={status}
 							bets={bets}
+							pickCount={picks}
 							options={options}
 							winningOptionId={prediction.winning_option_id}
 							viewerId={player?.id ?? null}
@@ -448,7 +445,6 @@ function LoadedPrediction({
 					optionLabel={labelOf(sheetOptionId)}
 					myBet={myBet}
 					myBetLabel={labelOf(myBet?.option_id)}
-					bets={bets}
 					available={wallet?.available ?? 0}
 				/>
 			) : null}

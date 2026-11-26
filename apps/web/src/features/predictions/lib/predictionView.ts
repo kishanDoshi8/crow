@@ -1,6 +1,6 @@
 import { initialsOf } from "@/shared/lib/utils";
 import type { Bet } from "@/features/predictions/types/bet";
-import type { Prediction, PredictionOption } from "@/features/predictions/types/types";
+import type { Prediction, PredictionOption, PredictionStatus } from "@/features/predictions/types/types";
 
 // Option colours follow the option's place in the list, so an option keeps
 // its colour on every screen. Twelve, one per option at the most. Complete class names, so Tailwind generates them.
@@ -33,6 +33,12 @@ export type OptionTally = {
 };
 
 // Points and picks on each option, in display order.
+// While picks are open nobody sees how they split, so nobody copies. The
+// database enforces it: players read only their own bet until it locks.
+export function splitHidden(status: PredictionStatus) {
+	return status === "draft";
+}
+
 export function tallyOptions(
 	prediction: Pick<Prediction, "prediction_options">,
 	bets: Pick<Bet, "option_id" | "amount">[],

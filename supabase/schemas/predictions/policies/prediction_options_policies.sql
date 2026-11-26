@@ -9,4 +9,7 @@ drop policy if exists "prediction_options_no_direct_update" on public.prediction
 create policy "prediction_options_no_direct_update" on public.prediction_options for update using (false);
 drop policy if exists "prediction_options_no_direct_delete" on public.prediction_options;
 create policy "prediction_options_no_direct_delete" on public.prediction_options for delete using (false);
-grant select (id, prediction_id, label, display_order, total_bet, created_at, option_key) on public.prediction_options to authenticated;
+-- total_bet is not granted: on an open prediction it would show how the
+-- picks split. get_pick_counts gives the totals without the split.
+revoke select on public.prediction_options from authenticated;
+grant select (id, prediction_id, label, display_order, created_at, option_key) on public.prediction_options to authenticated;

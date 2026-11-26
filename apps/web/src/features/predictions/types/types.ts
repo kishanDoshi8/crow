@@ -14,7 +14,6 @@ export interface PredictionOption {
   prediction_id: string
   label:         string
   display_order: number
-  total_bet:     number
 }
 
 export interface Prediction {

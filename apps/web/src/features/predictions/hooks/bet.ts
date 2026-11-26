@@ -1,6 +1,7 @@
 import {
 	cancelBet,
 	getBetsForPrediction,
+	getPickCounts,
 	placeBet,
 	type SeriesWallet,
 } from "@/shared/lib/api";
@@ -8,6 +9,8 @@ import type { QueryClient} from "@tanstack/react-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { roomKeys } from "@/shared/constants/queryKeys";
 import type { Bet } from "@/features/predictions/types/bet";
+import type { Prediction } from "@/features/predictions/types/types";
+import { splitHidden, tallyOptions } from "@/features/predictions/lib/predictionView";
 
 // Moves points into or out of escrow in the cached series wallet, so the
 // available balance updates before the server answers.
@@ -36,6 +39,38 @@ export const useBets = (roomId: string, predictionId?: string) => {
         queryFn: () => getBetsForPrediction(predictionId ?? ""),
         enabled: !!predictionId,
     });
+}
+
+// How many picks, points and players open predictions have. Their bets are
+// hidden until they lock, so they can't be counted from useBets.
+export const usePickCounts = (roomId: string, predictionIds: string[], enabled = true) => {
+    return useQuery({
+        queryKey: roomKeys.pickCounts(roomId, predictionIds),
+        queryFn: () => getPickCounts(predictionIds),
+        enabled: predictionIds.length > 0 && enabled,
+    });
+}
+
+// Options with their share of the points, plus the points in play and the
+// pick count. While picks are open the shares stay hidden (splitHidden) and
+// the totals come from usePickCounts, since only your own bet is readable.
+export const useTally = (
+    roomId: string,
+    prediction: Pick<Prediction, "id" | "status" | "prediction_options">,
+    bets: Pick<Bet, "option_id" | "amount">[],
+) => {
+    const hidden = splitHidden(prediction.status);
+    const { data: count } = usePickCounts(roomId, [prediction.id], hidden);
+    const tally = tallyOptions(prediction, bets);
+    return hidden
+        ? { ...tally, pool: count?.pool ?? 0, picks: count?.picks ?? 0, hidden }
+        : { ...tally, hidden };
+}
+
+const invalidatePicks = (queryClient: QueryClient, roomId: string, predictionId: string) => {
+    queryClient.invalidateQueries({ queryKey: roomKeys.bets(roomId, predictionId) });
+    // Every count this question is part of: its own and its match's.
+    queryClient.invalidateQueries({ queryKey: roomKeys.pickCounts(roomId) });
 }
 
 type PlaceBetParams = {
@@ -128,9 +163,7 @@ export const usePlaceBet = () => {
         },
 
         onSettled: (_data, _err, variables) => {
-        queryClient.invalidateQueries({
-            queryKey: roomKeys.bets(variables.roomId, variables.predictionId),
-        });
+        invalidatePicks(queryClient, variables.roomId, variables.predictionId);
 
         queryClient.invalidateQueries({
             queryKey: roomKeys.seriesWallets(variables.roomId),
@@ -203,9 +236,7 @@ export const useCancelBet = () => {
         },
 
         onSettled: (_data, _err, variables) => {
-        queryClient.invalidateQueries({
-            queryKey: roomKeys.bets(variables.roomId, variables.predictionId),
-        });
+        invalidatePicks(queryClient, variables.roomId, variables.predictionId);
 
         queryClient.invalidateQueries({
             queryKey: roomKeys.seriesWallets(variables.roomId),

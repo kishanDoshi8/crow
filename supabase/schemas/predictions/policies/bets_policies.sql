@@ -2,7 +2,8 @@ alter table public.bets enable row level security;
 revoke all on public.bets from anon;
 revoke insert, update, delete, truncate, references, trigger on public.bets from authenticated;
 drop policy if exists "bets_select" on public.bets;
-create policy "bets_select" on public.bets for select to authenticated using (private.can_view_prediction(prediction_id));
+-- Open (draft) predictions: only your own pick. Everyone's once it locks.
+create policy "bets_select" on public.bets for select to authenticated using (private.can_view_bet(prediction_id, player_id));
 drop policy if exists "bets_no_direct_write" on public.bets;
 create policy "bets_no_direct_write" on public.bets for insert with check (false);
 drop policy if exists "bets_no_direct_update" on public.bets;

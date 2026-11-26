@@ -8,7 +8,7 @@ import {
 	type InviteCardData,
 } from "@/features/share";
 import { useActivePredictions } from "@/features/predictions/hooks/prediction";
-import { useBets } from "@/features/predictions/hooks/bet";
+import { usePickCounts } from "@/features/predictions/hooks/bet";
 import { describeDeadline } from "@/shared/lib/deadline";
 
 type Props = {
@@ -41,8 +41,8 @@ export function RoomInviteShare({ room, open, onOpenChange }: Readonly<Props>) {
 			(a, b) =>
 				new Date(a.deadline).getTime() - new Date(b.deadline).getTime(),
 		)[0];
-	const { data: nextLockBets = [] } = useBets(room.id, nextLock?.id);
-	const nextLockPool = nextLockBets.reduce((sum, bet) => sum + bet.amount, 0);
+	// Just the count: who picked what stays hidden until it locks.
+	const { data: nextLockCounts } = usePickCounts(room.id, nextLock ? [nextLock.id] : []);
 
 	const inviteCard: InviteCardData = {
 		roomName: room.name,
@@ -58,17 +58,8 @@ export function RoomInviteShare({ room, open, onOpenChange }: Readonly<Props>) {
 			? {
 					question: nextLock.title,
 					locks: describeDeadline(new Date(nextLock.deadline)).when,
-					options: nextLock.prediction_options.map((option) => ({
-						label: option.label,
-						share:
-							nextLockPool > 0
-								? (nextLockBets
-										.filter((bet) => bet.option_id === option.id)
-										.reduce((sum, bet) => sum + bet.amount, 0) /
-										nextLockPool) *
-									100
-								: 0,
-					})),
+					options: nextLock.prediction_options.map((option) => option.label),
+					picks: nextLockCounts?.picks ?? 0,
 				}
 			: null,
 	};

@@ -13,6 +13,9 @@ import { cn } from "@/shared/lib/utils";
 type Props = {
 	status: PredictionStatus;
 	bets: Bet[];
+	// How many picks there are. While picks are open bets holds only the
+	// viewer's own, so the count comes separately.
+	pickCount: number;
 	options: OptionTally[];
 	winningOptionId: string | null;
 	viewerId: string | null;
@@ -26,13 +29,14 @@ type Props = {
 export function PicksList({
 	status,
 	bets,
+	pickCount,
 	options,
 	winningOptionId,
 	viewerId,
 	nameOf,
 	onOpenPlayer,
 }: Readonly<Props>) {
-	const count = bets.length;
+	const count = pickCount;
 	const heading = (
 		<h2 className='mb-2.5 flex items-baseline justify-between gap-3 text-sm font-semibold'>
 			{status === "revealed" ? "How the points split" : "Picks"}
