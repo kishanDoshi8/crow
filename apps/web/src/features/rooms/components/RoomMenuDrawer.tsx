@@ -38,6 +38,7 @@ import { SettingsRow } from "@/features/series/components/SeriesOrganizerActions
 import { useIsPlatformAdmin } from "@/features/admin";
 import { useAuth, useSignOut } from "@/features/auth";
 import { LegalLinks } from "@/features/legal";
+import { useAppNavigation } from "@/shared/lib/navigation";
 import { copyToClipboard } from "@/shared/lib/clipboard";
 import { InviteSheet } from "./InviteSheet";
 import { useLeaveRoom, useManageQueue } from "@/features/rooms/hooks/staff";
@@ -52,6 +53,7 @@ type Props = {
 
 export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 	const navigate = useNavigate();
+	const { open: openPage } = useAppNavigation();
 	const { user, hasGoogleIdentity, linkGoogle } = useAuth();
 	const signOut = useSignOut();
 	const [isInviteSheetOpen, setIsInviteSheetOpen] = useState(false);
@@ -120,7 +122,7 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 				: "What's happened in the room",
 			icon: ActivityIcon,
 			hasDot: room.has_unseen_activities,
-			onClick: close(() => navigate(`/rooms/${room.code}/activities`)),
+			onClick: close(() => openPage(`/rooms/${room.code}/activities`)),
 		},
 		{
 			label: "Invite friends",
@@ -142,7 +144,7 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 		// {
 		// 	label: "All series and past champions",
 		// 	icon: TrophyIcon,
-		// 	onClick: close(() => navigate(`/rooms/${room.code}/series`)),
+		// 	onClick: close(() => openPage(`/rooms/${room.code}/series`)),
 		// },
 	];
 
@@ -164,7 +166,7 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 								: "Nothing waiting on a result",
 						icon: FlagIcon,
 						onClick: close(() =>
-							navigate(`/rooms/${room.code}/manage`),
+							openPage(`/rooms/${room.code}/manage`),
 						),
 					},
 				]
@@ -172,7 +174,7 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 		{
 			label: can.own ? "Players & roles" : "Players",
 			icon: UsersIcon,
-			onClick: close(() => navigate(`/rooms/${room.code}/members`)),
+			onClick: close(() => openPage(`/rooms/${room.code}/members`)),
 		},
 		...(can.own
 			? [
@@ -181,7 +183,7 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 						detail: "Name, open questions limit, result reminders",
 						icon: SettingsIcon,
 						onClick: close(() =>
-							navigate(`/rooms/${room.code}/settings`),
+							openPage(`/rooms/${room.code}/settings`),
 						),
 					},
 				]
@@ -217,7 +219,7 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 						label: "Crow admin",
 						detail: "Match results, competitions",
 						icon: ShieldIcon,
-						onClick: close(() => navigate("/admin")),
+						onClick: close(() => openPage("/admin")),
 					},
 				]
 			: []),
@@ -235,7 +237,7 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 			label: "Your profile",
 			detail: user?.email ?? undefined,
 			icon: UserRoundIcon,
-			onClick: close(() => navigate("/profile")),
+			onClick: close(() => openPage("/profile")),
 		},
 		...(hasGoogleIdentity
 			? []

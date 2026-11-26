@@ -11,7 +11,7 @@ import {
 import { useState, type ReactNode } from "react";
 import { cn } from "@/shared/lib/utils";
 import { CheckIcon, PlusIcon, TrophyIcon } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useAppNavigation } from "@/shared/lib/navigation";
 import { useCurrentSeries } from "@/features/series/hooks/wallets";
 import { SeriesStatusBadge } from "./SeriesStatusBadge";
 
@@ -82,13 +82,13 @@ function SeriesPickerList({
 	isOrganizer,
 	onDone,
 }: Readonly<Omit<Props, "open" | "onOpenChange"> & { onDone: () => void }>) {
-	const navigate = useNavigate();
+	const { open: openPage } = useAppNavigation();
 	const { currentSeriesId, setCurrentSeriesId, seriesOptions } =
 		useCurrentSeries(roomId);
 
 	const go = (path: string) => {
 		onDone();
-		navigate(path);
+		openPage(path);
 	};
 
 	return (

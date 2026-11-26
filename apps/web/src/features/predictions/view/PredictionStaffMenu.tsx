@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
 	BanIcon,
 	CopyIcon,
@@ -17,6 +17,7 @@ import {
 	DrawerDescription,
 	DrawerHeader,
 	DrawerTitle,
+	SheetLink,
 } from "@/shared/ui";
 import type { Prediction } from "@/features/predictions/types/types";
 import { CloseWithoutResultDialog } from "@/features/predictions/components/ResolvePredictionDrawer";
@@ -83,22 +84,22 @@ export function PredictionStaffMenu({ prediction, roomId, roomCode, can }: Reado
 					<div className='flex flex-col gap-1 px-2 pb-6'>
 						{canEdit ? (
 							<Button variant='ghost' className={ITEM} asChild>
-								<Link to={`/rooms/${roomCode}/predictions/${prediction.id}/edit`} onClick={close}>
+								<SheetLink to={`/rooms/${roomCode}/predictions/${prediction.id}/edit`} onClick={close}>
 									<PencilIcon className='size-5 text-muted-foreground' />
 									Edit
-								</Link>
+								</SheetLink>
 							</Button>
 						) : null}
 						{canDuplicate ? (
 							<Button variant='ghost' className={ITEM} asChild>
-								<Link
+								<SheetLink
 									to={`/rooms/${roomCode}/predictions/new`}
 									state={{ copyFrom: prediction.id }}
 									onClick={close}
 								>
 									<CopyIcon className='size-5 text-muted-foreground' />
 									Duplicate
-								</Link>
+								</SheetLink>
 							</Button>
 						) : null}
 						{isScheduled ? (

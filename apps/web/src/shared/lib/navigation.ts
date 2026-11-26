@@ -231,13 +231,14 @@ export function useAppNavigation() {
 	// markers come off first and the page is pushed once that pop lands, so
 	// the page underneath stays put instead of flashing back on the way
 	// (a plain push there is tidied up by NavigationSync with a visible hop).
+	// `state` rides along on the new entry, as a <Link state> would.
 	const open = useCallback(
-		(to: string) => {
+		(to: string, state?: NavState) => {
 			const { depth, sheets } = current();
 			if (sheets > 0) {
-				navCoordinator.go(-sheets, { kind: "push", to });
+				navCoordinator.go(-sheets, { kind: "push", to, state });
 			} else {
-				navigate(to, { state: { depth: depth + 1 } });
+				navigate(to, { state: { ...state, depth: depth + 1 } });
 			}
 		},
 		[navigate],

@@ -18,6 +18,7 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 	Reveal,
+	SheetLink,
 	StatStrip,
 } from "@/shared/ui";
 
@@ -251,7 +252,7 @@ function MatchRow({
 	}
 
 	return (
-		<Link
+		<SheetLink
 			to={`/rooms/${roomCode}/predictions/${prediction.id}`}
 			className='flex min-h-12 items-center justify-between gap-3 rounded-md px-1 py-2 outline-none transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring'
 		>
@@ -259,6 +260,6 @@ function MatchRow({
 				{withoutMatch(prediction.title, matchTitle)}
 			</span>
 			{aside}
-		</Link>
+		</SheetLink>
 	);
 }
