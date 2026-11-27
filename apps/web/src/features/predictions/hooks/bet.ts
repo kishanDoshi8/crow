@@ -71,6 +71,8 @@ const invalidatePicks = (queryClient: QueryClient, roomId: string, predictionId:
     queryClient.invalidateQueries({ queryKey: roomKeys.bets(roomId, predictionId) });
     // Every count this question is part of: its own and its match's.
     queryClient.invalidateQueries({ queryKey: roomKeys.pickCounts(roomId) });
+    // "Make your first pick" on the Getting started checklist.
+    queryClient.invalidateQueries({ queryKey: roomKeys.checklist(roomId) });
 }
 
 type PlaceBetParams = {

@@ -6,20 +6,17 @@ import {
 	useSeriesLeaderboard,
 	ShareStandingsButton,
 } from "@/features/leaderboard";
-import { useActivePredictions } from "@/features/predictions";
 import {
 	SeriesStatusBadge,
 	useCurrentSeries,
 	useSeriesWallet,
 } from "@/features/series";
 import { TrophyIcon } from "lucide-react";
-import { describeDeadline } from "@/shared/lib/deadline";
 import { capitalize, cn, formatSignedPoints, ordinal } from "@/shared/lib/utils";
 import { Reveal, Skeleton } from "@/shared/ui";
-import { ChevronDownIcon, ChevronRightIcon, ChevronUpIcon, Clock } from "lucide-react";
+import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { InfoHint } from "@/shared/ui";
 import { RankingRuleHint } from "@/features/leaderboard";
-import { Link } from "react-router-dom";
 
 // Desktop puts it in a wider column, which it fills.
 const HERO_SHELL = "w-full max-w-md mx-auto rounded-2xl border bg-card p-4 mt-4 lg:max-w-none";
@@ -41,10 +38,6 @@ export function SeriesHeroCard() {
 		room.id,
 		currentSeriesId,
 	);
-	const { data: predictions = [] } = useActivePredictions(
-		room.id,
-		currentSeriesId ?? undefined,
-	);
 
 	if (isSeriesLoading || (currentSeriesId && isWalletLoading)) {
 		return <SeriesHeroCardSkeleton />;
@@ -55,20 +48,6 @@ export function SeriesHeroCard() {
 	const me = standings.find((entry) => entry.player_id === player?.id);
 	const myRank = me?.rank;
 	const champion = ranked[0];
-	const now = Date.now();
-	const nextLock = predictions
-		.filter(
-			(prediction) =>
-				prediction.status === "draft" &&
-				new Date(prediction.deadline).getTime() > now,
-		)
-		.sort(
-			(a, b) =>
-				new Date(a.deadline).getTime() - new Date(b.deadline).getTime(),
-		)[0];
-	const nextLockWhen = nextLock
-		? describeDeadline(new Date(nextLock.deadline)).when
-		: null;
 
 	// What the balance is made of: free to bet, and held on open bets.
 	const spendShare =
@@ -166,23 +145,6 @@ export function SeriesHeroCard() {
 				</div>
 			) : null}
 
-			{nextLock && nextLockWhen ? (
-				<Link
-					to={`/rooms/${room.code}/predictions/${nextLock.id}`}
-					className='mt-3 flex items-center gap-2 rounded-xl border bg-muted/40 px-3 py-2 text-sm transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50'
-				>
-					<Clock className='size-4 shrink-0 text-muted-foreground' />
-					<span className='min-w-0 flex-1'>
-						<span className='block text-xs text-muted-foreground'>
-							Locks next, {nextLockWhen}
-						</span>
-						<span className='block truncate font-medium'>
-							{nextLock.title}
-						</span>
-					</span>
-					<ChevronRightIcon className='size-4 shrink-0 text-muted-foreground' />
-				</Link>
-			) : null}
 		</Reveal>
 	);
 }

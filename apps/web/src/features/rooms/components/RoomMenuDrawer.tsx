@@ -22,6 +22,7 @@ import {
 	FlagIcon,
 	LayoutGridIcon,
 	LinkIcon,
+	ListChecksIcon,
 	LogOutIcon,
 	SettingsIcon,
 	Share2Icon,
@@ -43,6 +44,7 @@ import { copyToClipboard } from "@/shared/lib/clipboard";
 import { InviteSheet } from "./InviteSheet";
 import { useLeaveRoom, useManageQueue } from "@/features/rooms/hooks/staff";
 import { useRoomRole } from "@/features/rooms/hooks/useRoomRole";
+import { useChecklistMemory, useRoomChecklist } from "@/features/rooms/hooks/useRoomChecklist";
 import { useRoomActions } from "@/shared/lib/roomActions";
 
 type Props = {
@@ -104,6 +106,11 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 	};
 
 	const { data: isPlatformAdmin } = useIsPlatformAdmin(open);
+	// A hidden Getting started checklist comes back from here until it's done.
+	const checklist = useRoomChecklist(room, can.organize);
+	const { stored: checklistMemory, update: updateChecklist } = useChecklistMemory(room.id);
+	const showChecklistItem =
+		!checklist.isLoading && !checklist.isComplete && !!checklistMemory.hidden && !checklistMemory.finished;
 
 	const items: Array<{
 		label: string;
@@ -113,6 +120,19 @@ export function RoomMenuDrawer({ room, open, onOpenChange }: Readonly<Props>) {
 		hasDot?: boolean;
 		onClick: () => void;
 	}> = [
+		...(showChecklistItem
+			? [
+					{
+						label: can.organize ? "Set up your room" : "Get started",
+						detail: `${checklist.doneCount} of ${checklist.total} done`,
+						icon: ListChecksIcon,
+						onClick: close(() => {
+							updateChecklist({ hidden: false });
+							openPage(`/rooms/${room.code}`);
+						}),
+					},
+				]
+			: []),
 		// Activity lives here rather than in the header; the dot says when
 		// there's something new.
 		{

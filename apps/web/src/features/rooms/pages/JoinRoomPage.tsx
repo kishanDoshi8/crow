@@ -6,6 +6,8 @@ import { LogoTile } from "@/features/share";
 import { Navigate, useNavigate, useParams, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { savePostAuthRedirect } from "@/shared/lib/postAuthRedirect";
+import { describeDeadline } from "@/shared/lib/deadline";
+import { capitalize } from "@/shared/lib/utils";
 
 export function JoinRoomPage() {
 	const navigate = useNavigate();
@@ -65,7 +67,8 @@ export function JoinRoomPage() {
 		room.members.find((member) => member.role === "owner")?.player.username ??
 		"Unknown";
 	const memberCount = room.member_count ?? room.members.length;
-	const predictionCount = room.active_prediction_count ?? 0;
+	const predictionCount = room.open_prediction_count ?? room.active_prediction_count ?? 0;
+	const nextClose = room.next_deadline ? describeDeadline(new Date(room.next_deadline)) : null;
 
 	const needsRequest = room.join_policy === "request";
 	const memberLimit = room.member_limit;
@@ -171,6 +174,26 @@ export function JoinRoomPage() {
 						<dt className='text-muted-foreground'>Hosted by</dt>
 						<dd className='truncate font-medium'>{organizerName}</dd>
 					</div>
+					{room.active_series ? (
+						<div className='flex justify-between gap-4'>
+							<dt className='text-muted-foreground'>Playing now</dt>
+							<dd className='truncate font-medium'>{room.active_series.title}</dd>
+						</div>
+					) : null}
+					{room.active_series ? (
+						<div className='flex justify-between gap-4'>
+							<dt className='text-muted-foreground'>Everyone starts with</dt>
+							<dd className='font-medium tabular-nums'>
+								{room.active_series.starting_stack.toLocaleString()} pts
+							</dd>
+						</div>
+					) : null}
+					{nextClose ? (
+						<div className='flex justify-between gap-4'>
+							<dt className='text-muted-foreground'>Next pick closes</dt>
+							<dd className='font-medium text-primary'>{capitalize(nextClose.when)}</dd>
+						</div>
+					) : null}
 					<div className='flex justify-between gap-4'>
 						<dt className='text-muted-foreground'>Room code</dt>
 						<dd className='font-medium tracking-widest'>{room.code}</dd>

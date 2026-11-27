@@ -57,7 +57,7 @@ export function ShareOpenPredictionsButton({ roomName, roomCode, predictions }: 
 	);
 }
 
-// "🐦 3 predictions are open in Saturday Crew!
+// "🎯 3 questions are open in Saturday Crew!
 //  Next to close: Will India beat Australia? (2h 14m left)
 //  Get your picks in: https://…"
 // `open` is sorted soonest-closing first.
@@ -66,13 +66,13 @@ export function openPredictionsMessage(roomName: string, open: Prediction[], lin
 	const left = timeLeft(Date.parse(next.deadline) - Date.now());
 	if (open.length === 1) {
 		return [
-			`🐦 A new question is open in ${roomName}!`,
+			`🎯 A new question is open in ${roomName}!`,
 			`${next.title} (${left} left)`,
 			`Get your pick in: ${link}`,
 		].join("\n");
 	}
 	return [
-		`🐦 ${open.length} questions are open in ${roomName}!`,
+		`🎯 ${open.length} questions are open in ${roomName}!`,
 		`Next to close: ${next.title} (${left} left)`,
 		`Get your picks in: ${link}`,
 	].join("\n");

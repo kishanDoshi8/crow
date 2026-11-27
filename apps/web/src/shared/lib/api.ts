@@ -2269,3 +2269,26 @@ export async function getPredictionNeighbours(params: {
   const [previous, next] = await Promise.all([side('previous'), side('next')])
   return { previous, next }
 }
+
+// Getting started checklist: has this player made any pick in the room?
+// Their own bets are always readable to them.
+export async function hasPickInRoom(roomId: string, playerId: string): Promise<boolean> {
+  const { data, error } = await untypedSupabase
+    .from('bets')
+    .select('id, predictions!inner(room_id)')
+    .eq('player_id', playerId)
+    .eq('predictions.room_id', roomId)
+    .limit(1)
+  if (error) throw error
+  return (data?.length ?? 0) > 0
+}
+
+// Getting started checklist (hosts): has the room had any question yet?
+export async function roomHasQuestions(roomId: string): Promise<boolean> {
+  const { count, error } = await supabase
+    .from('predictions')
+    .select('id', { count: 'exact', head: true })
+    .eq('room_id', roomId)
+  if (error) throw error
+  return (count ?? 0) > 0
+}
