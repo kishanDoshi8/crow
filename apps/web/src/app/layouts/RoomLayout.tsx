@@ -23,7 +23,7 @@ import type { RoomOutletContext } from "@/shared/lib/roomContext";
 import { RoomHeader } from "@/features/predictions";
 import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { usePlayer, useSetLastVisitedRoom } from "@/features/home";
-import { usePreferences, useMarkHowToPlaySeen } from "@/features/preferences";
+import { useMarkHowToPlaySeen } from "@/features/preferences";
 import { Loading } from "@/shared/ui";
 import { useAppNavigation } from "@/shared/lib/navigation";
 import { prefetchRoomPages } from "@/app/router/roomPages";
@@ -50,7 +50,6 @@ export default function RoomLayout() {
 	useRoomRealtime(room?.id ?? null);
 
 	const roomId = room?.id ?? "";
-	const { data: preferences } = usePreferences(roomId);
 	const { mutate: markSeen } = useMarkHowToPlaySeen(roomId || undefined);
 	const { mutate: setLastVisitedRoom } = useSetLastVisitedRoom();
 	const [showHowToPlay, setShowHowToPlay] = useState(false);
@@ -65,6 +64,7 @@ export default function RoomLayout() {
 			openInvite: () => setShowInvite(true),
 			openNotifications: () => setShowNotifications(true),
 			openSeriesPicker: () => setShowSeriesPicker(true),
+			openHowToPlay: () => setShowHowToPlay(true),
 		}),
 		[],
 	);
@@ -75,11 +75,9 @@ export default function RoomLayout() {
 		}
 	}, [player, isPlayerLoading, navigate]);
 
-	useEffect(() => {
-		if (preferences && !preferences.has_seen_how_to_play) {
-			setShowHowToPlay(true);
-		}
-	}, [preferences]);
+	// How to play no longer opens by itself on a first visit: it's the "See
+	// how Crow works" step on Home's Getting started checklist, which ticks
+	// off once it's been seen (has_seen_how_to_play).
 
 	useEffect(() => {
 		if (!room?.id || player?.last_visited_room_id === room.id) {

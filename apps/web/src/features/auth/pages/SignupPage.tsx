@@ -5,6 +5,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Spinner } from "@/shared/ui/spinner";
 import { Brand } from "@/features/home";
+import { InviteBanner } from "@/features/auth/components/InviteBanner";
 import { GoogleButton, OrDivider } from "@/features/auth/components/GoogleButton";
 import { AboutCrow } from "@/features/legal";
 
@@ -56,6 +57,7 @@ export function SignupPage() {
 	return (
 		<div className='p-8 mt-4 flex flex-col items-center gap-8'>
 			<Brand />
+			<InviteBanner />
 
 			<div className='flex flex-col gap-4 border-2 p-8 w-full max-w-sm'>
 				<h2 className='text-2xl font-bold'>Create account</h2>

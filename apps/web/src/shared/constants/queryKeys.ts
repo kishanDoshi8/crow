@@ -16,6 +16,10 @@ export const roomKeys = {
   members: (roomId: string) =>
     [...roomKeys.detail(roomId), "members"] as const,
 
+  // The Getting started checklist's own checks (first pick, any questions).
+  checklist: (roomId: string) =>
+    [...roomKeys.detail(roomId), "checklist"] as const,
+
   activePrediction: (roomId: string) =>
     [...roomKeys.detail(roomId), "activePrediction"] as const,
 

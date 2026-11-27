@@ -4,6 +4,7 @@ import { SeriesHeroCard } from "@/features/rooms/components/SeriesHeroCard";
 import { SmallRoomInviteCard } from "@/features/rooms/components/SmallRoomInviteCard";
 import { ResultsCard } from "@/features/rooms/components/ResultsCard";
 import { WeeklyRecapCard } from "@/features/rooms/components/WeeklyRecapCard";
+import { RoomChecklist } from "@/features/rooms/components/RoomChecklist";
 import { UpNextBallot, useCurrentSeries } from "@/features/series";
 import { useRoomRole } from "@/features/rooms/hooks/useRoomRole";
 import { useRoomContext } from "@/shared/lib/roomContext";
@@ -28,6 +29,7 @@ function RoomDashboard() {
 			<div className='mx-auto grid w-full max-w-260 grid-cols-[minmax(0,1fr)_20rem] items-start gap-8 px-8 pt-4'>
 				<div className='flex min-w-0 flex-col gap-2'>
 					<SeriesHeroCard />
+					<RoomChecklist room={room} isHost={isHost} />
 					{askNow ? <div className='mt-2'>{upNext("prompt")}</div> : null}
 					<InPlayPredictions layout='grid' />
 				</div>
@@ -49,6 +51,7 @@ function RoomDashboard() {
 		<div className={`px-4`}>
 			<div className={`mt-2`}>
 				<SeriesHeroCard />
+				<RoomChecklist room={room} isHost={isHost} />
 				{askNow ? <div className='mt-3'>{upNext("prompt")}</div> : null}
 				<ResultsCard />
 				<WeeklyRecapCard />

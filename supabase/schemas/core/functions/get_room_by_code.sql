@@ -65,6 +65,29 @@ begin
       where p.room_id = v_room.id
         and p.status in ('draft', 'locked')
     ),
+    -- For the join screen: what's open for picks now and when the first
+    -- closes, and the series being played (everyone starts on its points).
+    'open_prediction_count', (
+      select count(*)::int
+      from public.predictions p
+      where p.room_id = v_room.id
+        and p.status = 'draft'
+    ),
+    'next_deadline', (
+      select min(p.deadline)
+      from public.predictions p
+      where p.room_id = v_room.id
+        and p.status = 'draft'
+        and p.deadline > now()
+    ),
+    'active_series', (
+      select json_build_object('title', s.title, 'starting_stack', s.starting_stack)
+      from public.series s
+      where s.room_id = v_room.id
+        and s.status = 'active'
+      order by s.created_at desc
+      limit 1
+    ),
     'organizer_username', (
       select pl.username
       from public.room_members rm

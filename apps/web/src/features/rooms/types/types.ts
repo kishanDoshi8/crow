@@ -55,6 +55,11 @@ export interface Room {
   active_prediction_count?: number
   // Set by the invite-code lookup, which non-members can use before joining.
   organizer_username?: string | null
+  // Also from the invite-code lookup, for the join screen: questions open
+  // for picks, when the first closes, and the series being played.
+  open_prediction_count?: number
+  next_deadline?: string | null
+  active_series?: { title: string; starting_stack: number } | null
 }
 
 export interface ManageQueueItem {
