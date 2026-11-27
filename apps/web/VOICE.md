@@ -45,7 +45,7 @@ a brand rather than a gimmick.
 - **Success toasts:** state what happened, past tense, short. "Pick locked in." "Result revealed."
 - **Second person, active voice.** "You called it", not "Prediction won".
 - **Numbers:** "50 pts" in tight UI, "50 points" in sentences.
-- **Emoji:** only in push notification titles, share text and the How to play slides, one per message, from a fixed set: 🎯 new question, ⏰ closing soon, 🔒 picks locked, 🏆 result in, ↩️ called off, ⏳ result needed (hosts), 🙋 join request, 👋 new player, 🐦 you're in and room invites (pushes only). Share text for the group chat uses 🎯 (the bird reads as a pigeon there). None in UI headings or buttons.
+- **Emoji:** only in push notification titles, share text and the How to play slides, one per message, from a fixed set: 🎯 new question, ⏰ closing soon, 🔒 picks locked, 🏆 result in, ↩️ called off, ⏳ result needed (hosts), 🙋 join request, 👋 new player / you're in, 📨 room invite. No bird: it reads as a pigeon. None in UI headings or buttons.
 - **No pressure tactics:** no "Don't miss out!", no fake urgency, no guilt. A real deadline stated plainly is fine ("1 hour left to pick").
 - **Examples and placeholders** use sports and pop culture, never money or crypto.
 

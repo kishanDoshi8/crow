@@ -141,7 +141,7 @@ begin
     'room_invite',
     null,
     null,
-    '🐦 Room invite',
+    '📨 Room invite',
     v_caller_name || ' invited you to ' || v_room.name,
     '/?tab=rooms',
     jsonb_build_object('target_player_id', p_player_id)
