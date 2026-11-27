@@ -70,7 +70,7 @@ begin
       'join_accepted',
       null,
       p_room_id,
-      '🐦 You''re in',
+      '👋 You''re in',
       'Welcome to ' || v_room.name,
       '/rooms/' || v_room.room_code,
       jsonb_build_object('target_player_id', p_player_id)
