@@ -1,7 +1,7 @@
 # Server setup
 
 How the production server for playcrow.app (DigitalOcean droplet, Ubuntu
-24.04, nginx) is organised,
+26.04, nginx) is organised,
 how a release gets there, and the one-time steps to set it up.
 
 ## The big picture
@@ -120,7 +120,7 @@ folder that the first deploy fills.
 
 ### 1. Create the droplet
 
-DigitalOcean → Create → Droplets: **Ubuntu 24.04 LTS**, the smallest regular
+DigitalOcean → Create → Droplets: **Ubuntu 26.04 LTS**, the smallest regular
 size (1 GB is plenty to serve files), the region nearest your players, your
 SSH key, and **IPv6 enabled** (Advanced options).
 
@@ -139,11 +139,12 @@ sudo apt update && sudo apt upgrade -y
 ```
 
 ```bash
-sudo ufw allow OpenSSH && sudo ufw allow 'Nginx Full' && sudo ufw enable
+sudo ufw allow OpenSSH && sudo ufw allow 80,443/tcp && sudo ufw enable
 ```
 
-`Nginx Full` exists once nginx is installed (step 3); if `ufw` complains, run
-that line after step 3.
+The web ports are opened by number because ufw's `Nginx Full` profile only
+exists once nginx is installed (step 3). Check with `sudo ufw status`: it
+should list `OpenSSH` and `80,443/tcp`, each also with `(v6)`.
 
 ### 2. Point the domain at it (Cloudflare DNS)
 
@@ -176,7 +177,11 @@ sudo apt install -y nginx certbot python3-certbot-nginx rsync
 nginx -v
 ```
 
-Ubuntu 24.04 ships nginx 1.24, which supports everything in the config.
+The config needs nginx **1.25.1 or newer**: it turns HTTP/2 on with the
+`http2 on;` directive, which replaced the older `listen 443 ssl http2` form.
+Ubuntu 26.04's nginx is new enough. On an older release (Ubuntu 24.04 ships
+1.24), `sudo nginx -t` fails with `unknown directive "http2"`; there, delete
+the `http2 on;` lines and add `http2` back to the `listen ... 443 ssl` lines.
 
 ### 4. Get the certificate
 
@@ -296,7 +301,7 @@ public JavaScript, so they're variables, not secrets:
 | `DEPLOY_HOST` | secret | `playcrow.app` (or the droplet IP) |
 | `DEPLOY_USER` | secret | `deploy` |
 | `DEPLOY_SSH_KEY` | secret | contents of `~/.ssh/crow_deploy` (the private key, no `.pub`) |
-| `DEPLOY_KNOWN_HOSTS` | secret | output of `ssh-keyscan <the DEPLOY_HOST value>` |
+| `DEPLOY_KNOWN_HOSTS` | secret | output of `ssh-keyscan <the DEPLOY_HOST value>`, run once DNS points at this droplet |
 | `APP_URL` | variable | `https://playcrow.app` |
 | `DEPLOY_PATH` | variable | not needed: the default is `/var/www/crow` |
 
@@ -334,6 +339,32 @@ and `sudo systemctl reload nginx`.
 ```bash
 sudo certbot renew --dry-run
 ```
+
+## Moving to a new droplet
+
+Nothing the app needs lives only on the server, so moving is the one-time
+setup again on a fresh droplet, then a deploy:
+
+1. Steps 1 to 8 on the new droplet. To keep the old certificate, and skip
+   step 4 until DNS has moved, copy `/etc/letsencrypt` across with
+   `sudo tar czpf` / `sudo tar xzpf -C /`, keeping its symlinks.
+2. Before switching DNS, check the new server from your computer:
+   `curl -sI --resolve playcrow.app:443:<new IP> https://playcrow.app`.
+3. Point the DNS records (step 2) at the new IPv4 and IPv6 addresses.
+4. Update the **production environment** secrets (step 9):
+   - `DEPLOY_KNOWN_HOSTS`: **always**. A new server has a new host key, and
+     until this changes every release fails at *Upload release* with
+     `Host key verification failed.` Run `ssh-keyscan playcrow.app` once
+     `dig +short playcrow.app` shows the new IP, and paste the whole output.
+   - `DEPLOY_HOST`: only if it holds the old IP instead of `playcrow.app`.
+   - `DEPLOY_SSH_KEY` stays the same, as long as step 5 put the same public
+     key in the new `deploy` user's `authorized_keys`.
+5. Actions → Release → **Run workflow** with the latest tag to fill
+   `/var/www/crow`.
+6. On your computer, drop the old key so your own `ssh` doesn't refuse the
+   new server: `ssh-keygen -R playcrow.app`.
+7. Destroy the old droplet, and delete any snapshot of it (snapshots are
+   billed per GB).
 
 ## Later
 

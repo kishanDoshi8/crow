@@ -4,12 +4,14 @@
 #
 # Installed as /etc/nginx/sites-available/default-deny and enabled with a
 # symlink in /etc/nginx/sites-enabled/. Needs nginx 1.19.4 or newer for
-# ssl_reject_handshake (check: nginx -v). See docs/server-setup.md.
+# ssl_reject_handshake, 1.25.1 or newer for `http2 on` (check: nginx -v).
+# See docs/server-setup.md.
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
-    listen 443 ssl http2 default_server;
-    listen [::]:443 ssl http2 default_server;
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+    http2 on;
     server_name _;
 
     # HTTPS: refuse the connection before any certificate is shown, so the
