@@ -25,8 +25,9 @@ server {
 # One canonical address, so links, cookies and the installed app all agree.
 # Needs www.playcrow.app on the certificate (check: sudo certbot certificates).
 server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
     server_name www.playcrow.app;
 
     ssl_certificate /etc/letsencrypt/live/playcrow.app/fullchain.pem;
@@ -39,8 +40,9 @@ server {
 
 # --- The app -----------------------------------------------------------------
 server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
     server_name playcrow.app;
 
     ssl_certificate /etc/letsencrypt/live/playcrow.app/fullchain.pem;

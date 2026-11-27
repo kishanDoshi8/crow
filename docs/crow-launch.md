@@ -10,7 +10,7 @@ that droplet is shut down. Nothing is deployed there again.
 ## 1. Domain and server
 
 - [ ] Buy `playcrow.app` (Cloudflare Registrar: at-cost renewals, DNS included).
-- [ ] New Ubuntu 24.04 droplet, DNS records, certificate, deploy user and nginx:
+- [ ] New Ubuntu 26.04 droplet, DNS records, certificate, deploy user and nginx:
       [server-setup.md](server-setup.md), steps 1 to 9.
 - [ ] Rename the GitHub repository to `crow` (Settings → General → Repository
       name). GitHub redirects the old URLs; update your local clone with
