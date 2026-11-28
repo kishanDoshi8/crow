@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(15);
+select plan(17);
 
 insert into auth.users (id, aud, role, email)
 values
@@ -136,7 +136,9 @@ values
 
 select is(
   (pg_temp.recap('00000000-0000-0000-0000-00000000a11c')::jsonb - 'week_key'),
-  '{"rank": 1, "rank_change": 1, "balance": 1200, "balance_change": 200, "newly_ranked": false}'::jsonb,
+  '{"rank": 1, "rank_change": 1, "balance": 1200, "balance_change": 200, "newly_ranked": false,
+    "week": {"picks": 0, "called": 0, "net": 0}, "best_call": null,
+    "rival": {"username": "bob", "gap": 100, "ahead": false}}'::jsonb,
   'the recap says how the week went'
 );
 select is(pg_temp.recap('00000000-0000-0000-0000-00000000ca01')::text, null, 'nothing to say when still unranked and nothing changed');
@@ -146,6 +148,20 @@ set local role authenticated;
 select public.dismiss_weekly_recap(pg_temp.setting('cup'), '2026-W41');
 reset role;
 select is(pg_temp.recap('00000000-0000-0000-0000-00000000a11c')::text, null, 'a dismissed recap stays away until next week');
+
+-- Game 1 was revealed in the week the 2026-W41 snapshot closed (Sep 28 to
+-- Oct 5): it counts in that week's recap.
+update public.predictions set resolved_at = '2026-09-30 12:00+00' where id = pg_temp.setting('g1');
+select is(
+  (pg_temp.recap('00000000-0000-0000-0000-000000000b0b')::jsonb) -> 'week' || jsonb_build_object('rival', pg_temp.recap('00000000-0000-0000-0000-000000000b0b')::jsonb -> 'rival'),
+  '{"picks": 1, "called": 0, "net": -100, "rival": {"username": "alice", "gap": 100, "ahead": true}}'::jsonb,
+  'the recap counts last week''s results and names the player to catch'
+);
+select is(
+  private.player_week(pg_temp.setting('cup'), pg_temp.player('alice'), '2026-W41')::jsonb -> 'best_call',
+  '{"title": "Game 1", "net": 100, "multiple": 2.0}'::jsonb,
+  'and the best call of the week'
+);
 
 -- ------------------------------------------------------------
 -- History filter counts

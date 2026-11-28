@@ -100,6 +100,7 @@ declare
   v_rank_change integer;
   v_balance_change integer;
   v_now_ranked boolean;
+  v_week json;
 begin
   v_player_id := private.get_player_id_from_auth();
 
@@ -143,7 +144,12 @@ begin
   v_balance_change := v_now.balance - coalesce(v_before.balance, v_now.balance);
   v_now_ranked := v_now.is_ranked and not coalesce(v_before.is_ranked, false);
 
-  if coalesce(v_rank_change, 0) = 0 and v_balance_change = 0 and not v_now_ranked then
+  -- Your own week (picks, calls, best call, the player to catch): see
+  -- private.player_week.
+  v_week := private.player_week(p_series_id, v_player_id, v_latest);
+
+  if coalesce(v_rank_change, 0) = 0 and v_balance_change = 0 and not v_now_ranked
+    and coalesce((v_week->>'picks')::int, 0) = 0 then
     return null;
   end if;
 
@@ -153,7 +159,12 @@ begin
     'rank_change', nullif(v_rank_change, 0),
     'balance', v_now.balance,
     'balance_change', v_balance_change,
-    'newly_ranked', v_now_ranked
+    'newly_ranked', v_now_ranked,
+    'week', json_build_object(
+      'picks', v_week->'picks', 'called', v_week->'called', 'net', v_week->'net'
+    ),
+    'best_call', v_week->'best_call',
+    'rival', v_week->'rival'
   );
 end;
 $$;

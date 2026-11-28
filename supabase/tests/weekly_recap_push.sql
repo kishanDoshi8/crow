@@ -97,8 +97,8 @@ select is(
 );
 select is(
   (select p->>'body' from pg_temp.monday_pushes('cricket') p),
-  'alice leads IND v AUS. +100 points for everyone who played.',
-  'the standings push names the leader and folds in the top-up'
+  'You lead IND v AUS. +100 points for everyone who played.',
+  'the standings push says who leads (you, here) and folds in the top-up'
 );
 select is(
   (select p->>'url' from pg_temp.monday_pushes('cricket') p),
