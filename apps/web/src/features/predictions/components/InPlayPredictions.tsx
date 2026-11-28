@@ -370,11 +370,22 @@ function SectionHeader({
 		(p) => p.status === "draft" || p.status === "locked",
 	).length;
 
+	const isLive = predictions.some((p) => p.status === "draft");
+
 	if (activeCount > 0) {
 		return (
 			<div className={`flex items-center justify-between gap-2 my-4`}>
 				<div className={`flex items-center gap-2`}>
-					<h2 className={`text-lg font-semibold whitespace-nowrap`}>What's hot</h2>
+					<h2 className={`flex items-center gap-2 text-lg font-semibold whitespace-nowrap`}>
+						{/* Live while something's open for picks. */}
+						{isLive ? (
+							<span aria-hidden='true' className='relative flex size-2'>
+								<span className='absolute inset-0 rounded-full bg-primary/60 motion-safe:animate-ping motion-reduce:hidden' />
+								<span className='relative size-2 rounded-full bg-primary' />
+							</span>
+						) : null}
+						What's hot
+					</h2>
 					<PickProgressChip progress={progress} activeCount={activeCount} />
 				</div>
 				{action}
@@ -597,6 +608,11 @@ function InPlayPredictions({
 	const progress = me && !isPicksPending ? pickProgress(predictions, picks) : null;
 	// A set of questions about one match is one card; others stand alone.
 	const groups = groupByMatch(predictions);
+	const isLiveSection =
+		showSectionHeader &&
+		predictionsOverride === undefined &&
+		!isPredictionLoading &&
+		predictions.some((p) => p.status === "draft");
 	const refetchPredictions =
 		predictionsOverride === undefined ? refetch : () => {};
 
@@ -766,6 +782,17 @@ function InPlayPredictions({
 	}
 
 	return (
+		// While something's open for picks, the section sits on a faint rose wash
+		// with the logo's sunset line along its top: the one live part of Home,
+		// marked without shouting. The cards themselves stay as they are.
+		<section
+			aria-label="What's hot"
+			className={cn(
+				"relative",
+				isLiveSection &&
+					"-mx-4 bg-linear-to-b from-primary/8 via-primary/2 to-transparent px-4 pt-1 pb-2 before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-linear-to-r before:from-primary/70 before:via-accent/50 before:to-transparent lg:mx-0 lg:rounded-2xl lg:px-5 lg:before:inset-x-5",
+			)}
+		>
 		<div className={layout === "grid" ? "w-full" : "max-w-lg mx-auto lg:max-w-none"}>
 			{showSectionHeader && isPredictionLoading && (
 				<div
@@ -851,6 +878,7 @@ function InPlayPredictions({
 				</>
 			)}
 		</div>
+		</section>
 	);
 }
 

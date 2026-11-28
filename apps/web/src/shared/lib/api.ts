@@ -2108,6 +2108,13 @@ export type MyWeeklyRecap = {
   balance: number
   balance_change: number
   newly_ranked: boolean
+  // Your own last week: results you picked, how many you called, net points.
+  week?: { picks: number; called: number; net: number }
+  // Your biggest win of the week.
+  best_call?: { title: string; net: number; multiple: number } | null
+  // The player just above you (ahead: true), or just behind if you lead,
+  // and the gap in net points.
+  rival?: { username: string; gap: number; ahead: boolean } | null
 }
 
 export async function getMyUnseenResults(roomId: string, seriesId: string) {

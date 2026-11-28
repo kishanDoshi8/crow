@@ -43,7 +43,9 @@ export function WeeklyRecapCard() {
 	if (!currentSeries || !isActive || !recap) return null;
 	const stats = recapStats(recap);
 	const hasStandings = !!standings && standings.standings.length > 0;
-	if (stats.length === 0 && !hasStandings) return null;
+	const week = recap.week && recap.week.picks > 0 ? recap.week : null;
+	if (stats.length === 0 && !hasStandings && !week) return null;
+	const rival = recap.rival;
 
 	return (
 		<section
@@ -55,9 +57,34 @@ export function WeeklyRecapCard() {
 			</span>
 			<div className='min-w-0 flex-1'>
 				<p className='text-xs font-semibold text-muted-foreground'>
-					{hasStandings ? `Week ${standings.week_number} standings are in` : "Your week"}
+					{hasStandings ? `Week ${standings.week_number}: your week` : "Your week"}
 				</p>
+				{week ? (
+					<p className='mt-0.5 text-lg font-semibold leading-snug'>
+						You called {week.called} of {week.picks}
+					</p>
+				) : null}
 				{stats.length > 0 ? <StatStrip stats={stats} className='mt-1.5' /> : null}
+				{recap.best_call ? (
+					<p className='mt-2 flex items-baseline justify-between gap-3 text-sm'>
+						<span className='min-w-0 truncate'>
+							<span className='text-muted-foreground'>Best call: </span>
+							{recap.best_call.title}
+						</span>
+						<span className='shrink-0 font-semibold text-win tabular-nums'>
+							×{recap.best_call.multiple} {formatSignedPoints(recap.best_call.net)}
+						</span>
+					</p>
+				) : null}
+				{rival ? (
+					<p className='mt-1 text-sm text-muted-foreground'>
+						{rival.gap === 0
+							? `Level with ${rival.username}.`
+							: rival.ahead
+								? `${rival.gap.toLocaleString()} pts behind ${rival.username}. Catch them this week.`
+								: `${rival.gap.toLocaleString()} pts ahead of ${rival.username}. Stay there.`}
+					</p>
+				) : null}
 				{hasStandings ? (
 					<ShareWeeklyButton
 						series={currentSeries}
