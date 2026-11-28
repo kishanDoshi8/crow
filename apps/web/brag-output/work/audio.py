@@ -173,11 +173,12 @@ def pluck(note, dur=0.35):
 
 
 # Chat bubbles: A minor arpeggio, one per bubble.
-for at, note in [(0.0, 69), (0.5, 72), (1.0, 76), (1.5, 81)]:
-    add(pluck(note), at, 0.3, (note - 74) / 20)
-# Headline lands.
-add(bell(64, 1.5, 0.6), 2.0, 0.12)
-add(bell(69, 1.5, 0.6), 2.0, 0.10)
+# Chat messages: one per message, on the beat, climbing A minor.
+for at, note in [(0.0, 69), (1.25, 72)]:
+    add(pluck(note), at, 0.3, -0.15)
+# "ok who's keeping score?": a brighter two-note bell, the question.
+add(bell(76, 1.2, 0.6), 2.5, 0.12, 0.15)
+add(bell(81, 1.2, 0.6), 2.5, 0.09, 0.15)
 
 # Riser into the drop, and into the outro.
 def riser(dur, lo, hi):

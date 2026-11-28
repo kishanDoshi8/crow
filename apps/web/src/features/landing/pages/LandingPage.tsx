@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { track } from "@/shared/lib/analytics";
 import { RankChange } from "@/features/leaderboard";
 import { CrowTile } from "@/shared/ui";
-import { DemoQuestion } from "@/features/landing/components/DemoQuestion";
+import { LaunchVideo } from "@/features/landing/components/LaunchVideo";
 import {
 	ClosingCta,
 	HeaderCta,
@@ -73,7 +73,7 @@ export default function LandingPage() {
 			</header>
 
 			<main>
-				{/* Hero: the line, then a question you can actually play. */}
+				{/* Hero: the line, then Crow in 20 seconds. */}
 				<section className='mx-auto grid w-full max-w-6xl gap-10 px-4 pt-6 pb-16 md:px-8 md:pt-12 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-16 lg:pb-24'>
 					<div>
 						{/* Each line stays whole: the size scales with the screen so
@@ -92,7 +92,7 @@ export default function LandingPage() {
 							Free. Works in your browser on any phone.
 						</p>
 					</div>
-					<DemoQuestion className='w-full max-w-lg lg:justify-self-end' />
+					<LaunchVideo className='w-full max-w-xs md:max-w-lg lg:justify-self-end' />
 				</section>
 
 				{/* One week in a room. A vertical rail on phones, a row on desktop. */}

@@ -17,11 +17,11 @@ The argument you already have, every weekend. Crow turns it into a game with a s
 ## Music
 120 BPM, 4/4, beat = 0.5 s, bar = 2 s, key of A minor -> C major lift at the result. 20 s = 10 bars. Kick on beats, clap on 2 and 4, plucky synth bass, bell lead on the hits. Every cut lands on a beat.
 
-## Storyboard (1920x1080, 30 fps, 20.0 s)
+## Storyboard (1920x1080 `brag.mp4` and 1080x1920 `brag-vertical.mp4`, 30 fps, 20.0 s)
 
 | # | Time | Scene | On screen | Sound |
 |---|---|---|---|---|
-| 1 | 0.0–4.0 | Hook | Chat bubbles pop in on beats: Sam "Spurs win Sunday. Easy." / Priya "no chance" / Jordan "draw. calling it." / Sam "screenshot this". At 2.0 the line lands: **Your group chat already argues about it.** (hold 2 s) | soft pops in key on each bubble, filtered drums |
+| 1 | 0.0–4.0 | Hook | One message at a time, big, on the beat: Sam "Spurs win Sunday. Easy." (0.0), Priya "no chance" (1.25), You "ok who's keeping score?" (2.5). Each new one scrolls the old up and dims them, so there is only ever one line to read. Scene 2's "Keep score." answers the question. | a pluck per message, a bell on the question, filtered drums |
 | 2 | 4.0–6.5 | Reveal | Bubbles fly off; CrowTile pops, "crow" wordmark, line **Keep score.** then sub "The prediction game for friends." | full drums drop at 4.0, riser out |
 | 3 | 6.5–11.0 | Call it | Phone with the real question card "Who wins the derby on Sunday?" (Open pill). Tap on Arsenal -> selected. Pick sheet slides up: 50 pts, tap +50 -> 100 pts, tap "Lock in pick · 100 pts" -> "Pick locked in". Left caption **Call it.** then **Put points on it.** | tick on taps, swoosh on sheet |
 | 4 | 11.0–14.5 | Result | Pill Open -> Locked -> Result's in. Board turns to revealed: Arsenal Won 46%, Draw 22%, Spurs 32%, bars fill. Big **+117** and **Called it.** | bell hit on reveal, chord lift |

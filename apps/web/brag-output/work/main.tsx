@@ -16,6 +16,11 @@ import { Button } from "@/shared/ui/button";
 import { CrowTile } from "@/shared/ui/crow-mark";
 import { cn, twColor } from "@/shared/lib/utils";
 
+// Landscape (1920x1080) or vertical (1080x1920), from ?format=vertical.
+const V = new URLSearchParams(location.search).get("format") === "vertical";
+const W = V ? 1080 : 1920;
+const H = V ? 1920 : 1080;
+
 // ---------------------------------------------------------------------------
 // Time helpers. Every frame is a pure function of t (seconds). 120 BPM: a beat
 // is 0.5 s, so every cut and hit below sits on a multiple of 0.25 s.
@@ -69,35 +74,51 @@ function tallies(fill: number): OptionTally[] {
 }
 
 // ---------------------------------------------------------------------------
-// Scene 1: the group chat argument.
+// Scene 1: the group chat argument. One message at a time, on the beat, each
+// held long enough to read. A new one scrolls the old ones up and dims them,
+// so there is only ever one thing to read.
 // ---------------------------------------------------------------------------
 const CHAT = [
 	{ at: 0.0, name: "Sam", text: "Spurs win Sunday. Easy.", tone: "bg-option-3" },
-	{ at: 0.5, name: "Priya", text: "no chance", tone: "bg-option-1" },
-	{ at: 1.0, name: "Jordan", text: "draw. calling it now", tone: "bg-option-2" },
-	{ at: 1.5, name: "You", text: "ok who's keeping score?", tone: "" },
+	{ at: 1.25, name: "Priya", text: "no chance", tone: "bg-option-1" },
+	{ at: 2.5, name: "You", text: "ok who's keeping score?", tone: "" },
 ];
+const SLOT = V ? 230 : 210;
 
 function Chat({ t }: { t: number }) {
 	const exit = inCubic(prog(t, 3.8, 0.2));
+	// How far the stack has scrolled: one slot per message after the first.
+	const scroll = CHAT.slice(1).reduce((sum, m) => sum + outCubic(prog(t, m.at, 0.3)), 0);
 	return (
 		<div
-			className='absolute top-0 left-[120px] flex h-full w-[800px] flex-col justify-center gap-7'
-			style={{ transform: `translateX(${-exit * 900}px)`, opacity: 1 - exit }}
+			className={cn("absolute", V ? "left-[60px] w-[960px]" : "left-[310px] w-[1300px]")}
+			style={{
+				top: H / 2 - SLOT / 2,
+				transform: `translateY(${-scroll * SLOT}px) translateX(${-exit * (W * 0.6)}px)`,
+				opacity: 1 - exit,
+			}}
 		>
-			{CHAT.map((m) => {
+			{CHAT.map((m, i) => {
 				const mine = m.name === "You";
-				const s = pop(t, m.at);
+				const next = CHAT[i + 1];
+				const dim = next ? outCubic(prog(t, next.at, 0.3)) : 0;
+				const s = pop(t, m.at, 0.36);
 				return (
 					<div
 						key={m.at}
-						className={cn("flex items-end gap-4", mine && "justify-end")}
-						style={{ ...s, transformOrigin: mine ? "right bottom" : "left bottom" }}
+						className={cn("absolute inset-x-0 flex items-end gap-5", mine && "justify-end")}
+						style={{
+							top: i * SLOT,
+							height: SLOT - 40,
+							...s,
+							opacity: Number(s.opacity) * (1 - dim * 0.7),
+							transformOrigin: mine ? "right bottom" : "left bottom",
+						}}
 					>
 						{mine ? null : (
 							<span
 								className={cn(
-									"flex size-16 shrink-0 items-center justify-center rounded-full text-2xl font-bold text-background",
+									"flex size-20 shrink-0 items-center justify-center rounded-full text-4xl font-bold text-background",
 									m.tone,
 								)}
 							>
@@ -106,34 +127,23 @@ function Chat({ t }: { t: number }) {
 						)}
 						<div
 							className={cn(
-								"rounded-[28px] px-7 py-4",
+								"rounded-[36px] px-9 py-5",
 								mine
-									? "rounded-br-md bg-primary text-primary-foreground"
-									: "rounded-bl-md border border-border bg-card",
+									? "rounded-br-lg bg-primary text-primary-foreground"
+									: "rounded-bl-lg border border-border bg-card",
 							)}
 						>
 							{mine ? null : (
-								<p className='text-xl font-semibold text-muted-foreground'>{m.name}</p>
+								<p className='text-[28px] font-semibold text-muted-foreground'>{m.name}</p>
 							)}
-							<p className='text-[46px] leading-tight font-medium'>{m.text}</p>
+							<p className={cn("leading-tight font-semibold whitespace-nowrap", V ? "text-[58px]" : "text-[72px]")}>
+								{m.text}
+							</p>
 						</div>
 					</div>
 				);
 			})}
 		</div>
-	);
-}
-
-function Headline({ t }: { t: number }) {
-	const lines = ["Your group", "chat already", "argues", "about it."];
-	return (
-		<h1 className='absolute top-0 left-[1020px] flex h-full w-[820px] flex-col justify-center text-[104px] leading-[1.04] font-bold tracking-tight'>
-			{lines.map((line, i) => (
-				<span key={line} className='block whitespace-nowrap' style={rise(t, 2.0 + i * 0.08, 3.82)}>
-					{line}
-				</span>
-			))}
-		</h1>
 	);
 }
 
@@ -150,10 +160,10 @@ function Reveal({ t }: { t: number }) {
 			<div style={pop(t, 4.0, 0.4)}>
 				<CrowTile size={200} />
 			</div>
-			<h2 className='mt-12 text-[150px] leading-none font-bold tracking-tight' style={rise(t, 4.2)}>
+			<h2 className={cn('mt-12 leading-none font-bold tracking-tight', V ? 'text-[132px]' : 'text-[150px]')} style={rise(t, 4.2)}>
 				Keep score.
 			</h2>
-			<p className='mt-8 text-[52px] text-muted-foreground' style={rise(t, 4.6)}>
+			<p className={cn('mt-8 text-muted-foreground', V ? 'text-[44px]' : 'text-[52px]')} style={rise(t, 4.6)}>
 				The prediction game for friends.
 			</p>
 		</div>
@@ -467,9 +477,13 @@ function Phone({ t }: { t: number }) {
 	const sIn = outCubic(prog(t, 14.62, 0.25));
 	return (
 		<div
-			className='absolute top-1/2 left-[1390px]'
+			className='absolute'
 			style={{
-				transform: `translate(-50%,-50%) translateX(${(1 - enter) * 700 + exit * 700}px) scale(1.3) rotate(${(1 - enter) * 6}deg)`,
+				left: V ? 540 : 1390,
+				top: V ? 1140 : 540,
+				transform: V
+					? `translate(-50%,-50%) translateY(${(1 - enter) * 1100 + exit * 1100}px) scale(1.3) rotate(${(1 - enter) * 4}deg)`
+					: `translate(-50%,-50%) translateX(${(1 - enter) * 700 + exit * 700}px) scale(1.3) rotate(${(1 - enter) * 6}deg)`,
 				opacity: enter * (1 - exit),
 			}}
 		>
@@ -498,13 +512,17 @@ function Phone({ t }: { t: number }) {
 // The big words left of the phone. Each sits in its own full-height slot so
 // two captions crossing never share a line box.
 function Slot({ children }: { children: ReactNode }) {
-	return <div className='absolute inset-y-0 left-0 flex w-full items-center'>{children}</div>;
+	return (
+		<div className={cn('absolute inset-y-0 left-0 flex w-full items-center', V && 'justify-center text-center')}>
+			{children}
+		</div>
+	);
 }
 
 function Captions({ t }: { t: number }) {
-	const big = "text-[136px] leading-[1.02] font-bold tracking-tight";
+	const big = cn("leading-[1.02] font-bold tracking-tight", V ? "text-[118px]" : "text-[136px]");
 	return (
-		<div className='absolute inset-y-0 left-[130px] w-[860px]'>
+		<div className={cn('absolute', V ? 'top-[250px] left-[60px] h-[390px] w-[960px]' : 'inset-y-0 left-[130px] w-[860px]')}>
 			{inWindow(t, 6.75, 8.75) && (
 				<Slot>
 					<h2 className={big} style={rise(t, 6.75, 8.5)}>
@@ -532,12 +550,12 @@ function Captions({ t }: { t: number }) {
 				<Slot>
 					<div style={rise(t, 12.0, 14.5, 30, 0.2)}>
 						<p
-							className='text-[220px] leading-none font-bold tracking-tight text-win tabular-nums'
-							style={{ transform: `scale(${lerp(0.7, 1, outBack(prog(t, 12.0, 0.35)))})`, transformOrigin: "left center" }}
+							className={cn("leading-none font-bold tracking-tight text-win tabular-nums", V ? "text-[164px]" : "text-[220px]")}
+							style={{ transform: `scale(${lerp(0.7, 1, outBack(prog(t, 12.0, 0.35)))})`, transformOrigin: V ? "center" : "left center" }}
 						>
 							+117
 						</p>
-						<h2 className={cn(big, "mt-6")} style={rise(t, 12.25, Infinity, 30)}>
+						<h2 className={cn(big, V ? "mt-2" : "mt-6")} style={rise(t, 12.25, Infinity, 30)}>
 							Called it.
 						</h2>
 					</div>
@@ -562,7 +580,7 @@ function Outro({ t }: { t: number }) {
 			<div style={pop(t, 17.75, 0.4)}>
 				<CrowTile size={170} />
 			</div>
-			<h2 className='mt-10 text-[132px] leading-[1.04] font-bold tracking-tight'>
+			<h2 className={cn('mt-10 leading-[1.04] font-bold tracking-tight', V ? 'text-[108px]' : 'text-[132px]')}>
 				<span className='block' style={rise(t, 17.9)}>
 					Call it.
 				</span>
@@ -582,17 +600,17 @@ function Outro({ t }: { t: number }) {
 
 function Frame({ t }: { t: number }) {
 	// A faint rose glow that follows the action, from the theme token.
-	const glowX = t < 4 ? 30 : t < 6.6 || t >= 17.6 ? 50 : 70;
+	const onPhone = t >= 6.6 && t < 17.6;
+	const glow = V ? `50% ${onPhone ? 60 : 50}%` : `${onPhone ? 70 : 50}% 50%`;
 	return (
-		<div className='relative h-[1080px] w-[1920px] overflow-hidden bg-background text-foreground'>
+		<div className='relative overflow-hidden bg-background text-foreground' style={{ width: W, height: H }}>
 			<div
 				className='absolute inset-0'
 				style={{
-					background: `radial-gradient(900px circle at ${glowX}% 50%, ${twColor("primary", 0.09)}, transparent 70%)`,
+					background: `radial-gradient(900px circle at ${glow}, ${twColor("primary", 0.09)}, transparent 70%)`,
 				}}
 			/>
-			{t < 4.3 && <Chat t={t} />}
-			{inWindow(t, 2.0, 4.2) && <Headline t={t} />}
+			{t < 4.05 && <Chat t={t} />}
 			{inWindow(t, 4.0, 6.75) && <Reveal t={t} />}
 			{inWindow(t, 6.6, 17.8) && <Phone t={t} />}
 			{inWindow(t, 6.75, 17.8) && <Captions t={t} />}

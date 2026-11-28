@@ -5,6 +5,6 @@
 @source "../../src/features/leaderboard/components/leaderboard";
 @source "../../src/shared/ui";
 
-html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; }
+html, body { margin: 0; overflow: hidden; }
 /* Every frame is a pure function of time: no CSS transitions or animations. */
 *, *::before, *::after { transition: none !important; animation: none !important; }
