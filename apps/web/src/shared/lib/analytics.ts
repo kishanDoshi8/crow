@@ -2,14 +2,14 @@ import { supabase } from "@/shared/lib/supabase";
 
 // First-party product events (public.app_events, read in the analytics
 // schema: see docs/analytics.md). Only things the database can't already
-// tell us: landing page visits and taps, the demo question, and a new
+// tell us: landing page visits and taps, the launch video's sound, and a new
 // account, so a visit can be followed to a sign-up. No third-party trackers,
 // no cookies: a random visitor id lives in local storage.
 export type AppEvent =
 	| "landing_view"
 	| "landing_start_room"
 	| "landing_join"
-	| "landing_demo_pick"
+	| "landing_video_sound"
 	| "account_created";
 
 // log_app_event isn't in the generated types until they're regenerated.

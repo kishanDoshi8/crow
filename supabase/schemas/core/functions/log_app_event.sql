@@ -18,7 +18,8 @@ declare
   v_window interval := case when p_name = 'landing_view' then interval '30 minutes' else interval '10 seconds' end;
 begin
   if p_visitor_id is null or p_name not in (
-    'landing_view', 'landing_start_room', 'landing_join', 'landing_demo_pick', 'account_created'
+    'landing_view', 'landing_start_room', 'landing_join', 'landing_demo_pick',
+    'landing_video_sound', 'account_created'
   ) then
     return;
   end if;
