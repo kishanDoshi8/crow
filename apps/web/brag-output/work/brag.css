@@ -1,0 +1,10 @@
+@import "../../src/shared/assets/styles/global.css";
+@source "./";
+@source "../../src/features/predictions/view/OptionsBoard.tsx";
+@source "../../src/features/predictions/lib/predictionView.ts";
+@source "../../src/features/leaderboard/components/leaderboard";
+@source "../../src/shared/ui";
+
+html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; }
+/* Every frame is a pure function of time: no CSS transitions or animations. */
+*, *::before, *::after { transition: none !important; animation: none !important; }
