@@ -92,7 +92,7 @@ export default function LandingPage() {
 							Free. Works in your browser on any phone.
 						</p>
 					</div>
-					<LaunchVideo className='w-full max-w-xs md:max-w-lg lg:justify-self-end' />
+					<LaunchVideo className='mx-auto w-full max-w-sm' />
 				</section>
 
 				{/* One week in a room. A vertical rail on phones, a row on desktop. */}

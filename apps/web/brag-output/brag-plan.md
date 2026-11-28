@@ -29,3 +29,6 @@ The argument you already have, every weekend. Crow turns it into a game with a s
 | 6 | 17.5–20.0 | Outro | CrowTile + **Call it. Crow about it.** + playcrow.app + "Free. No money. Just bragging rights." | final hit, tail |
 
 Numbers add up: 1,300 pts in play (Arsenal 600, Draw 280, Spurs 420). 100 on Arsenal returns 100 x 1300/600 = 217, net +117. Standings: Priya 1,640; Sam 1,410; You 1,350 -> 1,467.
+
+## Vertical layout (the cut on the website)
+Phone on top (screen 390x640 at 1.4x, top at y 260), words directly under it, always 64 px below the phone and top-aligned, so the gap never changes between captions. One type scale across every scene: headings 112 px (136 px landscape), the score 168 px, subtitles 44 px; the logo tile is 180 px in both the reveal and the outro, 48 px above its heading.

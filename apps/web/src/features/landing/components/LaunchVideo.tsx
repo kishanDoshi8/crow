@@ -4,44 +4,30 @@ import { cn } from "@/shared/lib/utils";
 import { useMediaQuery } from "@/shared/lib/useMediaQuery";
 import { track } from "@/shared/lib/analytics";
 
-// The 20-second launch video in the hero: a vertical cut on phones, the
-// landscape cut from tablet up. Files live in public/video (not imported),
-// so the service worker never keeps a copy for offline use.
-// Made with /brag-slim: source and plan in apps/web/brag-output.
-const CUTS = {
-	vertical: {
-		src: "/video/crow-launch-vertical.mp4",
-		poster: "/video/crow-launch-vertical.jpg",
-		aspect: "aspect-[9/16]",
-	},
-	landscape: {
-		src: "/video/crow-launch.mp4",
-		poster: "/video/crow-launch.jpg",
-		aspect: "aspect-video",
-	},
-} as const;
+// The 20-second launch video in the hero: the vertical cut on every screen
+// (a landscape cut was too small beside the headline on desktop). Files live
+// in public/video (not imported), so the service worker never keeps a copy
+// for offline use. Made with /brag-slim: source and plan in
+// apps/web/brag-output.
+const SRC = "/video/crow-launch-vertical.mp4";
+const POSTER = "/video/crow-launch-vertical.jpg";
 
 export function LaunchVideo({ className }: Readonly<{ className?: string }>) {
-	const wide = useMediaQuery("(min-width: 48rem)");
 	// Reduced motion: no autoplay. The poster shows, with controls to play it.
 	const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 	const [muted, setMuted] = useState(true);
-	const cut = wide ? CUTS.landscape : CUTS.vertical;
 
 	return (
 		<figure
 			className={cn(
-				"relative overflow-hidden rounded-2xl border border-border bg-card",
-				cut.aspect,
+				"relative aspect-[9/16] overflow-hidden rounded-2xl border border-border bg-card",
 				className,
 			)}
 		>
 			<video
-				// A new element per cut, so switching sizes loads the right file.
-				key={cut.src}
 				className='size-full object-cover'
-				src={cut.src}
-				poster={cut.poster}
+				src={SRC}
+				poster={POSTER}
 				autoPlay={!reduceMotion}
 				loop={!reduceMotion}
 				muted={muted}

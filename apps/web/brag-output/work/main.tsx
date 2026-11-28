@@ -21,6 +21,23 @@ const V = new URLSearchParams(location.search).get("format") === "vertical";
 const W = V ? 1080 : 1920;
 const H = V ? 1920 : 1080;
 
+// One type scale and one set of gaps for every scene, so nothing jumps
+// between cuts. Vertical: the phone sits on top and the words under it,
+// always the same gap apart.
+const TYPE = {
+	heading: cn("leading-[1.04] font-bold tracking-tight", V ? "text-[112px]" : "text-[136px]"),
+	score: cn("leading-none font-bold tracking-tight text-win tabular-nums", V ? "text-[168px]" : "text-[220px]"),
+	sub: V ? "text-[44px]" : "text-[52px]",
+};
+const TILE = V ? 180 : 190;
+// Vertical: a shorter screen (the bottom of it is empty anyway) so the phone
+// can be bigger and its UI easier to read.
+const SCREEN_H = V ? 640 : 740;
+const PHONE_SCALE = V ? 1.4 : 1.3;
+const PHONE_H = (SCREEN_H + 20) * PHONE_SCALE; // frame incl. bezel
+const PHONE_TOP = 260; // vertical only
+const CAPTION_TOP = PHONE_TOP + PHONE_H + 64;
+
 // ---------------------------------------------------------------------------
 // Time helpers. Every frame is a pure function of t (seconds). 120 BPM: a beat
 // is 0.5 s, so every cut and hit below sits on a multiple of 0.25 s.
@@ -158,12 +175,12 @@ function Reveal({ t }: { t: number }) {
 			style={{ opacity: 1 - leave, transform: `scale(${1 - leave * 0.08})` }}
 		>
 			<div style={pop(t, 4.0, 0.4)}>
-				<CrowTile size={200} />
+				<CrowTile size={TILE} />
 			</div>
-			<h2 className={cn('mt-12 leading-none font-bold tracking-tight', V ? 'text-[132px]' : 'text-[150px]')} style={rise(t, 4.2)}>
+			<h2 className={cn('mt-12', TYPE.heading)} style={rise(t, 4.2)}>
 				Keep score.
 			</h2>
-			<p className={cn('mt-8 text-muted-foreground', V ? 'text-[44px]' : 'text-[52px]')} style={rise(t, 4.6)}>
+			<p className={cn('mt-8 text-muted-foreground', TYPE.sub)} style={rise(t, 4.6)}>
 				The prediction game for friends.
 			</p>
 		</div>
@@ -480,15 +497,15 @@ function Phone({ t }: { t: number }) {
 			className='absolute'
 			style={{
 				left: V ? 540 : 1390,
-				top: V ? 1140 : 540,
+				top: V ? PHONE_TOP + PHONE_H / 2 : 540,
 				transform: V
-					? `translate(-50%,-50%) translateY(${(1 - enter) * 1100 + exit * 1100}px) scale(1.3) rotate(${(1 - enter) * 4}deg)`
-					: `translate(-50%,-50%) translateX(${(1 - enter) * 700 + exit * 700}px) scale(1.3) rotate(${(1 - enter) * 6}deg)`,
+					? `translate(-50%,-50%) translateY(${(1 - enter) * 1300 + exit * 1300}px) scale(${PHONE_SCALE}) rotate(${(1 - enter) * 4}deg)`
+					: `translate(-50%,-50%) translateX(${(1 - enter) * 700 + exit * 700}px) scale(${PHONE_SCALE}) rotate(${(1 - enter) * 6}deg)`,
 				opacity: enter * (1 - exit),
 			}}
 		>
 			<div className='rounded-[58px] border-[10px] border-secondary bg-secondary shadow-2xl ring-1 ring-border'>
-				<div className='relative h-[740px] w-[390px] overflow-hidden rounded-[48px] bg-background'>
+				<div className='relative w-[390px] overflow-hidden rounded-[48px] bg-background' style={{ height: SCREEN_H }}>
 					<div className='absolute top-3 left-1/2 z-50 h-7 w-28 -translate-x-1/2 rounded-full bg-black' />
 					{t < 14.62 ? (
 						<div className='absolute inset-0' style={{ opacity: 1 - qOut }}>
@@ -513,16 +530,19 @@ function Phone({ t }: { t: number }) {
 // two captions crossing never share a line box.
 function Slot({ children }: { children: ReactNode }) {
 	return (
-		<div className={cn('absolute inset-y-0 left-0 flex w-full items-center', V && 'justify-center text-center')}>
+		<div className={cn('absolute inset-y-0 left-0 flex w-full', V ? 'items-start justify-center text-center' : 'items-center')}>
 			{children}
 		</div>
 	);
 }
 
 function Captions({ t }: { t: number }) {
-	const big = cn("leading-[1.02] font-bold tracking-tight", V ? "text-[118px]" : "text-[136px]");
+	const big = TYPE.heading;
 	return (
-		<div className={cn('absolute', V ? 'top-[250px] left-[60px] h-[390px] w-[960px]' : 'inset-y-0 left-[130px] w-[860px]')}>
+		<div
+			className={cn('absolute', V ? 'left-[60px] w-[960px]' : 'inset-y-0 left-[130px] w-[860px]')}
+			style={V ? { top: CAPTION_TOP, height: H - CAPTION_TOP } : undefined}
+		>
 			{inWindow(t, 6.75, 8.75) && (
 				<Slot>
 					<h2 className={big} style={rise(t, 6.75, 8.5)}>
@@ -550,12 +570,12 @@ function Captions({ t }: { t: number }) {
 				<Slot>
 					<div style={rise(t, 12.0, 14.5, 30, 0.2)}>
 						<p
-							className={cn("leading-none font-bold tracking-tight text-win tabular-nums", V ? "text-[164px]" : "text-[220px]")}
+							className={TYPE.score}
 							style={{ transform: `scale(${lerp(0.7, 1, outBack(prog(t, 12.0, 0.35)))})`, transformOrigin: V ? "center" : "left center" }}
 						>
 							+117
 						</p>
-						<h2 className={cn(big, V ? "mt-2" : "mt-6")} style={rise(t, 12.25, Infinity, 30)}>
+						<h2 className={cn(big, V ? "mt-3" : "mt-6")} style={rise(t, 12.25, Infinity, 30)}>
 							Called it.
 						</h2>
 					</div>
@@ -578,9 +598,9 @@ function Outro({ t }: { t: number }) {
 	return (
 		<div className='absolute inset-0 flex flex-col items-center justify-center text-center'>
 			<div style={pop(t, 17.75, 0.4)}>
-				<CrowTile size={170} />
+				<CrowTile size={TILE} />
 			</div>
-			<h2 className={cn('mt-10 leading-[1.04] font-bold tracking-tight', V ? 'text-[108px]' : 'text-[132px]')}>
+			<h2 className={cn('mt-12', TYPE.heading)}>
 				<span className='block' style={rise(t, 17.9)}>
 					Call it.
 				</span>
@@ -588,10 +608,10 @@ function Outro({ t }: { t: number }) {
 					Crow about it.
 				</span>
 			</h2>
-			<p className='mt-10 text-[60px] font-semibold text-primary' style={rise(t, 18.4)}>
+			<p className={cn('mt-8 font-semibold text-primary', TYPE.sub)} style={rise(t, 18.4)}>
 				playcrow.app
 			</p>
-			<p className='mt-3 text-[34px] text-muted-foreground' style={rise(t, 18.5)}>
+			<p className={cn('mt-3 text-muted-foreground', V ? 'text-[34px]' : 'text-[36px]')} style={rise(t, 18.5)}>
 				Free. No money. Just bragging rights.
 			</p>
 		</div>
@@ -601,7 +621,7 @@ function Outro({ t }: { t: number }) {
 function Frame({ t }: { t: number }) {
 	// A faint rose glow that follows the action, from the theme token.
 	const onPhone = t >= 6.6 && t < 17.6;
-	const glow = V ? `50% ${onPhone ? 60 : 50}%` : `${onPhone ? 70 : 50}% 50%`;
+	const glow = V ? `50% ${onPhone ? 40 : 50}%` : `${onPhone ? 70 : 50}% 50%`;
 	return (
 		<div className='relative overflow-hidden bg-background text-foreground' style={{ width: W, height: H }}>
 			<div
