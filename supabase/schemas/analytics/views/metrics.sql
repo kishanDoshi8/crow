@@ -123,6 +123,9 @@ order by 1 desc;
 
 -- Landing page funnel by week and where visitors came from (?ref= or
 -- ?utm_source=). "accounts" are visitors who created an account afterwards.
+-- "tried_demo" is the old example question (until November 2026);
+-- "video_sound" is visitors who turned on the launch video's sound, which
+-- replaced it. New columns go at the end so the view can be replaced.
 create or replace view analytics.landing_funnel as
 with visits as (
   select visitor_id, coalesce(min(source), 'direct') as source,
@@ -140,7 +143,9 @@ select
   count(*) filter (where exists (select 1 from public.app_events e
     where e.visitor_id = v.visitor_id and e.name in ('landing_start_room', 'landing_join'))) as clicked,
   count(*) filter (where exists (select 1 from public.app_events e
-    where e.visitor_id = v.visitor_id and e.name = 'account_created')) as accounts
+    where e.visitor_id = v.visitor_id and e.name = 'account_created')) as accounts,
+  count(*) filter (where exists (select 1 from public.app_events e
+    where e.visitor_id = v.visitor_id and e.name = 'landing_video_sound')) as video_sound
 from visits v
 group by 1, 2
 order by 1 desc, visitors desc;

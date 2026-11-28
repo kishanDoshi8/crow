@@ -121,7 +121,8 @@ new data is `public.app_events`, written through `public.log_app_event`:
 | `landing_view` | The landing page opens (once per visitor per 30 minutes) |
 | `landing_start_room` | A signed-out visitor taps Start a room |
 | `landing_join` | A signed-out visitor taps Join with a code |
-| `landing_demo_pick` | A visitor picks an option in the example question |
+| `landing_video_sound` | A visitor turns on the sound of the launch video in the hero (once per 10 seconds) |
+| `landing_demo_pick` | A visitor picked an option in the example question. The question was replaced by the launch video in November 2026; the name stays accepted so old rows still count |
 | `account_created` | Someone picks their username (creates their player) |
 
 Each row has a random `visitor_id` from the browser's local storage, the
@@ -132,7 +133,7 @@ this under "Visits".
 
 `log_app_event` is the only database function signed-out visitors can call
 (`supabase/tests/security_hardening.sql` checks this). It accepts only the
-five names above, caps text length, drops repeats and never raises an error.
+six names above, caps text length, drops repeats and never raises an error.
 
 ### Raw events, if you need them
 
